@@ -42,7 +42,7 @@ function LoginMain() {
       <div className="w-full max-w-md p-6 rounded-2xl shadow-lg bg-white/10 backdrop-blur-md border border-white/20 text-white">
         <h2 className="mb-3 text-3xl font-semibold text-center">Login to your account</h2>
         <p className="text-sm text-center text-gray-200">
-          Login to your account to get started with Menuplease.
+          Login to your account to get started with Vacanteach.
         </p>
         <div className="my-6 space-y-4">
           {/* Google Login Button */}
@@ -76,15 +76,9 @@ function LoginMain() {
             </svg>
             <p>Login with Google</p>
           </button>
-
-       
-
-        
-
         </div>
       </div>
     </div>
   );
 }
-
 export default LoginMain;
