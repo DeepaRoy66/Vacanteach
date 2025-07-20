@@ -5,50 +5,48 @@ import toast, { Toaster } from "react-hot-toast";
 import { useRouter } from "next/navigation";
 
 function LoginMain() {
-  const {status, data} = useSession()
+  const { status, data } = useSession();
+  const router = useRouter();
 
   function login(e) {
     if (e === "google") {
-      signIn("google", { callbackUrl: "/welcome" });
+      signIn("google", { callbackUrl: "/select-role" });
     } else {
-      toast.error(
-        "This login feature is not available yet. Please try again later."
-      );
+      toast.error("This login feature is not available yet. Please try again later.");
     }
   }
 
-  const router = useRouter()
-
-  if(status === "authenticated"){
-    router.push("/welcome")
+  if (status === "authenticated") {
+    const userRole = data?.user?.role;
+    if (userRole) {
+      router.push("/welcome");
+    } else {
+      router.push("/select-role");
+    }
   }
 
-  if(status === "loading"){
-    return null
+  if (status === "loading") {
+    return null;
   }
 
   return (
     <div
       className="flex justify-center items-center p-5"
       style={{
-        background:
-          "linear-gradient(145deg, #2e2e2e8a, #1f1f1f8a), url(https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8am9ifGVufDB8fDB8fHww)",
+        background: "linear-gradient(145deg, #2e2e2e, #1f1f1f)", // Removed invalid 'ur' and opacity for clarity
         backgroundSize: "cover",
         backgroundPosition: "center",
-        height: "100vh",
+        minHeight: "100vh", // Changed to minHeight for better compatibility
       }}
     >
       <Toaster />
-      <div className="w-full max-w-md p-6 rounded-2xl shadow-lg bg-white/10 backdrop-blur-md border border-white/20 text-white">
+      <div className="w-full max-w-md p-6 rounded-2xl shadow-xl bg-white/20 backdrop-blur-lg border border-white/30 text-white">
         <h2 className="mb-3 text-3xl font-semibold text-center">Login to your account</h2>
-        <p className="text-sm text-center text-gray-200">
-          Login to your account to get started with Vacanteach.
-        </p>
+        <p className="text-sm text-center text-gray-100">Login to your account to get started with Vacanteach.</p>
         <div className="my-6 space-y-4">
-          {/* Google Login Button */}
           <button
             onClick={() => login("google")}
-            className="flex items-center justify-center w-full p-4 space-x-4 rounded-xl text-white bg-white/10 hover:bg-white/20 transition-all duration-200 border border-white/10"
+            className="flex items-center justify-center w-full p-4 space-x-4 rounded-xl bg-gray-700 hover:bg-gray-600 transition-all duration-200 border border-gray-500 text-white"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -81,4 +79,5 @@ function LoginMain() {
     </div>
   );
 }
+
 export default LoginMain;
