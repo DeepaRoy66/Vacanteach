@@ -22,7 +22,7 @@ function LoginMain() {
     const checkUserStatus = async () => {
       if (status === "authenticated" && session?.user?.email) {
         try {
-          const response = await fetch("/api/user/details", {
+          const response = await fetch("/api/user/teacherdata", {
             method: "GET", // Use GET to check user status
             headers: {
               "Content-Type": "application/json",

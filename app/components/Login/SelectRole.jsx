@@ -15,6 +15,8 @@ export default function SelectRole() {
     name: "",
     email: "",
     phone: "",
+    organizationName: "",
+    industry: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -24,7 +26,6 @@ export default function SelectRole() {
     }
   }, [status, session]);
 
-  // Redirect to welcome or teacher if role is already selected
   useEffect(() => {
     if (status === "authenticated" && session?.user?.role) {
       if (session.user.role === "client") {
@@ -53,18 +54,27 @@ export default function SelectRole() {
       toast.error("Please select a role.");
       return;
     }
-    setIsFormVisible(true);
+    if (selectedRole === "client") {
+      setIsFormVisible(true); // Show organization form directly for "client"
+    } else {
+      setIsFormVisible(true); // Show generic form for "teacher"
+    }
   };
 
   const handleFormSubmit = async () => {
-    if (!formData.name || !formData.email || !formData.phone) {
+    if (selectedRole === "client") {
+      if (!formData.organizationName || !formData.industry || !formData.phone) {
+        toast.error("Please fill all fields.");
+        return;
+      }
+    } else if (!formData.name || !formData.email || !formData.phone) {
       toast.error("Please fill all fields.");
       return;
     }
     setIsSubmitting(true);
 
     try {
-      const res = await fetch("/api/user/details", {
+      const res = await fetch("/api/user/teacherdata", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...formData, role: selectedRole }),
@@ -138,46 +148,103 @@ export default function SelectRole() {
           </div>
         ) : (
           <div className="space-y-4">
-            <h3 className="text-xl font-semibold text-center text-gray-800 mb-4">
-              Complete Your Profile
-            </h3>
-            <input
-              type="text"
-              placeholder="Full Name"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full p-3 border border-gray-300 rounded-lg"
-            />
-            <input
-              type="email"
-              placeholder="Email"
-              value={formData.email}
-              disabled
-              className="w-full p-3 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed"
-            />
-            <input
-              type="text"
-              placeholder="Phone Number"
-              value={formData.phone}
-              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-              className="w-full p-3 border border-gray-300 rounded-lg"
-            />
-            <button
-              onClick={handleFormSubmit}
-              className="w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? "Submitting..." : "Submit"}
-            </button>
-            <p className="text-center text-sm text-gray-600 mt-4">
-              Want to change your role?{" "}
-              <span
-                onClick={() => setIsFormVisible(false)}
-                className="underline cursor-pointer"
-              >
-                Go back
-              </span>
-            </p>
+            {selectedRole === "client" ? (
+              <div>
+                <h3 className="text-xl font-semibold text-center text-gray-800 mb-4">
+                  Organization Information
+                </h3>
+                <p className="text-center text-gray-600 mb-4">
+                  Provide your organization's brief
+                </p>
+                <input
+                  type="text"
+                  placeholder="Organization Name"
+                  value={formData.organizationName}
+                  onChange={(e) =>
+                    setFormData({ ...formData, organizationName: e.target.value })
+                  }
+                  className="w-full p-3 border border-gray-300 rounded-lg mb-4"
+                />
+                <input
+                  type="text"
+                  placeholder="Phone Number"
+                  value={formData.phone}
+                  onChange={(e) =>
+                    setFormData({ ...formData, phone: e.target.value })
+                  }
+                  className="w-full p-3 border border-gray-300 rounded-lg mb-4"
+                />
+                <select
+                  value={formData.industry}
+                  onChange={(e) =>
+                    setFormData({ ...formData, industry: e.target.value })
+                  }
+                  className="w-full p-3 border border-gray-300 rounded-lg mb-4"
+                >
+                  <option value="">Select Industry</option>
+                  <option value="Tech">Tech</option>
+                  <option value="Healthcare">Healthcare</option>
+                  <option value="Education">Education</option>
+                  {/* Add more industries as needed */}
+                </select>
+                <button
+                  onClick={handleFormSubmit}
+                  className="w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? "Submitting..." : "Continue"}
+                </button>
+                <p className="text-center text-sm text-gray-600 mt-4">
+                  Already have an employer account?{" "}
+                  <a href="/login" className="underline">
+                    Login Here
+                  </a>
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <h3 className="text-xl font-semibold text-center text-gray-800 mb-4">
+                  Complete Your Profile
+                </h3>
+                <input
+                  type="text"
+                  placeholder="Full Name"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className="w-full p-3 border border-gray-300 rounded-lg"
+                />
+                <input
+                  type="email"
+                  placeholder="Email"
+                  value={formData.email}
+                  disabled
+                  className="w-full p-3 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed"
+                />
+                <input
+                  type="text"
+                  placeholder="Phone Number"
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  className="w-full p-3 border border-gray-300 rounded-lg"
+                />
+                <button
+                  onClick={handleFormSubmit}
+                  className="w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? "Submitting..." : "Submit"}
+                </button>
+                <p className="text-center text-sm text-gray-600 mt-4">
+                  Want to change your role?{" "}
+                  <span
+                    onClick={() => setIsFormVisible(false)}
+                    className="underline cursor-pointer"
+                  >
+                    Go back
+                  </span>
+                </p>
+              </div>
+            )}
           </div>
         )}
       </div>
