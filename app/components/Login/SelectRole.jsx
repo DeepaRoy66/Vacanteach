@@ -54,11 +54,7 @@ export default function SelectRole() {
       toast.error("Please select a role.");
       return;
     }
-    if (selectedRole === "client") {
-      setIsFormVisible(true); // Show organization form directly for "client"
-    } else {
-      setIsFormVisible(true); // Show generic form for "teacher"
-    }
+    setIsFormVisible(true);
   };
 
   const handleFormSubmit = async () => {
@@ -71,24 +67,46 @@ export default function SelectRole() {
       toast.error("Please fill all fields.");
       return;
     }
+
     setIsSubmitting(true);
 
     try {
-      const res = await fetch("/api/user/teacherdata", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...formData, role: selectedRole }),
-      });
+      let res;
+      if (selectedRole === "client") {
+        res = await fetch("/api/user/organizationdata", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            organizationName: formData.organizationName,
+            industry: formData.industry,
+            phone: formData.phone,
+            email: formData.email,
+            role: "client",
+          }),
+        });
+      } else {
+        res = await fetch("/api/user/teacherdata", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: formData.name,
+            email: formData.email,
+            phone: formData.phone,
+            role: "teacher",
+          }),
+        });
+      }
+
       const result = await res.json();
 
       if (res.ok) {
         toast.success(result.message || "Profile created successfully!");
+
+        // Refresh session after profile creation
         await signIn("google", { redirect: false });
-        if (selectedRole === "client") {
-          router.push("/organization");
-        } else if (selectedRole === "teacher") {
-          router.push("/teacher");
-        }
+
+        // Redirect to respective dashboard
+        router.push(selectedRole === "client" ? "/organization" : "/teacher");
       } else {
         toast.error(result.message || "Failed to create profile.");
       }
@@ -107,6 +125,7 @@ export default function SelectRole() {
         <h2 className="text-2xl font-semibold text-center text-gray-800 mb-6">
           Join as a client or teacher
         </h2>
+
         {!isFormVisible ? (
           <div className="space-y-4">
             <label className="flex items-center p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
@@ -169,23 +188,18 @@ export default function SelectRole() {
                   type="text"
                   placeholder="Phone Number"
                   value={formData.phone}
-                  onChange={(e) =>
-                    setFormData({ ...formData, phone: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                   className="w-full p-3 border border-gray-300 rounded-lg mb-4"
                 />
                 <select
                   value={formData.industry}
-                  onChange={(e) =>
-                    setFormData({ ...formData, industry: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, industry: e.target.value })}
                   className="w-full p-3 border border-gray-300 rounded-lg mb-4"
                 >
                   <option value="">Select Industry</option>
                   <option value="Tech">Tech</option>
                   <option value="Healthcare">Healthcare</option>
                   <option value="Education">Education</option>
-                  {/* Add more industries as needed */}
                 </select>
                 <button
                   onClick={handleFormSubmit}

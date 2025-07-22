@@ -1,5 +1,5 @@
 import { connectToDatabase } from "@/lib/mongoose";
-import User from "@/lib/models/User";
+import User from "@/lib/models/user";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../../auth/[...nextauth]/route";
 
