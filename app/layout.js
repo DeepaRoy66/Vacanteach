@@ -1,7 +1,7 @@
 import Footer from './components/Footer';
-import Navbar from './components/Navbar';
 import './globals.css';
 import SessionProvider from './components/SessionProvider'; // Import your client component
+import Navbar from './components/Navbar';
 
 export const metadata = {
   title: 'Upwork Clone',
@@ -13,7 +13,7 @@ export default function RootLayout({ children, session }) { // Ensure session is
     <html lang="en">
       <body className="flex flex-col min-h-screen">
         <SessionProvider session={session}> {/* Use your client-side SessionProvider */}
-          <Navbar />
+          <Navbar/>
           <main className="flex-grow">{children}</main>
           <Footer />
         </SessionProvider>
