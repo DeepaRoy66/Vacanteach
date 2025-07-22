@@ -108,7 +108,7 @@ export default function SelectRole() {
                 onChange={() => setSelectedRole("client")}
                 className="mr-3 text-blue-600 focus:ring-blue-500"
               />
-              <span className="text-gray-700">I'm a client, hiring for a project</span>
+              <span className="text-gray-700">I'm an organization, providing job</span>
             </label>
             <label className="flex items-center p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
               <input
