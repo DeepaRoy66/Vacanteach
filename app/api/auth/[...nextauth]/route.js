@@ -12,7 +12,7 @@ export const authOptions = {
   ],
   secret: process.env.NEXTAUTH_SECRET,
   callbacks: {
-    async session({ session }) {
+    async session({ session, token }) {
       if (!session?.user?.email) return session;
 
       await connectToDatabase();
@@ -22,10 +22,13 @@ export const authOptions = {
         session.user.name = userInDB.name;
         session.user.phone = userInDB.phone;
         session.user.role = userInDB.role;
+        session.user.image = token.picture; 
       }
 
       return session;
     },
+   
+    
   },
 };
 

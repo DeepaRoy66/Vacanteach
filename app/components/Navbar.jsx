@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSession, signOut } from "next-auth/react";
 
 export default function Navbar() {
@@ -13,50 +13,80 @@ export default function Navbar() {
   const isWelcomePage = pathname === "/welcome";
   const isAuthenticated = status === "authenticated";
 
+  useEffect(() => {
+    const handleClickOutside = () => setIsProfileOpen(false);
+    window.addEventListener("click", handleClickOutside);
+    return () => window.removeEventListener("click", handleClickOutside);
+  }, []);
+
+  const handleToggleDropdown = (e) => {
+    e.stopPropagation();
+    setIsProfileOpen((prev) => !prev);
+  };
+
   return (
-    <nav className="bg-white shadow-md p-4">
-      <div className="container mx-auto flex justify-between items-center">
-        <div className="text-2xl font-bold">VacanTeach</div>
-        <div className="space-x-4 flex items-center">
-          <Link href="/find-work">Find Work</Link>
-          <Link href="/enterprise">Enterprise</Link>
+    <nav className="bg-gradient-to-r from-indigo-600 to-purple-700 shadow-lg p-4">
+      <div className="container mx-auto flex justify-between items-center text-white">
+        <div className="text-3xl font-extrabold tracking-wide">VacanTeach</div>
+
+        <div className="space-x-6 flex items-center">
+          <Link href="/find-work" className="hover:text-yellow-300 transition duration-300">Find Work</Link>
+          <Link href="/enterprise" className="hover:text-yellow-300 transition duration-300">Enterprise</Link>
 
           {isWelcomePage && isAuthenticated ? (
             <div className="relative">
               <button
-                onClick={() => setIsProfileOpen(!isProfileOpen)}
-                className="flex items-center space-x-2 focus:outline-none"
-                disabled={status === "loading"}
+                onClick={handleToggleDropdown}
+                className="flex items-center space-x-3 focus:outline-none hover:opacity-90 transition duration-300"
               >
-                <svg
-                  className="w-6 h-6 text-gray-700"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M5.121 17.804A4.992 4.992 0 0112 15c2.21 0 4.045 1.436 4.879 3.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                {session?.user?.image && (
+                  <img
+                    src={session?.user?.image}
+                    alt="Profile"
+                    className="w-10 h-10 rounded-full object-cover border-2 border-yellow-400"
                   />
-                </svg>
-                <span>{session.user.name || "User"}</span>
+                )}
+                <span className="text-lg font-semibold">{session?.user?.name || "User"}</span>
               </button>
 
               {isProfileOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg p-4 z-10">
-                  <p className="text-sm">Name: {session.user.name || "N/A"}</p>
-                  <p className="text-sm">Phone: {session.user.phone || "N/A"}</p>
-                  <p className="text-sm">Email: {session.user.email || "N/A"}</p>
+                <div
+                  className="absolute right-0 mt-3 w-72 bg-white text-gray-800 border border-gray-200 rounded-xl shadow-2xl p-5 z-10 animate-fadeIn"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="flex items-center space-x-4 mb-4">
+                    {session.user.image && (
+                      <img
+                        src={session?.user?.image}
+                        alt="Profile"
+                        className="w-12 h-12 rounded-full object-cover border-2 border-indigo-500"
+                      />
+                    )}
+                    <div>
+                      <p className="font-bold text-lg">{session?.user?.name}</p>
+                      <p className="text-sm text-gray-600">{session.user.email}</p>
+                    </div>
+                  </div>
+                  <p className="text-sm mb-2">
+                    <strong className="text-indigo-700">Phone:</strong> {session?.user?.phone || "N/A"}
+                  </p>
+                  <p className="text-sm mb-4">
+                    <strong className="text-indigo-700">Role:</strong> {session?.user?.role || "N/A"}
+                  </p>
+                  <button
+                    onClick={() => signOut()}
+                    className="w-full text-center bg-red-500 text-white py-2 rounded-lg hover:bg-red-600 transition duration-300"
+                  >
+                    Logout
+                  </button>
                 </div>
               )}
             </div>
           ) : (
             <>
-              <Link href="/auth">Login</Link>
+              <Link href="/auth" className="hover:text-yellow-300 transition duration-300">Login</Link>
               <Link href="/auth">
-                <button className="bg-green-500 text-white px-4 py-2 rounded">
+                <button className="bg-yellow-400 text-indigo-900 px-5 py-2 rounded-full font-semibold hover:bg-yellow-500 transition duration-300">
                   Sign Up
                 </button>
               </Link>

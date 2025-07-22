@@ -36,6 +36,7 @@ export async function GET(request) {
           email: user.email,
           phone: user.phone,
           role: user.role,
+          
         },
       }),
       {
