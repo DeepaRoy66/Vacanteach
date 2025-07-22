@@ -10,7 +10,8 @@ export default function Navbar() {
   const { data: session, status } = useSession();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
-  const isWelcomePage = pathname === "/organization";
+  // Update condition to include both /organization and /teacher
+  const isWelcomePage = pathname === "/organization" || pathname === "/teacher";
   const isAuthenticated = status === "authenticated";
 
   useEffect(() => {
