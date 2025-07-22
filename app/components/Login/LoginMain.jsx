@@ -1,42 +1,67 @@
 "use client";
-import React from "react";
+import React, { useEffect } from "react";
 import { signIn, useSession } from "next-auth/react";
 import toast, { Toaster } from "react-hot-toast";
 import { useRouter } from "next/navigation";
 
 function LoginMain() {
-  const { status, data } = useSession();
+  const { status, data: session } = useSession();
   const router = useRouter();
 
-  function login(e) {
-    if (e === "google") {
+  // Function to handle login
+  function login(provider) {
+    if (provider === "google") {
       signIn("google", { callbackUrl: "/select-role" });
     } else {
       toast.error("This login feature is not available yet. Please try again later.");
     }
   }
 
-  if (status === "authenticated") {
-    const userRole = data?.user?.role;
-    if (userRole) {
-      router.push("/welcome");
-    } else {
-      router.push("/select-role");
-    }
-  }
+  // Check user status and redirect if authenticated and profile is complete
+  useEffect(() => {
+    const checkUserStatus = async () => {
+      if (status === "authenticated" && session?.user?.email) {
+        try {
+          const response = await fetch("/api/user/details", {
+            method: "GET", // Use GET to check user status
+            headers: {
+              "Content-Type": "application/json",
+            },
+            credentials: "include", // Ensure session cookie is sent
+          });
 
+          const result = await response.json();
+
+          if (response.ok && result.profileCompleted) {
+            router.push("/welcome");
+          } else if (response.ok && !result.profileCompleted) {
+            router.push("/select-role");
+          } else {
+            console.error("Error checking user status:", result.message);
+          }
+        } catch (error) {
+          console.error("Fetch error:", error);
+        }
+      }
+    };
+
+    checkUserStatus();
+  }, [status, session, router]);
+
+  // Show loading state or login UI
   if (status === "loading") {
-    return null;
+    return null; // or a loading spinner
   }
 
+  // Show login UI if not authenticated
   return (
     <div
       className="flex justify-center items-center p-5"
       style={{
-        background: "linear-gradient(145deg, #2e2e2e, #1f1f1f)", // Removed invalid 'ur' and opacity for clarity
+        background: "linear-gradient(145deg, #2e2e2e, #1f1f1f)",
         backgroundSize: "cover",
         backgroundPosition: "center",
-        minHeight: "100vh", // Changed to minHeight for better compatibility
+        minHeight: "100vh",
       }}
     >
       <Toaster />
