@@ -28,7 +28,7 @@ export default function SelectRole() {
   useEffect(() => {
     if (status === "authenticated" && session?.user?.role) {
       if (session.user.role === "client") {
-        router.push("/welcome");
+        router.push("/organization");
       } else if (session.user.role === "teacher") {
         router.push("/teacher");
       }
@@ -75,7 +75,7 @@ export default function SelectRole() {
         toast.success(result.message || "Profile created successfully!");
         await signIn("google", { redirect: false });
         if (selectedRole === "client") {
-          router.push("/welcome");
+          router.push("/organization");
         } else if (selectedRole === "teacher") {
           router.push("/teacher");
         }

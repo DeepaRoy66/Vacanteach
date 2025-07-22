@@ -33,7 +33,7 @@ function LoginMain() {
           const result = await response.json();
 
           if (response.ok && result.profileCompleted) {
-            router.push("/welcome");
+            router.push("/organization");
           } else if (response.ok && !result.profileCompleted) {
             router.push("/select-role");
           } else {
