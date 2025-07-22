@@ -1,7 +1,7 @@
 import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import { connectToDatabase } from "@/lib/mongoose";
-import User from "@/lib/models/user";
+import User from "@/lib/models/User";
 
 export const authOptions = {
   providers: [
@@ -12,7 +12,7 @@ export const authOptions = {
   ],
   secret: process.env.NEXTAUTH_SECRET,
   callbacks: {
-    async session({ session }) {
+    async session({ session, token }) {
       if (!session?.user?.email) return session;
 
       await connectToDatabase();
@@ -22,11 +22,13 @@ export const authOptions = {
         session.user.name = userInDB.name;
         session.user.phone = userInDB.phone;
         session.user.role = userInDB.role;
-        session.user.image = userInDB.image || session.user.image;
+        session.user.image = token.picture; 
       }
 
       return session;
     },
+   
+    
   },
 };
 

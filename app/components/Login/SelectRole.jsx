@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSession, signIn } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import toast, { Toaster } from "react-hot-toast";
 
@@ -20,22 +20,28 @@ export default function SelectRole() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Update email in formData when session is available
   useEffect(() => {
     if (status === "authenticated" && session?.user?.email) {
       setFormData((prev) => ({ ...prev, email: session.user.email }));
     }
   }, [status, session]);
 
+  // Redirect based on user role
   useEffect(() => {
     if (status === "authenticated" && session?.user?.role) {
+      console.log("Session role detected:", session.user.role); // Debug session role
       if (session.user.role === "client") {
+        console.log("Redirecting to /organization");
         router.push("/organization");
       } else if (session.user.role === "teacher") {
+        console.log("Redirecting to /teacher");
         router.push("/teacher");
       }
     }
   }, [status, session, router]);
 
+  // Handle loading state
   if (status === "loading") {
     return (
       <div className="flex justify-center items-center min-h-screen bg-gray-100">
@@ -44,19 +50,24 @@ export default function SelectRole() {
     );
   }
 
+  // Redirect to login if unauthenticated
   if (status === "unauthenticated") {
+    console.log("Unauthenticated, redirecting to /login");
     router.push("/login");
     return null;
   }
 
+  // Handle role selection
   const handleRoleSelection = () => {
     if (!selectedRole) {
       toast.error("Please select a role.");
       return;
     }
+    console.log("Selected role:", selectedRole); // Debug role selection
     setIsFormVisible(true);
   };
 
+  // Handle form submission
   const handleFormSubmit = async () => {
     if (selectedRole === "client") {
       if (!formData.organizationName || !formData.industry || !formData.phone) {
@@ -73,6 +84,7 @@ export default function SelectRole() {
     try {
       let res;
       if (selectedRole === "client") {
+        console.log("Submitting organization data:", formData); // Debug form data
         res = await fetch("/api/user/organizationdata", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -85,6 +97,7 @@ export default function SelectRole() {
           }),
         });
       } else {
+        console.log("Submitting teacher data:", formData); // Debug form data
         res = await fetch("/api/user/teacherdata", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -98,21 +111,21 @@ export default function SelectRole() {
       }
 
       const result = await res.json();
+      console.log("API Response:", { status: res.status, result }); // Debug API response
 
       if (res.ok) {
         toast.success(result.message || "Profile created successfully!");
-
-        // Refresh session after profile creation
-        await signIn("google", { redirect: false });
-
-        // Redirect to respective dashboard
-        router.push(selectedRole === "client" ? "/organization" : "/teacher");
+        // Directly redirect after successful API call
+        const redirectPath = selectedRole === "client" ? "/organization" : "/teacher";
+        console.log(`Redirecting to ${redirectPath}`);
+        router.push(redirectPath);
       } else {
         toast.error(result.message || "Failed to create profile.");
+        console.error("API error:", result);
       }
     } catch (error) {
       toast.error("An error occurred. Please try again.");
-      console.error(error);
+      console.error("Submission error:", error); // Debug error
     } finally {
       setIsSubmitting(false);
     }
