@@ -10,9 +10,9 @@ export default function Navbar() {
   const { data: session, status } = useSession();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
-  // Update condition to include both /organization and /teacher
   const isWelcomePage = pathname === "/organization" || pathname === "/teacher";
   const isAuthenticated = status === "authenticated";
+  const isOrganizationPage = pathname === "/organization";
 
   useEffect(() => {
     const handleClickOutside = () => setIsProfileOpen(false);
@@ -31,7 +31,12 @@ export default function Navbar() {
         <div className="text-3xl font-extrabold tracking-wide">VacanTeach</div>
 
         <div className="space-x-6 flex items-center">
-          <Link href="/find-work" className="hover:text-yellow-300 transition duration-300">Find Work</Link>
+          <Link 
+            href={isAuthenticated && isOrganizationPage ? "/post-job" : "/find-work"} 
+            className="hover:text-yellow-300 transition duration-300"
+          >
+            {isAuthenticated && isOrganizationPage ? "Post Job" : "Find Work"}
+          </Link>
           <Link href="/enterprise" className="hover:text-yellow-300 transition duration-300">Enterprise</Link>
 
           {isWelcomePage && isAuthenticated ? (
