@@ -1,4 +1,5 @@
 "use client";
+
 import { useState, useEffect } from "react";
 import { useSession, signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -23,10 +24,14 @@ export default function SelectRole() {
     }
   }, [status, session]);
 
-  // Redirect to welcome if profile already completed
+  // Redirect to welcome or teacher if role is already selected
   useEffect(() => {
     if (status === "authenticated" && session?.user?.role) {
-      router.push("/welcome");
+      if (session.user.role === "client") {
+        router.push("/welcome");
+      } else if (session.user.role === "teacher") {
+        router.push("/teacher");
+      }
     }
   }, [status, session, router]);
 
@@ -68,9 +73,12 @@ export default function SelectRole() {
 
       if (res.ok) {
         toast.success(result.message || "Profile created successfully!");
-        // Refresh session to get updated role & profile info
         await signIn("google", { redirect: false });
-        router.push("/welcome");
+        if (selectedRole === "client") {
+          router.push("/welcome");
+        } else if (selectedRole === "teacher") {
+          router.push("/teacher");
+        }
       } else {
         toast.error(result.message || "Failed to create profile.");
       }
