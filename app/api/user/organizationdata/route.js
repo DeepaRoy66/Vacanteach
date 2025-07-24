@@ -1,7 +1,7 @@
 // app/api/user/organizationdata/route.js  (if using Next.js 13 app router)
-import { connectToDatabase } from "@/lib/mongoose";
-import Organization from "@/lib/models/Organization";
-import User from "@/lib/models/User";
+import { connectToDatabase } from "../../../../lib/mongoose";
+import Organization from "../../../../lib/models/Organization";
+import User from "../../../../lib/models/User";
 
 export async function POST(req) {
   try {
