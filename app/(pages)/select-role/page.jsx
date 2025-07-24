@@ -1,4 +1,5 @@
-import SelectRole from "../components/Login/SelectRole";
+import SelectRole from "../../components/Login/SelectRole";
+
 
 
 export default function SelectRolePage() {

@@ -33,7 +33,7 @@ export default function SelectRole() {
       console.log("Session role detected:", session.user.role); // Debug session role
       if (session.user.role === "client") {
         console.log("Redirecting to /organization");
-        router.push("/organization");
+        router.push("/orgs");
       } else if (session.user.role === "teacher") {
         console.log("Redirecting to /teacher");
         router.push("/teacher");
@@ -116,7 +116,7 @@ export default function SelectRole() {
       if (res.ok) {
         toast.success(result.message || "Profile created successfully!");
         // Directly redirect after successful API call
-        const redirectPath = selectedRole === "client" ? "/organization" : "/teacher";
+        const redirectPath = selectedRole === "client" ? "/orgs" : "/teacher";
         console.log(`Redirecting to ${redirectPath}`);
         router.push(redirectPath);
       } else {

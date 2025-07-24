@@ -1,13 +1,12 @@
-// This file contains JSX for the OrganizationDashboard component.
-"use client"
 
+"use client"
 import React from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
-import { Card,CardContent,CardDescription,CardHeader,CardTitle } from "../components/ui/card"
-import { Button } from "../components/ui/button"
-import { Select,SelectValue,SelectTrigger,SelectContent,SelectItem } from "../components/ui/select"
-import { Progress } from "../components/ui/progress"
+import { Card,CardContent,CardDescription,CardHeader,CardTitle } from "../ui/card"
+import { Button } from "../ui/button"
+import { Select,SelectValue,SelectTrigger,SelectContent,SelectItem } from "../ui/select"
+import { Progress } from "../ui/progress"
 import { Users, BriefcaseBusiness, CircleDollarSign } from "lucide-react"
 
 export default function OrganizationDashboard() {

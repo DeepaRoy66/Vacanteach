@@ -18,9 +18,9 @@ export default function Navbar() {
   }, [pathname, status, session]);
 
   // Include /organization/post-job in isWelcomePage for profile dropdown
-  const isWelcomePage = pathname === "/organization" || pathname === "/teacher" || pathname === "/organization/post-job";
+  const isWelcomePage = pathname === "/orgs" || pathname === "/teacher" || pathname === "/postjob";
   // Include /organization/post-job in organization-related pages for "Post Job" link
-  const isOrganizationPage = pathname === "/organization" || pathname === "/organization/post-job";
+  const isOrganizationPage = pathname === "/orgs" || pathname === "/postjob";
   // Wait for session to be fully loaded before determining authentication
   const isAuthenticated = status === "authenticated";
 
@@ -56,9 +56,9 @@ export default function Navbar() {
 
         <div className="space-x-6 flex items-center">
           <Link
-            href={isAuthenticated && isOrganizationPage ? "/organization/post-job" : "/find-work"}
+            href={isAuthenticated && isOrganizationPage ? "/postjob" : "/find-work"}
             className="hover:text-yellow-300 transition duration-300"
-            onClick={() => console.log("Navigating to:", isAuthenticated && isOrganizationPage ? "/organization/post-job" : "/find-work")}
+            onClick={() => console.log("Navigating to:", isAuthenticated && isOrganizationPage ? "/postjob" : "/find-work")}
           >
             {isAuthenticated && isOrganizationPage ? "Post Job" : "Find Work"}
           </Link>
@@ -75,10 +75,7 @@ export default function Navbar() {
                     src={session.user.image}
                     alt="Profile"
                     className="w-10 h-10 rounded-full object-cover border-2 border-yellow-400"
-                    onError={(e) => {
-                      console.log("Profile image error, using fallback");
-                      e.target.src = "/default-profile.png";
-                    }}
+                  
                   />
                 ) : (
                   <div className="w-10 h-10 rounded-full bg-gray-400 flex items-center justify-center border-2 border-yellow-400">
@@ -101,10 +98,7 @@ export default function Navbar() {
                         src={session.user.image}
                         alt="Profile"
                         className="w-12 h-12 rounded-full object-cover border-2 border-indigo-500"
-                        onError={(e) => {
-                          console.log("Dropdown image error, using fallback");
-                          e.target.src = "/default-profile.png";
-                        }}
+                       
                       />
                     ) : (
                       <div className="w-12 h-12 rounded-full bg-gray-400 flex items-center justify-center border-2 border-indigo-500">

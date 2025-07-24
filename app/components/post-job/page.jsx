@@ -68,17 +68,6 @@ export default function PostJobPage() {
         role: session?.user?.role || "Organization",
       });
 
-      // TODO: Replace with actual API call to your backend (e.g., /api/jobs)
-      // Example:
-      // const response = await fetch("/api/jobs", {
-      //   method: "POST",
-      //   headers: { "Content-Type": "application/json" },
-      //   body: JSON.stringify({ ...formData, postedBy: session.user.email }),
-      // });
-      // if (!response.ok) throw new Error("Failed to post job");
-      // const data = await response.json();
-      // alert("Job posted successfully!");
-      // setFormData({ title: "", description: "", location: "", subject: "", employmentType: "Full-time", salary: "" });
 
       alert("Job posted successfully! (Placeholder)");
       setFormData({ title: "", description: "", location: "", subject: "", employmentType: "Full-time", salary: "" });
