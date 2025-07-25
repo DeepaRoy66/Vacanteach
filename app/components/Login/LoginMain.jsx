@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { signIn, useSession } from "next-auth/react";
 import toast, { Toaster } from "react-hot-toast";
 import { useRouter } from "next/navigation";
@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 function LoginMain() {
   const { status, data: session } = useSession();
   const router = useRouter();
+  const [hasCheckedRole, setHasCheckedRole] = useState(false);
 
   // Function to handle login
   function login(provider) {
@@ -17,40 +18,68 @@ function LoginMain() {
     }
   }
 
-  // Check user status and redirect if authenticated and profile is complete
+  // Check user role and profile completion status
   useEffect(() => {
-    const checkUserStatus = async () => {
-      if (status === "authenticated" && session?.user?.email) {
-        try {
-          const response = await fetch("/api/user/teacherdata", {
-            method: "GET", // Use GET to check user status
-            headers: {
-              "Content-Type": "application/json",
-            },
-            credentials: "include", // Ensure session cookie is sent
+    const checkUserRole = async () => {
+      if (status !== "authenticated" || !session?.user?.email || hasCheckedRole) {
+        console.log("checkUserRole: Skipping", { status, email: session?.user?.email, hasCheckedRole });
+        return;
+      }
+
+      setHasCheckedRole(true);
+
+      try {
+        if (typeof session.user.role === "undefined" || typeof session.user.profileCompleted === "undefined") {
+          console.error("checkUserRole: Session data incomplete", {
+            role: session.user.role,
+            profileCompleted: session.user.profileCompleted,
+            email: session.user.email,
           });
-
-          const result = await response.json();
-
-          if (response.ok && result.profileCompleted) {
-            router.push("/orgs");
-          } else if (response.ok && !result.profileCompleted) {
-            router.push("/select-role");
-          } else {
-            console.error("Error checking user status:", result.message);
-          }
-        } catch (error) {
-          console.error("Fetch error:", error);
+          toast.error("Session data is incomplete. Please try logging in again.");
+          return;
         }
+
+        console.log("checkUserRole: Session data", {
+          role: session.user.role,
+          profileCompleted: session.user.profileCompleted,
+          email: session.user.email,
+        });
+
+        if (session.user.role && session.user.profileCompleted) {
+          if (session.user.role === "organization") {
+            console.log("checkUserRole: Redirecting to /orgs");
+            router.push("/orgs");
+          } else if (session.user.role === "teacher") {
+            console.log("checkUserRole: Redirecting to /teacher");
+            router.push("/teacher");
+          } else {
+            console.log("checkUserRole: Invalid role, redirecting to /select-role");
+            router.push("/select-role");
+          }
+        } else {
+          console.log("checkUserRole: No role or profile incomplete, redirecting to /select-role");
+          router.push("/select-role");
+        }
+      } catch (error) {
+        console.error("checkUserRole: Unexpected error", {
+          message: error.message,
+          stack: error.stack,
+          email: session.user.email,
+        });
+        toast.error("An unexpected error occurred while checking user role. Please try again.");
       }
     };
 
-    checkUserStatus();
-  }, [status, session, router]);
+    checkUserRole();
+  }, [status, session, router, hasCheckedRole]);
 
-  // Show loading state or login UI
+  // Show loading state
   if (status === "loading") {
-    return null; // or a loading spinner
+    return (
+      <div className="flex justify-center items-center min-h-screen bg-gray-100">
+        <p>Loading...</p>
+      </div>
+    );
   }
 
   // Show login UI if not authenticated

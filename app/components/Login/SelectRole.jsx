@@ -1,5 +1,4 @@
 "use client";
-
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -8,6 +7,7 @@ import toast, { Toaster } from "react-hot-toast";
 export default function SelectRole() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const [hasCheckedRole, setHasCheckedRole] = useState(false);
 
   const [selectedRole, setSelectedRole] = useState(null);
   const [isFormVisible, setIsFormVisible] = useState(false);
@@ -20,28 +20,37 @@ export default function SelectRole() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Update email in formData when session is available
+  // Pre-fill email and name from session
   useEffect(() => {
     if (status === "authenticated" && session?.user?.email) {
-      setFormData((prev) => ({ ...prev, email: session.user.email }));
+      setFormData((prev) => ({
+        ...prev,
+        email: session.user.email,
+        name: session.user.name || "",
+      }));
     }
   }, [status, session]);
 
-  // Redirect based on user role
+  // Redirect if already has role and completed profile
   useEffect(() => {
-    if (status === "authenticated" && session?.user?.role) {
-      console.log("Session role detected:", session.user.role); // Debug session role
-      if (session.user.role === "client") {
-        console.log("Redirecting to /organization");
-        router.push("/orgs");
-      } else if (session.user.role === "teacher") {
-        console.log("Redirecting to /teacher");
-        router.push("/teacher");
-      }
-    }
-  }, [status, session, router]);
+    const checkUserStatus = async () => {
+      if (status !== "authenticated" || !session?.user?.email || hasCheckedRole) return;
+      setHasCheckedRole(true);
 
-  // Handle loading state
+      if (typeof session.user.role !== "undefined" && typeof session.user.profileCompleted !== "undefined") {
+        if (session.user.role && session.user.profileCompleted) {
+          if (session.user.role === "organization") {
+            router.push("/orgs");
+          } else if (session.user.role === "teacher") {
+            router.push("/teacher");
+          }
+        }
+      }
+    };
+
+    checkUserStatus();
+  }, [status, session, router, hasCheckedRole]);
+
   if (status === "loading") {
     return (
       <div className="flex justify-center items-center min-h-screen bg-gray-100">
@@ -50,27 +59,22 @@ export default function SelectRole() {
     );
   }
 
-  // Redirect to login if unauthenticated
   if (status === "unauthenticated") {
-    console.log("Unauthenticated, redirecting to /login");
     router.push("/login");
     return null;
   }
 
-  // Handle role selection
   const handleRoleSelection = () => {
     if (!selectedRole) {
       toast.error("Please select a role.");
       return;
     }
-    console.log("Selected role:", selectedRole); // Debug role selection
     setIsFormVisible(true);
   };
 
-  // Handle form submission
   const handleFormSubmit = async () => {
-    if (selectedRole === "client") {
-      if (!formData.organizationName || !formData.industry || !formData.phone) {
+    if (selectedRole === "organization") {
+      if (!formData.organizationName || !formData.industry || !formData.phone || !formData.name) {
         toast.error("Please fill all fields.");
         return;
       }
@@ -83,9 +87,9 @@ export default function SelectRole() {
 
     try {
       let res;
-      if (selectedRole === "client") {
-        console.log("Submitting organization data:", formData); // Debug form data
-        res = await fetch("/api/user/organizationdata", {
+
+      if (selectedRole === "organization") {
+        res = await fetch("/api/user/rolepost", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -93,12 +97,12 @@ export default function SelectRole() {
             industry: formData.industry,
             phone: formData.phone,
             email: formData.email,
-            role: "client",
+            name: formData.name,
+            role: "organization",
           }),
         });
       } else {
-        console.log("Submitting teacher data:", formData); // Debug form data
-        res = await fetch("/api/user/teacherdata", {
+        res = await fetch("/api/user/rolepost", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -111,21 +115,18 @@ export default function SelectRole() {
       }
 
       const result = await res.json();
-      console.log("API Response:", { status: res.status, result }); // Debug API response
 
       if (res.ok) {
         toast.success(result.message || "Profile created successfully!");
-        // Directly redirect after successful API call
-        const redirectPath = selectedRole === "client" ? "/orgs" : "/teacher";
-        console.log(`Redirecting to ${redirectPath}`);
+        const redirectPath = selectedRole === "organization" ? "/orgs" : "/teacher";
         router.push(redirectPath);
       } else {
         toast.error(result.message || "Failed to create profile.");
-        console.error("API error:", result);
+        console.error("API Error:", result);
       }
     } catch (error) {
       toast.error("An error occurred. Please try again.");
-      console.error("Submission error:", error); // Debug error
+      console.error("Submission error:", error);
     } finally {
       setIsSubmitting(false);
     }
@@ -136,7 +137,7 @@ export default function SelectRole() {
       <Toaster />
       <div className="w-full max-w-md p-6 bg-white rounded-lg shadow-lg">
         <h2 className="text-2xl font-semibold text-center text-gray-800 mb-6">
-          Join as a client or teacher
+          Join as an Organization or Teacher
         </h2>
 
         {!isFormVisible ? (
@@ -145,12 +146,12 @@ export default function SelectRole() {
               <input
                 type="radio"
                 name="role"
-                value="client"
-                checked={selectedRole === "client"}
-                onChange={() => setSelectedRole("client")}
-                className="mr-3 text-blue-600 focus:ring-blue-500"
+                value="organization"
+                checked={selectedRole === "organization"}
+                onChange={() => setSelectedRole("organization")}
+                className="mr-3 text-blue-600"
               />
-              <span className="text-gray-700">I'm an organization, providing job</span>
+              <span className="text-gray-700">I'm an organization, providing jobs</span>
             </label>
             <label className="flex items-center p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
               <input
@@ -159,14 +160,14 @@ export default function SelectRole() {
                 value="teacher"
                 checked={selectedRole === "teacher"}
                 onChange={() => setSelectedRole("teacher")}
-                className="mr-3 text-blue-600 focus:ring-blue-500"
+                className="mr-3 text-blue-600"
               />
               <span className="text-gray-700">I'm a teacher, looking for work</span>
             </label>
 
             <button
               onClick={handleRoleSelection}
-              className="w-full py-2 px-4 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors duration-200"
+              className="w-full py-2 px-4 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300"
               disabled={!selectedRole}
             >
               Create Account
@@ -180,21 +181,23 @@ export default function SelectRole() {
           </div>
         ) : (
           <div className="space-y-4">
-            {selectedRole === "client" ? (
-              <div>
+            {selectedRole === "organization" ? (
+              <>
                 <h3 className="text-xl font-semibold text-center text-gray-800 mb-4">
                   Organization Information
                 </h3>
-                <p className="text-center text-gray-600 mb-4">
-                  Provide your organization's brief
-                </p>
+                <input
+                  type="text"
+                  placeholder="Full Name"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className="w-full p-3 border border-gray-300 rounded-lg mb-4"
+                />
                 <input
                   type="text"
                   placeholder="Organization Name"
                   value={formData.organizationName}
-                  onChange={(e) =>
-                    setFormData({ ...formData, organizationName: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, organizationName: e.target.value })}
                   className="w-full p-3 border border-gray-300 rounded-lg mb-4"
                 />
                 <input
@@ -216,7 +219,7 @@ export default function SelectRole() {
                 </select>
                 <button
                   onClick={handleFormSubmit}
-                  className="w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200"
+                  className="w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700"
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? "Submitting..." : "Continue"}
@@ -227,9 +230,9 @@ export default function SelectRole() {
                     Login Here
                   </a>
                 </p>
-              </div>
+              </>
             ) : (
-              <div className="space-y-4">
+              <>
                 <h3 className="text-xl font-semibold text-center text-gray-800 mb-4">
                   Complete Your Profile
                 </h3>
@@ -256,7 +259,7 @@ export default function SelectRole() {
                 />
                 <button
                   onClick={handleFormSubmit}
-                  className="w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200"
+                  className="w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700"
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? "Submitting..." : "Submit"}
@@ -270,7 +273,7 @@ export default function SelectRole() {
                     Go back
                   </span>
                 </p>
-              </div>
+              </>
             )}
           </div>
         )}

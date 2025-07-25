@@ -1,95 +1,102 @@
 import { connectToDatabase } from "../../../../lib/mongoose";
-import User from "../../../../lib/models/User";
-import { getServerSession } from "next-auth/next";
+import User from "../../../../lib/models/teacher";
+import { getServerSession } from "next-auth";
 import { authOptions } from "../../auth/[...nextauth]/route";
 
-export async function GET(request) {
+export async function GET(req) {
   try {
+    // Get session using NextAuth's getServerSession
     const session = await getServerSession(authOptions);
 
     if (!session || !session.user?.email) {
-      return new Response(JSON.stringify({ success: false, message: "User not authenticated." }), {
+      console.error("Authentication failed in teacherdata GET:", { session });
+      return new Response(JSON.stringify({ message: "User not authenticated" }), {
         status: 401,
         headers: { "Content-Type": "application/json" },
       });
     }
 
     await connectToDatabase();
+
     const user = await User.findOne({ email: session.user.email });
 
     if (!user) {
-      return new Response(
-        JSON.stringify({ success: false, message: "User not found.", profileCompleted: false }),
-        {
-          status: 404,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-    }
-
-    return new Response(
-      JSON.stringify({
-        success: true,
-        profileCompleted: user.profileCompleted,
-        user: {
-          name: user.name,
-          email: user.email,
-          phone: user.phone,
-          role: user.role,
-          
-        },
-      }),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
-  } catch (error) {
-    return new Response(
-      JSON.stringify({ success: false, message: `Server error: ${error.message}` }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
-    );
-  }
-}
-
-export async function POST(request) {
-  const { name, email, phone, role } = await request.json();
-
-  if (!name || !email || !phone || !role) {
-    return new Response(JSON.stringify({ success: false, message: "Missing required fields." }), {
-      status: 400,
-      headers: { "Content-Type": "application/json" },
-    });
-  }
-
-  try {
-    const session = await getServerSession(authOptions);
-
-    if (!session || !session.user?.email) {
-      return new Response(JSON.stringify({ success: false, message: "User not authenticated." }), {
-        status: 401,
+      console.warn("User not found for email:", session.user.email);
+      return new Response(JSON.stringify({ message: "User not found" }), {
+        status: 404,
         headers: { "Content-Type": "application/json" },
       });
     }
 
-    await connectToDatabase();
-    const user = await User.findOneAndUpdate(
-      { email: session.user.email },
-      { name, phone, role, profileCompleted: true },
-      { new: true, upsert: true, runValidators: true }
-    );
-
-    return new Response(JSON.stringify({ success: true, message: "Profile updated successfully." }), {
+    return new Response(JSON.stringify({ user }), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
-    return new Response(
-      JSON.stringify({ success: false, message: `Error: ${error.message}` }),
-      {
-        status: 500,
+    console.error("Error fetching user data:", {
+      message: error.message,
+      stack: error.stack,
+    });
+    return new Response(JSON.stringify({ message: "Internal server error" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+}
+
+export async function POST(req) {
+  try {
+    const body = await req.json();
+    console.log("Request body:", body); // Debug log to inspect payload
+    const { name, email, phone, role } = body;
+
+    // Stricter validation to prevent null or invalid role
+    if (
+      !name ||
+      !email ||
+      !phone ||
+      !role ||
+      typeof role !== "string" ||
+      role.trim() === ""
+    ) {
+      console.warn("Invalid or missing required fields in teacherdata POST:", { body });
+      return new Response(JSON.stringify({ message: "Missing or invalid required fields" }), {
+        status: 400,
         headers: { "Content-Type": "application/json" },
-      }
+      });
+    }
+
+    await connectToDatabase();
+
+    // Explicitly set update data
+    const updateData = {
+      name,
+      phone,
+      role,
+      profileCompleted: true,
+    };
+
+    
+
+    const user = await User.findOneAndUpdate(
+      { email },
+      { $set: updateData },
+      { upsert: true, new: true }
     );
+
+    return new Response(JSON.stringify({ message: "Teacher profile saved", user }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (error) {
+    console.error("Error saving teacher data:", {
+      message: error.message,
+      stack: error.stack,
+      body, // Log parsed body instead of req.body
+    });
+    return new Response(JSON.stringify({ message: "Internal server error" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 }
