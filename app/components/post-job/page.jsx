@@ -12,12 +12,10 @@ export default function PostJobPage() {
   });
 
   const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    location: "",
-    subject: "",
-    employmentType: "Full-time",
-    salary: "",
+    position: "",
+    requiredEmployees: "",
+    jobCategory: "",
+    experience: "",
   });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -42,11 +40,9 @@ export default function PostJobPage() {
   // Basic form validation
   const validateForm = () => {
     const newErrors = {};
-    if (!formData.title.trim()) newErrors.title = "Job title is required";
-    if (!formData.description.trim()) newErrors.description = "Job description is required";
-    if (!formData.location.trim()) newErrors.location = "Location is required";
-    if (!formData.subject.trim()) newErrors.subject = "Subject is required";
-    if (!formData.salary.trim()) newErrors.salary = "Salary is required";
+    if (!formData.position.trim()) newErrors.position = "Job position is required";
+    if (!formData.requiredEmployees.trim()) newErrors.requiredEmployees = "Number of employees is required";
+    if (!formData.jobCategory.trim()) newErrors.jobCategory = "Job category is required";
     return newErrors;
   };
 
@@ -68,9 +64,13 @@ export default function PostJobPage() {
         role: session?.user?.role || "Organization",
       });
 
-
       alert("Job posted successfully! (Placeholder)");
-      setFormData({ title: "", description: "", location: "", subject: "", employmentType: "Full-time", salary: "" });
+      setFormData({
+        position: "",
+        requiredEmployees: "",
+        jobCategory: "",
+        experience: "",
+      });
     } catch (error) {
       console.error("Error posting job:", error);
       alert("Failed to post job. Please try again.");
@@ -85,101 +85,71 @@ export default function PostJobPage() {
         <h1 className="text-3xl font-extrabold text-indigo-600 mb-6 text-center">Post a Teaching Job</h1>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label htmlFor="title" className="block text-sm font-medium text-gray-700">
-              Job Title
+            <label htmlFor="position" className="block text-sm font-medium text-gray-700">
+              Job Position
             </label>
             <input
               type="text"
-              id="title"
-              name="title"
-              value={formData.title}
+              id="position"
+              name="position"
+              value={formData.position}
               onChange={handleChange}
               className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
-              placeholder="e.g., High School Math Teacher"
+              placeholder="e.g., Senior Teacher, Assistant Professor"
             />
-            {errors.title && <p className="mt-1 text-sm text-red-500">{errors.title}</p>}
+            {errors.position && <p className="mt-1 text-sm text-red-500">{errors.position}</p>}
           </div>
 
           <div>
-            <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-              Job Description
-            </label>
-            <textarea
-              id="description"
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
-              rows="5"
-              className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
-              placeholder="Describe the job responsibilities and requirements"
-            />
-            {errors.description && <p className="mt-1 text-sm text-red-500">{errors.description}</p>}
-          </div>
-
-          <div>
-            <label htmlFor="location" className="block text-sm font-medium text-gray-700">
-              Location
+            <label htmlFor="requiredEmployees" className="block text-sm font-medium text-gray-700">
+              Required Number of Employees
             </label>
             <input
-              type="text"
-              id="location"
-              name="location"
-              value={formData.location}
+              type="number"
+              id="requiredEmployees"
+              name="requiredEmployees"
+              value={formData.requiredEmployees}
               onChange={handleChange}
               className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
-              placeholder="e.g., New York, NY"
+              placeholder="e.g., 2"
+              min="1"
             />
-            {errors.location && <p className="mt-1 text-sm text-red-500">{errors.location}</p>}
+            {errors.requiredEmployees && <p className="mt-1 text-sm text-red-500">{errors.requiredEmployees}</p>}
           </div>
 
           <div>
-            <label htmlFor="subject" className="block text-sm font-medium text-gray-700">
-              Subject
-            </label>
-            <input
-              type="text"
-              id="subject"
-              name="subject"
-              value={formData.subject}
-              onChange={handleChange}
-              className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
-              placeholder="e.g., Mathematics, English, Science"
-            />
-            {errors.subject && <p className="mt-1 text-sm text-red-500">{errors.subject}</p>}
-          </div>
-
-          <div>
-            <label htmlFor="employmentType" className="block text-sm font-medium text-gray-700">
-              Employment Type
+            <label htmlFor="jobCategory" className="block text-sm font-medium text-gray-700">
+              Job Category
             </label>
             <select
-              id="employmentType"
-              name="employmentType"
-              value={formData.employmentType}
+              id="jobCategory"
+              name="jobCategory"
+              value={formData.jobCategory}
               onChange={handleChange}
               className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
             >
-              <option value="Full-time">Full-time</option>
-              <option value="Part-time">Part-time</option>
-              <option value="Contract">Contract</option>
-              <option value="Temporary">Temporary</option>
+              <option value="">Select a category</option>
+              <option value="Teaching">Teaching</option>
+              <option value="Administration">Administration</option>
+              <option value="Support Staff">Support Staff</option>
+              <option value="Special Education">Special Education</option>
             </select>
+            {errors.jobCategory && <p className="mt-1 text-sm text-red-500">{errors.jobCategory}</p>}
           </div>
 
           <div>
-            <label htmlFor="salary" className="block text-sm font-medium text-gray-700">
-              Salary (per year)
+            <label htmlFor="experience" className="block text-sm font-medium text-gray-700">
+              Experience (Optional)
             </label>
             <input
               type="text"
-              id="salary"
-              name="salary"
-              value={formData.salary}
+              id="experience"
+              name="experience"
+              value={formData.experience}
               onChange={handleChange}
               className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
-              placeholder="e.g., $50,000"
+              placeholder="e.g., 3-5 years of teaching experience"
             />
-            {errors.salary && <p className="mt-1 text-sm text-red-500">{errors.salary}</p>}
           </div>
 
           <div className="flex justify-between items-center">
@@ -198,7 +168,7 @@ export default function PostJobPage() {
                   : "bg-indigo-600 hover:bg-indigo-700"
               }`}
             >
-              {isSubmitting ? "Posting..." : "Post Job"}
+              {isSubmitting ? "Saving..." : "Save Job"}
             </button>
           </div>
         </form>
