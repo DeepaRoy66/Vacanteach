@@ -72,7 +72,7 @@ export default function PostJobPage() {
         createdAt: new Date().toISOString(),
       };
 
-      const response = await fetch("/api/job", {
+      const response = await fetch("/api/Org/addjob", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(jobData),
@@ -96,7 +96,7 @@ export default function PostJobPage() {
         salaryType: "Yearly",
       });
 
-      router.push("/job");
+      router.push("/Organization/job");
     } catch (error) {
       console.error("Error posting job:", error);
       alert("Failed to post job. Please try again.");

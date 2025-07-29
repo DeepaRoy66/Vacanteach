@@ -1,5 +1,5 @@
-import { connectToDatabase } from "../../../lib/mongoose";
-import Job from "../../../lib/models/JOb";
+import { connectToDatabase } from "../../../../lib/mongoose";
+import Job from "../../../../lib/models/Job";
 
 export async function POST(req) {
   try {
