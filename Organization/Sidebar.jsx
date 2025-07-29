@@ -1,4 +1,4 @@
-import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarRail } from "./components/ui/sidebar"
+import { Sidebar,SidebarContent,SidebarFooter,SidebarGroup,SidebarGroupContent,SidebarGroupLabel,SidebarHeader,SidebarMenu,SidebarMenuButton,SidebarMenuItem,SidebarRail } from "../app/components/ui/sidebar"
 import {
   Building2,
   LayoutDashboard,
@@ -13,7 +13,6 @@ import {
   FileText,
 } from "lucide-react"
 
-// Menu items
 const data = {
   navMain: [
     {
@@ -197,7 +196,6 @@ export function AppSidebar({ ...props }) {
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
-
       <SidebarRail />
     </Sidebar>
   )

@@ -1,6 +1,7 @@
-import OrganizationDashboard from "../../components/Org/Orgdashboard";
+import OrganizationDashboard from "../../../Organization/(components)/dashboard/Orgdashboard";
+
 
 
 export default function page(){
-    return <OrganizationDashboard/>
+    return <OrganizationDashboard />
 }
