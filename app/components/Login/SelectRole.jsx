@@ -3,12 +3,11 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import toast, { Toaster } from "react-hot-toast";
+import { useUserRedirect } from "../useUserRedirect";
 
 export default function SelectRole() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const [hasCheckedRole, setHasCheckedRole] = useState(false);
-
   const [selectedRole, setSelectedRole] = useState(null);
   const [isFormVisible, setIsFormVisible] = useState(false);
   const [formData, setFormData] = useState({
@@ -19,8 +18,9 @@ export default function SelectRole() {
     industry: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  useUserRedirect();
 
-  // Pre-fill email and name from session
+  // Pre-fill form data
   useEffect(() => {
     if (status === "authenticated" && session?.user?.email) {
       setFormData((prev) => ({
@@ -28,28 +28,26 @@ export default function SelectRole() {
         email: session.user.email,
         name: session.user.name || "",
       }));
-    }
-  }, [status, session]);
-
-  // Redirect if already has role and completed profile
-  useEffect(() => {
-    const checkUserStatus = async () => {
-      if (status !== "authenticated" || !session?.user?.email || hasCheckedRole) return;
-      setHasCheckedRole(true);
-
-      if (typeof session.user.role !== "undefined" && typeof session.user.profileCompleted !== "undefined") {
-        if (session.user.role && session.user.profileCompleted) {
-          if (session.user.role === "organization") {
-            router.push("/orgs");
-          } else if (session.user.role === "teacher") {
-            router.push("/teacher");
+      const fetchUserData = async () => {
+        try {
+          const response = await fetch(`/api/user/rolepost?role=${selectedRole || "teacher"}`);
+          const result = await response.json();
+          if (response.ok && result.data) {
+            setFormData((prev) => ({
+              ...prev,
+              name: result.data.name || result.data.organizationName || prev.name,
+              phone: result.data.phone || "",
+              organizationName: result.data.organizationName || "",
+              industry: result.data.industry || "",
+            }));
           }
+        } catch (error) {
+          console.error("Error fetching user data:", error);
         }
-      }
-    };
-
-    checkUserStatus();
-  }, [status, session, router, hasCheckedRole]);
+      };
+      fetchUserData();
+    }
+  }, [status, session, selectedRole]);
 
   if (status === "loading") {
     return (
@@ -61,7 +59,7 @@ export default function SelectRole() {
 
   if (status === "unauthenticated") {
     router.push("/login");
-    return null;
+    return <div>Redirecting to login...</div>;
   }
 
   const handleRoleSelection = () => {
@@ -73,46 +71,49 @@ export default function SelectRole() {
   };
 
   const handleFormSubmit = async () => {
+    if (!selectedRole) {
+      toast.error("Please select a role.");
+      return;
+    }
     if (selectedRole === "organization") {
       if (!formData.organizationName || !formData.industry || !formData.phone || !formData.name) {
-        toast.error("Please fill all fields.");
+        toast.error("Please fill all fields: Full Name, Organization Name, Phone Number, Industry.");
         return;
       }
-    } else if (!formData.name || !formData.email || !formData.phone) {
-      toast.error("Please fill all fields.");
-      return;
+      if (!/^\d{10}$/.test(formData.phone)) {
+        toast.error("Phone number must be exactly 10 digits.");
+        return;
+      }
+    } else {
+      if (!formData.name || !formData.email || !formData.phone) {
+        toast.error("Please fill all fields: Full Name, Email, Phone Number.");
+        return;
+      }
+      if (!/^\d{10}$/.test(formData.phone)) {
+        toast.error("Phone number must be exactly 10 digits.");
+        return;
+      }
+      if (formData.email !== session.user.email) {
+        toast.error("Email cannot be changed.");
+        return;
+      }
     }
 
     setIsSubmitting(true);
 
     try {
-      let res;
-
-      if (selectedRole === "organization") {
-        res = await fetch("/api/user/rolepost", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            organizationName: formData.organizationName,
-            industry: formData.industry,
-            phone: formData.phone,
-            email: formData.email,
-            name: formData.name,
-            role: "organization",
-          }),
-        });
-      } else {
-        res = await fetch("/api/user/rolepost", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            name: formData.name,
-            email: formData.email,
-            phone: formData.phone,
-            role: "teacher",
-          }),
-        });
-      }
+      const res = await fetch("/api/user/rolepost", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          role: selectedRole,
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          organizationName: selectedRole === "organization" ? formData.organizationName : undefined,
+          industry: selectedRole === "organization" ? formData.industry : undefined,
+        }),
+      });
 
       const result = await res.json();
 
@@ -125,12 +126,14 @@ export default function SelectRole() {
         console.error("API Error:", result);
       }
     } catch (error) {
-      toast.error("An error occurred. Please try again.");
+      toast.error(error.message || "An error occurred. Please try again.");
       console.error("Submission error:", error);
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  const industries = ["Tech", "Healthcare", "Education", "Finance", "Retail"];
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100">
@@ -213,9 +216,11 @@ export default function SelectRole() {
                   className="w-full p-3 border border-gray-300 rounded-lg mb-4"
                 >
                   <option value="">Select Industry</option>
-                  <option value="Tech">Tech</option>
-                  <option value="Healthcare">Healthcare</option>
-                  <option value="Education">Education</option>
+                  {industries.map((industry) => (
+                    <option key={industry} value={industry}>
+                      {industry}
+                    </option>
+                  ))}
                 </select>
                 <button
                   onClick={handleFormSubmit}

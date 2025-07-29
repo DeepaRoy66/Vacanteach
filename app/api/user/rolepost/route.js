@@ -1,6 +1,6 @@
 import { connectToDatabase } from "../../../../lib/mongoose";
-import Organization from "../../../../lib/models/Organization";
 import User from "../../../../lib/models/teacher";
+import Organization from "../../../../lib/models/Organization";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../auth/[...nextauth]/route";
 
@@ -9,7 +9,7 @@ function getModelByRole(role) {
     case "organization":
       return Organization;
     case "teacher":
-      return User;  
+      return User;
     default:
       throw new Error("Invalid role");
   }
@@ -29,8 +29,8 @@ export async function GET(req) {
     const { searchParams } = new URL(req.url);
     const role = searchParams.get("role");
 
-    if (!role) {
-      return new Response(JSON.stringify({ message: "Missing role in query" }), {
+    if (!role || !["organization", "teacher"].includes(role)) {
+      return new Response(JSON.stringify({ message: "Missing or invalid role in query" }), {
         status: 400,
         headers: { "Content-Type": "application/json" },
       });
@@ -38,7 +38,9 @@ export async function GET(req) {
 
     await connectToDatabase();
     const Model = getModelByRole(role);
-    const userData = await Model.findOne({ email: session.user.email });
+    const userData = await Model.findOne({ email: session.user.email }).select(
+      "name phone role organizationName industry createdAt profileCompleted"
+    );
 
     if (!userData) {
       return new Response(JSON.stringify({ message: `${role} not found` }), {
@@ -52,7 +54,10 @@ export async function GET(req) {
       headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
-    console.error("Error in GET:", error);
+    console.error("Error in GET:", {
+      message: error.message,
+      stack: error.stack,
+    });
     return new Response(JSON.stringify({ message: "Internal server error" }), {
       status: 500,
       headers: { "Content-Type": "application/json" },
@@ -62,66 +67,83 @@ export async function GET(req) {
 
 export async function POST(req) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user?.email) {
+      return new Response(JSON.stringify({ message: "User not authenticated" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
     const body = await req.json();
     const { role, email, name, phone, organizationName, industry } = body;
 
-    if (!role || typeof role !== "string" || role.trim() === "") {
+    if (!role || !["organization", "teacher"].includes(role)) {
       return new Response(JSON.stringify({ message: "Missing or invalid role" }), {
         status: 400,
         headers: { "Content-Type": "application/json" },
       });
     }
 
-    await connectToDatabase();
-    const Model = getModelByRole(role);
-
-    let updateData = {};
-    if (role === "organization") {
-      if (!organizationName || !industry || !email || !phone) {
-        return new Response(JSON.stringify({ message: "Missing required fields for organization" }), {
-          status: 400,
-          headers: { "Content-Type": "application/json" },
-        });
-      }
-
-      updateData = { organizationName, industry, phone, role, profileCompleted: true };
-    } else if (role === "teacher") {
-      if (!name || !email || !phone) {
-        return new Response(JSON.stringify({ message: "Missing required fields for teacher" }), {
-          status: 400,
-          headers: { "Content-Type": "application/json" },
-        });
-      }
-
-      updateData = { name, phone, role, profileCompleted: true };
+    if (session.user.email !== email) {
+      return new Response(JSON.stringify({ message: "Unauthorized: Email does not match session" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
     }
 
-    // Update role-specific collection
+    if (!/^\S+@\S+\.\S+$/.test(email)) {
+      return new Response(JSON.stringify({ message: "Invalid email format" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    if (!/^\d{10}$/.test(phone)) {
+      return new Response(JSON.stringify({ message: "Phone number must be exactly 10 digits" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    if (role === "organization") {
+      if (!organizationName || !industry || !name) {
+        return new Response(JSON.stringify({ message: "Missing required fields: organizationName, industry, name" }), {
+          status: 400,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+    } else if (!name) {
+      return new Response(JSON.stringify({ message: "Missing required field: name" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    await connectToDatabase();
+
+    const Model = getModelByRole(role);
+    let updateData = { role, phone, name, profileCompleted: true };
+
+    if (role === "organization") {
+      updateData = { ...updateData, organizationName, industry };
+    }
+
+    // Check for existing record in the other collection
+    const otherModel = role === "organization" ? User : Organization;
+    const existingOther = await otherModel.findOne({ email });
+    if (existingOther) {
+      return new Response(JSON.stringify({ message: `Email already used as ${existingOther.role || "unknown"}` }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    // Update or create the profile in the appropriate collection only
     const result = await Model.findOneAndUpdate(
       { email },
       { $set: updateData },
       { upsert: true, new: true }
-    );
-
-    // ALSO update the main User collection (the teacher model used as User here)
-    const userUpdateData = {
-      role,
-      profileCompleted: true,
-    };
-
-    if (role === "teacher") {
-      userUpdateData.name = name;
-      userUpdateData.phone = phone;
-    }
-
-    if (role === "organization") {
-      userUpdateData.phone = phone;
-    }
-
-    await User.findOneAndUpdate(
-      { email },
-      { $set: userUpdateData },
-      { upsert: false }
     );
 
     return new Response(JSON.stringify({ message: `${role} profile saved`, data: result }), {
@@ -129,7 +151,30 @@ export async function POST(req) {
       headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
-    console.error("Error in POST:", error);
+    console.error("Error in POST:", {
+      message: error.message,
+      stack: error.stack,
+      body,
+    });
+    if (error.name === "MongoServerError" && error.code === 11000) {
+      return new Response(JSON.stringify({ message: `Email already exists as ${role}` }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    if (error.name === "ValidationError") {
+      const messages = Object.values(error.errors).map((err) => err.message).join(", ");
+      return new Response(JSON.stringify({ message: `Validation error: ${messages}` }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    if (error.message === "Invalid role") {
+      return new Response(JSON.stringify({ message: "Invalid role" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
     return new Response(JSON.stringify({ message: "Internal server error" }), {
       status: 500,
       headers: { "Content-Type": "application/json" },
