@@ -17,7 +17,7 @@ const data = {
   navMain: [
     {
       title: "Dashboard",
-      url: "#",
+      url: "/organization",
       icon: LayoutDashboard,
       isActive: true,
     },
@@ -28,17 +28,17 @@ const data = {
       items: [
         {
           title: "All Jobs",
-          url: "#",
+          url: "/organization/Jobpage",
         },
         {
           title: "Active Jobs",
           url: "#",
         },
-         {
+        {
           title: "Pending Jobs",
           url: "#",
         },
-         {
+        {
           title: "Denied Jobs",
           url: "#",
         },
@@ -50,7 +50,7 @@ const data = {
           title: "Archived Jobs",
           url: "#",
         },
-         {
+        {
           title: "Expired Jobs",
           url: "#",
         },
@@ -111,18 +111,22 @@ const data = {
 
 export function AppSidebar({ ...props }) {
   return (
-    <Sidebar variant="inset" className="w-72 h-screen fixed top-0 left-0 bg-white shadow-lg z-10" {...props}>
-      <SidebarHeader>
+    <Sidebar
+      variant="inset"
+      className="w-72 h-screen fixed top-0 left-0 bg-gradient-to-b from-emerald-50 to-green-100 shadow-xl z-10 border-r border-emerald-200"
+      {...props}
+    >
+      <SidebarHeader className="bg-gradient-to-r from-emerald-600 to-green-600 text-white rounded-t-lg mx-2 mt-2 p-4">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild>
+            <SidebarMenuButton size="lg" asChild className="hover:bg-emerald-700/20 text-white">
               <a href="#">
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-blue-600 text-white">
-                  <Building2 className="size-4" />
+                <div className="flex aspect-square size-10 items-center justify-center rounded-xl bg-white/20 backdrop-blur-sm text-white shadow-lg">
+                  <Building2 className="size-5" />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">HireFlow</span>
-                  <span className="truncate text-xs text-gray-500">Recruitment Platform</span>
+                  <span className="truncate font-bold text-lg">VacanTeach</span>
+                  <span className="truncate text-xs text-emerald-100">Recruitment Platform</span>
                 </div>
               </a>
             </SidebarMenuButton>
@@ -130,24 +134,41 @@ export function AppSidebar({ ...props }) {
         </SidebarMenu>
       </SidebarHeader>
 
-      <SidebarContent className="overflow-y-auto">
-        <SidebarGroup>
-          <SidebarGroupLabel>Platform</SidebarGroupLabel>
+      <SidebarContent className="overflow-y-auto px-2">
+        <SidebarGroup className="mt-4">
+          <SidebarGroupLabel className="text-emerald-700 font-semibold text-xs uppercase tracking-wider mb-2">
+            Platform
+          </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="space-y-1">
               {data.navMain.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton tooltip={item.title} isActive={item.isActive}>
-                    <item.icon />
-                    <span>{item.title}</span>
+                  <SidebarMenuButton
+                    tooltip={item.title}
+                    isActive={item.isActive}
+                    className={`
+                      rounded-lg transition-all duration-200 
+                      ${
+                        item.isActive
+                          ? "bg-emerald-600 text-white shadow-md hover:bg-emerald-700"
+                          : "text-emerald-800 hover:bg-emerald-200/60 hover:text-emerald-900"
+                      }
+                    `}
+                  >
+                    <item.icon className="size-4" />
+                    <span className="font-medium">{item.title}</span>
                   </SidebarMenuButton>
                   {item.items?.length ? (
-                    <SidebarMenu className="ml-4 border-l border-gray-200 pl-4">
+                    <SidebarMenu className="ml-6 mt-2 space-y-1 border-l-2 border-emerald-300 pl-4">
                       {item.items.map((subItem) => (
                         <SidebarMenuItem key={subItem.title}>
-                          <SidebarMenuButton asChild size="sm">
+                          <SidebarMenuButton
+                            asChild
+                            size="sm"
+                            className="text-emerald-700 hover:bg-emerald-100 hover:text-emerald-900 rounded-md transition-colors duration-150"
+                          >
                             <a href={subItem.url}>
-                              <span>{subItem.title}</span>
+                              <span className="text-sm">{subItem.title}</span>
                             </a>
                           </SidebarMenuButton>
                         </SidebarMenuItem>
@@ -160,15 +181,19 @@ export function AppSidebar({ ...props }) {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarGroup className="mt-auto">
+        <SidebarGroup className="mt-8">
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="space-y-1">
               {data.navSecondary.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild size="sm">
+                  <SidebarMenuButton
+                    asChild
+                    size="sm"
+                    className="text-emerald-700 hover:bg-emerald-200/60 hover:text-emerald-900 rounded-lg transition-all duration-200"
+                  >
                     <a href={item.url}>
-                      <item.icon />
-                      <span>{item.title}</span>
+                      <item.icon className="size-4" />
+                      <span className="font-medium">{item.title}</span>
                     </a>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -178,24 +203,18 @@ export function AppSidebar({ ...props }) {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter>
+     
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild>
+            <SidebarMenuButton size="lg" asChild className="hover:bg-emerald-700/20 text-white">
               <a href="#">
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-green-500 text-white">
-                  <User className="size-4" />
-                </div>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">Deepa</span>
-                  <span className="truncate text-xs text-gray-500">deepa@company.com</span>
-                </div>
-                <Bell className="size-4" />
+                
+             
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
-      </SidebarFooter>
+
       <SidebarRail />
     </Sidebar>
   )

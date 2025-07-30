@@ -8,7 +8,7 @@ export default function Footer() {
   const [show, setShow] = React.useState(false);
 
   useEffect(() => {
-    const hideInPaths = ["/auth", "postjob", "/Jobpage"];
+    const hideInPaths = ["/auth","/organization", "/organization/postjob", "/organization/Jobpage"];
     if (hideInPaths.some((p) => path.includes(p))) {
       setShow(false);
     } else {
