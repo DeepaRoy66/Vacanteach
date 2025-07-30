@@ -3,11 +3,11 @@
 import React from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
-import { Card,CardContent,CardTitle,CardDescription,CardHeader } from "../../../app/components/ui/card"
-import { Button } from "../../../app/components/ui/button"
-import { Select,SelectValue,SelectTrigger,SelectContent,SelectItem } from "../../../app/components/ui/select"
-import { SidebarProvider,SidebarInset,SidebarTrigger } from "../../../app/components/ui/sidebar"
-import { AppSidebar } from "../../Sidebar"
+import { Card,CardContent,CardTitle,CardDescription,CardHeader } from "../../app/components/ui/card"
+import { Button } from "../../app/components/ui/button"
+import { Select,SelectValue,SelectTrigger,SelectContent,SelectItem } from "../../app/components/ui/select"
+import { SidebarProvider,SidebarInset,SidebarTrigger } from "../../app/components/ui/sidebar"
+import { AppSidebar } from "../../app/(pages)/organization/Sidebar"
 import { X, ShoppingCart } from "lucide-react"
 
 export default function OrganizationDashboard() {

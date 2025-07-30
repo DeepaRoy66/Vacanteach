@@ -15,9 +15,13 @@ export default function Navbar() {
     console.log("Session status:", status, "Session data:", session);
   }, [pathname, status, session]);
 
-  const isWelcomePage = pathname === "/orgs" || pathname === "/teacher" || pathname === "/postjob";
-  const isOrganizationPage = pathname === "/orgs" || pathname === "/postjob";
+  const isWelcomePage = pathname === "/postjob";
   const isAuthenticated = status === "authenticated";
+
+  // Do not render Navbar on /organization or /teachers pages
+  if (pathname === "/organization" || pathname === "/teachers"|| pathname.startsWith("/organization/postjob") || pathname.startsWith("/organization/Jobpage")) {
+    return null;
+  }
 
   useEffect(() => {
     const handleClickOutside = () => setIsProfileOpen(false);
@@ -32,11 +36,11 @@ export default function Navbar() {
 
   if (status === "loading") {
     return (
-      <nav className="bg-gradient-to-r from-indigo-600 to-purple-700 shadow-lg p-4 sticky top-0 z-30">
-        <div className="container mx-auto flex justify-between items-center text-white">
-          <div className="text-3xl font-extrabold tracking-wide">VacanTeach</div>
-          <div className="space-x-6 flex items-center">
-            <span className="text-white">Loading...</span>
+      <nav className="bg-gradient-to-r from-green-300 via-green-100 to-green-300 shadow-lg py-3 sticky top-0 z-30 animate-pulse-bg">
+        <div className="container mx-auto px-6 flex justify-between items-center">
+          <div className="text-xl font-semibold text-green-800 tracking-tight">VacanTeach</div>
+          <div className="space-x-4 flex items-center">
+            <span className="text-green-900 text-sm font-medium">Loading...</span>
           </div>
         </div>
       </nav>
@@ -44,74 +48,74 @@ export default function Navbar() {
   }
 
   return (
-    <nav className="bg-gradient-to-r from-indigo-600 to-purple-700 shadow-lg p-4 sticky top-0 z-30 w-full">
-      <div className="container mx-auto flex justify-between items-center text-white">
-        <div className="text-3xl font-extrabold tracking-wide">VacanTeach</div>
+    <nav className="bg-gradient-to-r from-green-300 via-green-100 to-green-300 shadow-lg py-3 sticky top-0 z-30 w-full animate-pulse-bg">
+      <div className="container mx-auto px-6 flex justify-between items-center">
+        <div className="text-xl font-semibold text-green-800 tracking-tight hover:scale-105 transition-transform duration-300">VacanTeach</div>
         <div className="space-x-6 flex items-center">
           <Link
-            href={isAuthenticated && isOrganizationPage ? "/postjob" : "/find-work"}
-            className="hover:text-yellow-300 transition duration-300"
-            onClick={() => console.log("Navigating to:", isAuthenticated && isOrganizationPage ? "/postjob" : "/find-work")}
+            href="/find-work"
+            className="text-green-900 font-medium text-sm hover:text-green-700 hover:scale-105 transition-all duration-300"
+            onClick={() => console.log("Navigating to: /find-work")}
           >
-            {isAuthenticated && isOrganizationPage ? "Post Job" : "Find Work"}
+            Find Work
           </Link>
-          <Link href="/enterprise" className="hover:text-yellow-300 transition duration-300">
+          <Link href="/enterprise" className="text-green-900 font-medium text-sm hover:text-green-700 hover:scale-105 transition-all duration-300">
             Enterprise
           </Link>
           {isWelcomePage && isAuthenticated ? (
             <div className="relative">
               <button
                 onClick={handleToggleDropdown}
-                className="flex items-center space-x-3 focus:outline-none hover:opacity-90 transition duration-300"
+                className="flex items-center space-x-2 focus:outline-none hover:opacity-90 transition-all duration-300"
               >
                 {session?.user?.image ? (
                   <img
                     src={session.user.image}
                     alt="Profile"
-                    className="w-10 h-10 rounded-full object-cover border-2 border-yellow-400"
+                    className="w-8 h-8 rounded-full object-cover border-2 border-green-500 hover:scale-110 transition-transform duration-300"
                   />
                 ) : (
-                  <div className="w-10 h-10 rounded-full bg-gray-400 flex items-center justify-center border-2 border-yellow-400">
-                    <span className="text-white font-semibold">
+                  <div className="w-8 h-8 rounded-full bg-gray-400 flex items-center justify-center border-2 border-green-500 hover:scale-110 transition-transform duration-300">
+                    <span className="text-white font-medium text-sm">
                       {session?.user?.name?.charAt(0) || "U"}
                     </span>
                   </div>
                 )}
-                <span className="text-lg font-semibold">{session?.user?.name || "User"}</span>
+                <span className="text-sm font-medium text-green-900 hover:text-green-700">{session?.user?.name || "User"}</span>
               </button>
               {isProfileOpen && (
                 <div
-                  className="absolute right-0 mt-3 w-72 bg-white text-gray-800 border border-gray-200 rounded-xl shadow-2xl p-5 z-40 animate-fadeIn"
+                  className="absolute right-0 mt-2 w-64 bg-white text-gray-800 border border-gray-200 rounded-lg shadow-xl p-4 z-40 animate-fadeIn"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <div className="flex items-center space-x-4 mb-4">
+                  <div className="flex items-center space-x-3 mb-3">
                     {session?.user?.image ? (
                       <img
                         src={session.user.image}
                         alt="Profile"
-                        className="w-12 h-12 rounded-full object-cover border-2 border-indigo-500"
+                        className="w-10 h-10 rounded-full object-cover border-2 border-green-600"
                       />
                     ) : (
-                      <div className="w-12 h-12 rounded-full bg-gray-400 flex items-center justify-center border-2 border-indigo-500">
-                        <span className="text-white font-semibold">
+                      <div className="w-10 h-10 rounded-full bg-gray-400 flex items-center justify-center border-2 border-green-600">
+                        <span className="text-white font-medium text-sm">
                           {session?.user?.name?.charAt(0) || "U"}
                         </span>
                       </div>
                     )}
                     <div>
-                      <p className="font-bold text-lg">{session?.user?.name || "User"}</p>
-                      <p className="text-sm text-gray-600">{session?.user?.email || "N/A"}</p>
+                      <p className="font-semibold text-base">{session?.user?.name || "User"}</p>
+                      <p className="text-xs text-gray-600">{session?.user?.email || "N/A"}</p>
                     </div>
                   </div>
-                  <p className="text-sm mb-2">
-                    <strong className="text-indigo-700">Phone:</strong> {session?.user?.phone || "N/A"}
+                  <p className="text-xs mb-2">
+                    <strong className="text-green-800">Phone:</strong> {session?.user?.phone || "N/A"}
                   </p>
-                  <p className="text-sm mb-4">
-                    <strong className="text-indigo-700">Role:</strong> {session?.user?.role || "N/A"}
+                  <p className="text-xs mb-3">
+                    <strong className="text-green-800">Role:</strong> {session?.user?.role || "N/A"}
                   </p>
                   <button
                     onClick={() => signOut()}
-                    className="w-full text-center bg-red-500 text-white py-2 rounded-lg hover:bg-red-600 transition duration-300"
+                    className="w-full text-center bg-red-500 text-white py-1.5 rounded-md hover:bg-red-600 transition-all duration-300"
                   >
                     Logout
                   </button>
@@ -119,19 +123,28 @@ export default function Navbar() {
               )}
             </div>
           ) : (
-            <>
-              <Link href="/auth" className="hover:text-yellow-300 transition duration-300">
+            <Link href="/auth">
+              <button className="bg-green-500 text-white font-medium text-sm px-6 py-1.5 rounded-md shadow-md hover:bg-green-600 hover:scale-105 hover:shadow-lg active:scale-95 transition-all duration-300 ease-in-out">
                 Login
-              </Link>
-              <Link href="/auth">
-                <button className="bg-yellow-400 text-indigo-900 px-5 py-2 rounded-full font-semibold hover:bg-yellow-500 transition duration-300">
-                  Sign Up
-                </button>
-              </Link>
-            </>
+              </button>
+            </Link>
           )}
         </div>
       </div>
+      <style jsx>{`
+        @keyframes pulse-bg {
+          0%, 100% {
+            background-position: 0% 50%;
+          }
+          50% {
+            background-position: 100% 50%;
+          }
+        }
+        .animate-pulse-bg {
+          animation: pulse-bg 6s ease-in-out infinite;
+          background-size: 200% 100%;
+        }
+      `}</style>
     </nav>
   );
 }

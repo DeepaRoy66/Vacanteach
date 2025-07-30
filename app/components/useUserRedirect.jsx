@@ -30,7 +30,7 @@ export function useUserRedirect() {
         }
 
         if (session.user.role && session.user.profileCompleted) {
-          const redirectPath = session.user.role === "organization" ? "/orgs" : "/teacher";
+          const redirectPath = session.user.role === "organization" ? "/organization" : "/teacher";
           console.log(`Redirecting to ${redirectPath}`, {
             role: session.user.role,
             email: session.user.email,

@@ -119,7 +119,7 @@ export default function SelectRole() {
 
       if (res.ok) {
         toast.success(result.message || "Profile created successfully!");
-        const redirectPath = selectedRole === "organization" ? "/orgs" : "/teacher";
+        const redirectPath = selectedRole === "organization" ? "/organization" : "/teacher";
         router.push(redirectPath);
       } else {
         toast.error(result.message || "Failed to create profile.");

@@ -7,10 +7,10 @@ export default function JobListPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/Org/listjob") // ✅ Fixed URL
+    fetch("/api/Org/listjob") 
       .then((res) => res.json())
       .then((data) => {
-        console.log("Fetched jobs:", data); // ✅ Debugging
+        console.log("Fetched jobs:", data);
         if (data.success) setJobs(data.data);
         else console.error("Fetch error:", data.message);
         setLoading(false);
