@@ -17,12 +17,6 @@ export const authOptions = {
       try {
         await connectToDatabase();
         console.log("Signed in user:", user.email);
-        // Create a User record if it doesn't exist
-        await User.findOneAndUpdate(
-          { email: user.email },
-          { $setOnInsert: { email: user.email, name: user.name || "", role: null, profileCompleted: false } },
-          { upsert: true }
-        );
         return true;
       } catch (error) {
         console.error("Error in signIn callback:", {
@@ -33,45 +27,38 @@ export const authOptions = {
         return false;
       }
     },
+
     async session({ session, token }) {
       if (!session?.user?.email) {
         console.warn("No email in session:", { session });
         return session;
       }
+
       try {
         await connectToDatabase();
-        // Check Organization collection first for organization role
-        let userInDB = await Organization.findOne({ email: session.user.email }).select(
-          "organizationName phone role profileCompleted"
-        );
-        if (userInDB && userInDB.role === "organization") {
-          session.user.name = userInDB.organizationName || session.user.name || "";
+        let userInDB =
+          (await User.findOne({ email: session.user.email }).select("name phone role profileCompleted")) ||
+          (await Organization.findOne({ email: session.user.email }).select("organizationName phone role profileCompleted"));
+
+        if (userInDB) {
+          session.user.name =
+            userInDB.name || userInDB.organizationName || session.user.name || "";
           session.user.phone = userInDB.phone || "";
-          session.user.role = userInDB.role;
+          session.user.role = userInDB.role || null;
           session.user.profileCompleted = userInDB.profileCompleted || false;
+          session.user.image = token.picture;
+          console.log("Session updated with user data:", {
+            email: session.user.email,
+            role: session.user.role,
+          });
         } else {
-          // Fall back to User collection
-          userInDB = await User.findOne({ email: session.user.email }).select("name phone role profileCompleted");
-          if (userInDB) {
-            session.user.name = userInDB.name || session.user.name || "";
-            session.user.phone = userInDB.phone || "";
-            session.user.role = userInDB.role || null;
-            session.user.profileCompleted = userInDB.profileCompleted || false;
-          } else {
-            console.warn("No user or organization found for email:", {
-              email: session.user.email,
-            });
-            session.user.role = null;
-            session.user.profileCompleted = false;
-          }
+          console.warn("User not found in session callback:", {
+            email: session.user.email,
+          });
+          session.user.role = null;
+          session.user.profileCompleted = false;
         }
 
-        session.user.image = token.picture;
-        console.log("Session updated with user data:", {
-          email: session.user.email,
-          role: session.user.role,
-          profileCompleted: session.user.profileCompleted,
-        });
         return session;
       } catch (error) {
         console.error("Error in session callback:", {

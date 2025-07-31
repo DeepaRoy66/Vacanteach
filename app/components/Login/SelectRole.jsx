@@ -1,7 +1,6 @@
 "use client";
-
 import { useState, useEffect } from "react";
-import { useSession, signIn } from "next-auth/react";
+import { useSession, signIn, getSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import toast, { Toaster } from "react-hot-toast";
 import { useUserRedirect } from "../useUserRedirect";
@@ -131,15 +130,22 @@ export default function SelectRole() {
       if (res.ok) {
         toast.success(result.message || "Profile created successfully!");
 
-        // Refresh session to reflect updated role/profileCompleted
+        // Refresh session
         await signIn("google", { redirect: false });
 
-        // Small delay to allow session update, then redirect
-        setTimeout(() => {
+        // Verify session update
+        const updatedSession = await getSession();
+        if (
+          updatedSession?.user?.role === selectedRole &&
+          updatedSession?.user?.profileCompleted
+        ) {
           const redirectPath =
             selectedRole === "organization" ? "/organization" : "/teacher";
           router.push(redirectPath);
-        }, 300);
+        } else {
+          toast.error("Session update failed. Please try again.");
+          console.error("Session not updated:", updatedSession);
+        }
       } else {
         toast.error(result.message || "Failed to create profile.");
         console.error("API Error:", result);

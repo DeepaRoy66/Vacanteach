@@ -129,17 +129,11 @@ export async function POST(req) {
       updateData = { ...updateData, organizationName, industry };
     }
 
-    // Check for existing record in the other collection
+    // Delete any existing record in the other collection
     const otherModel = role === "organization" ? User : Organization;
-    const existingOther = await otherModel.findOne({ email });
-    if (existingOther) {
-      return new Response(JSON.stringify({ message: `Email already used as ${existingOther.role || "unknown"}` }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
+    await otherModel.deleteOne({ email });
 
-    // Update or create the profile in the appropriate collection only
+    // Update or create the profile in the appropriate collection
     const result = await Model.findOneAndUpdate(
       { email },
       { $set: updateData },
