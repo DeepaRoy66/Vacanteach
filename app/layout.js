@@ -1,6 +1,6 @@
 import Footer from './components/Footer';
 import './globals.css';
-import SessionProvider from './components/SessionProvider'; // Import your client component
+import ClientLayout from './components/ClientLayout'; // Import your client layout
 import Navbar from './components/Navbar';
 
 export const metadata = {
@@ -12,11 +12,11 @@ export default function RootLayout({ children, session }) { // Ensure session is
   return (
     <html lang="en">
       <body className="flex flex-col min-h-screen">
-        <SessionProvider session={session}> {/* Use your client-side SessionProvider */}
-          <Navbar/>
+        <ClientLayout session={session}>
+          <Navbar />
           <main className="flex-grow">{children}</main>
           <Footer />
-        </SessionProvider>
+        </ClientLayout>
       </body>
     </html>
   );

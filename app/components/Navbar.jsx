@@ -10,24 +10,30 @@ export default function Navbar() {
   const { data: session, status } = useSession();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
+  // Ensure component is mounted before rendering
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => setIsMounted(true), []);
+
+  // Log hook dependencies for debugging
   useEffect(() => {
     console.log("Current pathname:", pathname);
     console.log("Session status:", status, "Session data:", session);
   }, [pathname, status, session]);
-
-  const isWelcomePage = pathname === "/postjob";
-  const isAuthenticated = status === "authenticated";
-
-  // Do not render Navbar on /organization or /teachers pages
-  if (pathname === "/organization" || pathname === "/teachers"|| pathname.startsWith("/organization/postjob") || pathname.startsWith("/organization/Jobpage")) {
-    return null;
-  }
 
   useEffect(() => {
     const handleClickOutside = () => setIsProfileOpen(false);
     window.addEventListener("click", handleClickOutside);
     return () => window.removeEventListener("click", handleClickOutside);
   }, []);
+
+  // Check rendering condition after hooks
+  const shouldRenderNavbar = !(
+    pathname === "/organization" ||
+    pathname === "/teachers" ||
+    pathname.startsWith("/organization/postjob") ||
+    pathname.startsWith("/organization/Jobpage")
+  );
+  if (!isMounted || !shouldRenderNavbar) return null;
 
   const handleToggleDropdown = (e) => {
     e.stopPropagation();
@@ -46,6 +52,9 @@ export default function Navbar() {
       </nav>
     );
   }
+
+  const isWelcomePage = pathname === "/postjob";
+  const isAuthenticated = status === "authenticated";
 
   return (
     <nav className="bg-gradient-to-r from-green-300 via-green-100 to-green-300 shadow-lg py-3 sticky top-0 z-30 w-full animate-pulse-bg">

@@ -1,6 +1,7 @@
 "use client";
+
 import { useState, useEffect } from "react";
-import { useSession } from "next-auth/react";
+import { useSession, signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import toast, { Toaster } from "react-hot-toast";
 import { useUserRedirect } from "../useUserRedirect";
@@ -30,7 +31,9 @@ export default function SelectRole() {
       }));
       const fetchUserData = async () => {
         try {
-          const response = await fetch(`/api/user/rolepost?role=${selectedRole || "teacher"}`);
+          const response = await fetch(
+            `/api/user/rolepost?role=${selectedRole || "teacher"}`
+          );
           const result = await response.json();
           if (response.ok && result.data) {
             setFormData((prev) => ({
@@ -76,8 +79,15 @@ export default function SelectRole() {
       return;
     }
     if (selectedRole === "organization") {
-      if (!formData.organizationName || !formData.industry || !formData.phone || !formData.name) {
-        toast.error("Please fill all fields: Full Name, Organization Name, Phone Number, Industry.");
+      if (
+        !formData.organizationName ||
+        !formData.industry ||
+        !formData.phone ||
+        !formData.name
+      ) {
+        toast.error(
+          "Please fill all fields: Full Name, Organization Name, Phone Number, Industry."
+        );
         return;
       }
       if (!/^\d{10}$/.test(formData.phone)) {
@@ -110,7 +120,8 @@ export default function SelectRole() {
           name: formData.name,
           email: formData.email,
           phone: formData.phone,
-          organizationName: selectedRole === "organization" ? formData.organizationName : undefined,
+          organizationName:
+            selectedRole === "organization" ? formData.organizationName : undefined,
           industry: selectedRole === "organization" ? formData.industry : undefined,
         }),
       });
@@ -119,8 +130,16 @@ export default function SelectRole() {
 
       if (res.ok) {
         toast.success(result.message || "Profile created successfully!");
-        const redirectPath = selectedRole === "organization" ? "/organization" : "/teacher";
-        router.push(redirectPath);
+
+        // Refresh session to reflect updated role/profileCompleted
+        await signIn("google", { redirect: false });
+
+        // Small delay to allow session update, then redirect
+        setTimeout(() => {
+          const redirectPath =
+            selectedRole === "organization" ? "/organization" : "/teacher";
+          router.push(redirectPath);
+        }, 300);
       } else {
         toast.error(result.message || "Failed to create profile.");
         console.error("API Error:", result);
@@ -193,26 +212,34 @@ export default function SelectRole() {
                   type="text"
                   placeholder="Full Name"
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
                   className="w-full p-3 border border-gray-300 rounded-lg mb-4"
                 />
                 <input
                   type="text"
                   placeholder="Organization Name"
                   value={formData.organizationName}
-                  onChange={(e) => setFormData({ ...formData, organizationName: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, organizationName: e.target.value })
+                  }
                   className="w-full p-3 border border-gray-300 rounded-lg mb-4"
                 />
                 <input
                   type="text"
                   placeholder="Phone Number"
                   value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, phone: e.target.value })
+                  }
                   className="w-full p-3 border border-gray-300 rounded-lg mb-4"
                 />
                 <select
                   value={formData.industry}
-                  onChange={(e) => setFormData({ ...formData, industry: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, industry: e.target.value })
+                  }
                   className="w-full p-3 border border-gray-300 rounded-lg mb-4"
                 >
                   <option value="">Select Industry</option>
@@ -245,7 +272,9 @@ export default function SelectRole() {
                   type="text"
                   placeholder="Full Name"
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
                   className="w-full p-3 border border-gray-300 rounded-lg"
                 />
                 <input
@@ -259,7 +288,9 @@ export default function SelectRole() {
                   type="text"
                   placeholder="Phone Number"
                   value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, phone: e.target.value })
+                  }
                   className="w-full p-3 border border-gray-300 rounded-lg"
                 />
                 <button
