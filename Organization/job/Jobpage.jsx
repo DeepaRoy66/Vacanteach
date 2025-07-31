@@ -10,13 +10,11 @@ import {
   Trash2,
   MoreHorizontal,
   Plus,
-  ChevronRight,
-  Home,
   X,
 } from "lucide-react"
 import { Button } from "../../app/components/ui/button"
 import { Card, CardContent } from "../../app/components/ui/card"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "../../app/components/ui/dialog"
+import { Dialog,DialogTrigger,DialogContent,DialogHeader,DialogFooter,DialogTitle,DialogDescription,DialogClose } from "../../app/components/ui/dialog"
 import { Sidebar, SidebarProvider, SidebarInset, SidebarTrigger } from "../../app/components/ui/sidebar"
 import { AppSidebar } from "../../app/(pages)/organization/Sidebar"
 
@@ -31,109 +29,25 @@ export default function JobListPage() {
   const [isModalOpen, setIsModalOpen] = useState(false)
 
   useEffect(() => {
-    const mockJobs = [
-      {
-        _id: "1",
-        position: "Software Engineer",
-        jobCategory: "Administration",
-        requiredEmployees: 3,
-        jobLocation: "fgh",
-        currency: "USD",
-        minimum: "234567",
-        maximum: "34567",
-        salaryType: "Yearly",
-        postedBy: "deeparoy622@gmail.com",
-      },
-      {
-        _id: "2",
-        position: "Data Scientist",
-        jobCategory: "Administration",
-        requiredEmployees: 6,
-        jobLocation: "sdfghj",
-        currency: "USD",
-        minimum: "4567",
-        maximum: "456789",
-        salaryType: "Yearly",
-        postedBy: "deeparoy622@gmail.com",
-      },
-      {
-        _id: "3",
-        position: "UX Designer",
-        jobCategory: "Teaching",
-        requiredEmployees: "6",
-        jobLocation: "sdfgh",
-        currency: "USD",
-        minimum: "34567",
-        maximum: "45678",
-        salaryType: "Yearly",
-        postedBy: "deeparoy622@gmail.com",
-      },
-      {
-        _id: "4",
-        position: "Product Manager",
-        jobCategory: "Teaching",
-        requiredEmployees: 6,
-        jobLocation: "wsedfghj",
-        currency: "USD",
-        minimum: "234567",
-        maximum: "3456789",
-        salaryType: "Yearly",
-        postedBy: "deeparoy622@gmail.com",
-      },
-      {
-        _id: "5",
-        position: "DevOps Engineer",
-        jobCategory: "Administration",
-        requiredEmployees: 6,
-        jobLocation: "sdfgh",
-        currency: "USD",
-        minimum: "4567",
-        maximum: "34567",
-        salaryType: "Yearly",
-        postedBy: "deeparoy622@gmail.com",
-      },
-      {
-        _id: "6",
-        position: "Marketing Specialist",
-        jobCategory: "Administration",
-        requiredEmployees: 3,
-        jobLocation: "asdfghjkl",
-        currency: "USD",
-        minimum: "345678",
-        maximum: "3455555",
-        salaryType: "Yearly",
-        postedBy: "deeparoy622@gmail.com",
-      },
-      {
-        _id: "7",
-        position: "HR Manager",
-        jobCategory: "Teaching",
-        requiredEmployees: 6,
-        jobLocation: "sdfghj",
-        currency: "USD",
-        minimum: "234567",
-        maximum: "3456789",
-        salaryType: "Yearly",
-        postedBy: "deeparoy622@gmail.com",
-      },
-      {
-        _id: "8",
-        position: "Financial Analyst",
-        jobCategory: "Teaching",
-        requiredEmployees: 3,
-        jobLocation: "asdfghjkl",
-        currency: "USD",
-        minimum: "3456789",
-        maximum: "3456789",
-        salaryType: "Yearly",
-        postedBy: "deeparoy622@gmail.com",
-      },
-    ]
+    async function fetchJobs() {
+      try {
+        setLoading(true)
+        const response = await fetch('/api/Org/listjob')
+        const data = await response.json()
 
-    setTimeout(() => {
-      setJobs(mockJobs)
-      setLoading(false)
-    }, 500)
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to fetch jobs')
+        }
+
+        setJobs(data)
+        setLoading(false)
+      } catch (err) {
+        setError(err.message)
+        setLoading(false)
+      }
+    }
+
+    fetchJobs()
   }, [])
 
   const filteredJobs = jobs.filter((job) => {
@@ -156,29 +70,57 @@ export default function JobListPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-green-100 flex items-center justify-center px-4">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 md:h-16 md:w-16 border-b-2 border-emerald-600 mx-auto mb-4"></div>
-          <p className="text-base md:text-lg text-emerald-700 font-semibold">Loading job listings...</p>
-          <p className="text-sm md:text-base text-emerald-600 mt-2">Please wait while we fetch your data</p>
+      <SidebarProvider>
+        <div className="flex min-h-screen">
+          <AppSidebar className="w-64 fixed left-0 top-0 h-screen" />
+          <SidebarInset className="flex-1 ml-48 bg-gradient-to-br from-emerald-50 to-green-100">
+            <header className="flex h-16 shrink-0 items-center gap-2 px-4 sticky top-0 z-10">
+              <SidebarTrigger className="-ml-1 text-emerald-700 hover:bg-emerald-100" />
+              <div className="flex items-center space-x-2 ml-auto">
+                <span className="text-gray-600 font-medium text-sm">Manage Jobs</span>
+                <span className="text-emerald-700 font-semibold text-sm">All Jobs</span>
+              </div>
+            </header>
+            <div className="min-h-screen flex items-center justify-center px-4">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 md:h-16 md:w-16 border-b-2 border-emerald-600 mx-auto mb-4"></div>
+                <p className="text-base md:text-lg text-emerald-700 font-semibold">Loading job listings...</p>
+                <p className="text-sm md:text-base text-emerald-600 mt-2">Please wait while we fetch your data</p>
+              </div>
+            </div>
+          </SidebarInset>
         </div>
-      </div>
+      </SidebarProvider>
     )
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-green-100 flex items-center justify-center px-4">
-        <Card className="bg-white border border-emerald-100 rounded-lg shadow-md p-4 md:p-6 text-center w-full max-w-md">
-          <p className="text-red-600 font-semibold text-sm md:text-base">{error}</p>
-          <Button
-            className="mt-4 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded text-sm md:text-base"
-            onClick={() => window.location.reload()}
-          >
-            Retry
-          </Button>
-        </Card>
-      </div>
+      <SidebarProvider>
+        <div className="flex min-h-screen">
+          <AppSidebar className="w-64 fixed left-0 top-0 h-screen" />
+          <SidebarInset className="flex-1 ml-48 bg-gradient-to-br from-emerald-50 to-green-100">
+            <header className="flex h-16 shrink-0 items-center gap-2 px-4 sticky top-0 z-10">
+              <SidebarTrigger className="-ml-1 text-emerald-700 hover:bg-emerald-100" />
+              <div className="flex items-center space-x-2 ml-auto">
+                <span className="text-gray-600 font-medium text-sm">Manage Jobs</span>
+                <span className="text-emerald-700 font-semibold text-sm">All Jobs</span>
+              </div>
+            </header>
+            <div className="min-h-screen flex items-center justify-center px-4">
+              <Card className="bg-white border border-emerald-100 rounded-lg shadow-md p-4 md:p-6 text-center w-full max-w-md">
+                <p className="text-red-600 font-semibold text-sm md:text-base">{error}</p>
+                <Button
+                  className="mt-4 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded text-sm md:text-base"
+                  onClick={() => window.location.reload()}
+                >
+                  Retry
+                </Button>
+              </Card>
+            </div>
+          </SidebarInset>
+        </div>
+      </SidebarProvider>
     )
   }
 
@@ -187,16 +129,12 @@ export default function JobListPage() {
       <div className="flex min-h-screen">
         <AppSidebar className="w-64 fixed left-0 top-0 h-screen" />
         <SidebarInset className="flex-1 ml-48 bg-gradient-to-br from-emerald-50 to-green-100">
-          <header className="flex h-16 shrink-0 items-center gap-2 border-b bg-white/80 backdrop-blur-sm px-4 shadow-sm sticky top-0 z-10">
+          <header className="flex h-16 shrink-0 items-center gap-2 px-4 sticky top-0 z-10">
             <SidebarTrigger className="-ml-1 text-emerald-700 hover:bg-emerald-100" />
-            <div className="w-px h-4 bg-gray-300 mx-2" />
-            <nav className="flex items-center space-x-2 text-xs md:text-sm text-gray-600 ml-auto">
-              <Home className="size-3 md:size-4" />
-              <ChevronRight className="size-3 md:size-4 text-gray-400" />
-              <span className="text-gray-900 font-medium">Manage Jobs</span>
-              <ChevronRight className="size-3 md:size-4 text-gray-400" />
-              <span className="text-gray-900 font-semibold">All Jobs</span>
-            </nav>
+            <div className="flex items-center space-x-2 ml-auto">
+              <span className="text-gray-600 font-medium text-sm">Manage Jobs</span>
+              <span className="text-emerald-700 font-semibold text-sm">All Jobs</span>
+            </div>
           </header>
           <main className="p-4 md:p-6 lg:p-8 max-w-6xl ml-96">
             <div className="mb-4 flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-4">
@@ -234,7 +172,9 @@ export default function JobListPage() {
                   <div className="bg-emerald-100 w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                     <Building2 className="size-6 md:size-8 text-emerald-600" />
                   </div>
-                  <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">No jobs found</h3>
+                  <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">
+                    {jobs.length === 0 ? "No Job is Posted" : "No Jobs Found"}
+                  </h3>
                   <p className="text-gray-600 mb-6 text-sm md:text-base">
                     {jobs.length === 0
                       ? "You haven't posted any jobs yet. Start by creating your first job posting!"
