@@ -1,4 +1,5 @@
 "use client"
+
 import { useEffect, useState } from "react"
 import {
   MapPin,
@@ -7,7 +8,6 @@ import {
   Clock,
   Eye,
   Edit,
-  Trash2,
   MoreHorizontal,
   Plus,
   X,
@@ -17,12 +17,10 @@ import { Button } from "../../app/components/ui/button"
 import { Card, CardContent } from "../../app/components/ui/card"
 import {
   Dialog,
-  DialogTrigger,
   DialogContent,
   DialogHeader,
   DialogFooter,
   DialogTitle,
-  DialogDescription,
   DialogClose,
 } from "../../app/components/ui/dialog"
 import { Input } from "../../app/components/ui/input"
@@ -30,7 +28,7 @@ import { Label } from "../../app/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../app/components/ui/select"
 import { Sidebar, SidebarProvider, SidebarInset, SidebarTrigger } from "../../app/components/ui/sidebar"
 import { AppSidebar } from "../../app/(pages)/organization/Sidebar"
-import EditJobModal from "./Editjob"
+import DeleteJob from "./DeleteJob"
 
 export default function JobListPage() {
   const [jobs, setJobs] = useState([])
@@ -50,11 +48,9 @@ export default function JobListPage() {
         setLoading(true)
         const response = await fetch('/api/Org/listjob')
         const data = await response.json()
-
         if (!response.ok) {
           throw new Error(data.error || 'Failed to fetch jobs')
         }
-
         setJobs(data)
         setLoading(false)
       } catch (err) {
@@ -62,7 +58,6 @@ export default function JobListPage() {
         setLoading(false)
       }
     }
-
     fetchJobs()
   }, [])
 
@@ -72,7 +67,6 @@ export default function JobListPage() {
       job.jobCategory.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesCategory = filterCategory === "all" || job.jobCategory === filterCategory
     const matchesLocation = filterLocation === "all" || job.jobLocation === filterLocation
-
     return matchesSearch && matchesCategory && matchesLocation
   })
 
@@ -110,47 +104,37 @@ export default function JobListPage() {
     setEditFormData((prev) => ({ ...prev, [name]: value }))
   }
 
- const handleEditSubmit = async (e) => {
-  e.preventDefault();
-  const job_id = selectedJob?._id;
-
-  try {
-    const response = await fetch(`/api/Org/${job_id}/editjob`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(editFormData),
-    });
-
-    if (!response.ok) {
-      const data = await response.json();
-      throw new Error(data.error || "Failed to update job");
+  const handleEditSubmit = async (e) => {
+    e.preventDefault()
+    const job_id = selectedJob?._id
+    try {
+      const response = await fetch(`/api/Org/${job_id}/editjob`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(editFormData),
+      })
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || "Failed to update job")
+      }
+      const updatedJob = await response.json()
+      setJobs((prevJobs) =>
+        prevJobs.map((job) => (job._id === updatedJob._id ? updatedJob : job))
+      )
+      setIsModalOpen(false)
+      setIsEditMode(false)
+      setSelectedJob(null)
+    } catch (err) {
+      console.error("Edit job error:", err)
+      setError(err.message)
     }
-
-    const updatedJob = await response.json();
-    setJobs((prevJobs) =>
-      prevJobs.map((job) => (job._id === updatedJob._id ? updatedJob : job))
-    );
-    setIsModalOpen(false);
-    setIsEditMode(false);
-    setSelectedJob(null);
-  } catch (err) {
-    console.error("Edit job error:", err);
-    setError(err.message);
   }
-  <EditJobModal
-  isModalOpen={isModalOpen}
-  setIsModalOpen={setIsModalOpen}
-  selectedJob={selectedJob}
-  editFormData={editFormData}
-  setEditFormData={setEditFormData}
-  categories={categories}
-  locations={locations}
-  onSubmit={handleEditSubmit}
-/>
-};
 
+  const handleDeleteSuccess = (jobId) => {
+    setJobs((prevJobs) => prevJobs.filter((job) => job._id !== jobId))
+  }
 
   if (loading) {
     return (
@@ -333,9 +317,11 @@ export default function JobListPage() {
                               >
                                 <Edit className="size-3 md:size-4" />
                               </Button>
-                              <Button variant="ghost" size="sm" className="text-gray-400 hover:text-red-600 p-1.5">
-                                <Trash2 className="size-3 md:size-4" />
-                              </Button>
+                              <DeleteJob
+                                jobId={job._id}
+                                onDelete={handleDeleteSuccess}
+                                onError={setError}
+                              />
                               <Button variant="ghost" size="sm" className="text-gray-400 hover:text-gray-600 p-1.5">
                                 <MoreHorizontal className="size-3 md:size-4" />
                               </Button>
@@ -394,9 +380,11 @@ export default function JobListPage() {
                           >
                             <Edit className="size-4" />
                           </Button>
-                          <Button variant="ghost" size="sm" className="text-gray-400 hover:text-red-600 p-1.5">
-                            <Trash2 className="size-4" />
-                          </Button>
+                          <DeleteJob
+                            jobId={job._id}
+                            onDelete={handleDeleteSuccess}
+                            onError={setError}
+                          />
                           <Button variant="ghost" size="sm" className="text-gray-400 hover:text-gray-600 p-1.5">
                             <MoreHorizontal className="size-4" />
                           </Button>
