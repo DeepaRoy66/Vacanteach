@@ -11,12 +11,26 @@ import {
   MoreHorizontal,
   Plus,
   X,
+  Save,
 } from "lucide-react"
 import { Button } from "../../app/components/ui/button"
 import { Card, CardContent } from "../../app/components/ui/card"
-import { Dialog,DialogTrigger,DialogContent,DialogHeader,DialogFooter,DialogTitle,DialogDescription,DialogClose } from "../../app/components/ui/dialog"
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
+  DialogTitle,
+  DialogDescription,
+  DialogClose,
+} from "../../app/components/ui/dialog"
+import { Input } from "../../app/components/ui/input"
+import { Label } from "../../app/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../app/components/ui/select"
 import { Sidebar, SidebarProvider, SidebarInset, SidebarTrigger } from "../../app/components/ui/sidebar"
 import { AppSidebar } from "../../app/(pages)/organization/Sidebar"
+import EditJobModal from "./Editjob"
 
 export default function JobListPage() {
   const [jobs, setJobs] = useState([])
@@ -27,6 +41,8 @@ export default function JobListPage() {
   const [filterLocation, setFilterLocation] = useState("all")
   const [selectedJob, setSelectedJob] = useState(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isEditMode, setIsEditMode] = useState(false)
+  const [editFormData, setEditFormData] = useState({})
 
   useEffect(() => {
     async function fetchJobs() {
@@ -65,8 +81,76 @@ export default function JobListPage() {
 
   const handleViewClick = (job) => {
     setSelectedJob(job)
+    setIsEditMode(false)
     setIsModalOpen(true)
   }
+
+  const handleEditClick = (job) => {
+    setSelectedJob(job)
+    setEditFormData({
+      position: job.position,
+      jobCategory: job.jobCategory,
+      jobLocation: job.jobLocation,
+      requiredEmployees: job.requiredEmployees,
+      minimum: job.minimum,
+      maximum: job.maximum,
+      currency: job.currency,
+      salaryType: job.salaryType,
+    })
+    setIsEditMode(true)
+    setIsModalOpen(true)
+  }
+
+  const handleEditChange = (e) => {
+    const { name, value } = e.target
+    setEditFormData((prev) => ({ ...prev, [name]: value }))
+  }
+
+  const handleEditSelectChange = (name, value) => {
+    setEditFormData((prev) => ({ ...prev, [name]: value }))
+  }
+
+ const handleEditSubmit = async (e) => {
+  e.preventDefault();
+  const job_id = selectedJob?._id;
+
+  try {
+    const response = await fetch(`/api/Org/${job_id}/editjob`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(editFormData),
+    });
+
+    if (!response.ok) {
+      const data = await response.json();
+      throw new Error(data.error || "Failed to update job");
+    }
+
+    const updatedJob = await response.json();
+    setJobs((prevJobs) =>
+      prevJobs.map((job) => (job._id === updatedJob._id ? updatedJob : job))
+    );
+    setIsModalOpen(false);
+    setIsEditMode(false);
+    setSelectedJob(null);
+  } catch (err) {
+    console.error("Edit job error:", err);
+    setError(err.message);
+  }
+  <EditJobModal
+  isModalOpen={isModalOpen}
+  setIsModalOpen={setIsModalOpen}
+  selectedJob={selectedJob}
+  editFormData={editFormData}
+  setEditFormData={setEditFormData}
+  categories={categories}
+  locations={locations}
+  onSubmit={handleEditSubmit}
+/>
+};
+
 
   if (loading) {
     return (
@@ -241,7 +325,12 @@ export default function JobListPage() {
                               >
                                 <Eye className="size-3 md:size-4" />
                               </Button>
-                              <Button variant="ghost" size="sm" className="text-gray-400 hover:text-blue-600 p-1.5">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-gray-400 hover:text-blue-600 p-1.5"
+                                onClick={() => handleEditClick(job)}
+                              >
                                 <Edit className="size-3 md:size-4" />
                               </Button>
                               <Button variant="ghost" size="sm" className="text-gray-400 hover:text-red-600 p-1.5">
@@ -297,7 +386,12 @@ export default function JobListPage() {
                           >
                             <Eye className="size-4" />
                           </Button>
-                          <Button variant="ghost" size="sm" className="text-gray-400 hover:text-blue-600 p-1.5">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-gray-400 hover:text-blue-600 p-1.5"
+                            onClick={() => handleEditClick(job)}
+                          >
                             <Edit className="size-4" />
                           </Button>
                           <Button variant="ghost" size="sm" className="text-gray-400 hover:text-red-600 p-1.5">
@@ -365,61 +459,180 @@ export default function JobListPage() {
             <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
               <DialogContent className="sm:max-w-[425px] md:max-w-[600px] bg-white rounded-lg">
                 <DialogHeader className="flex justify-between items-center">
-                  <DialogTitle className="text-lg md:text-xl text-gray-900">{selectedJob.position}</DialogTitle>
+                  <DialogTitle className="text-lg md:text-xl text-gray-900">
+                    {isEditMode ? "Edit Job" : selectedJob.position}
+                  </DialogTitle>
                   <DialogClose asChild>
                     <Button variant="ghost" size="sm" className="p-1">
                       <X className="size-4 text-gray-600" />
                     </Button>
                   </DialogClose>
                 </DialogHeader>
-                <div className="p-4 space-y-4 text-sm md:text-base">
-                  <div className="flex items-center space-x-2">
-                    <Building2 className="size-4 text-emerald-600" />
-                    <span className="font-medium text-gray-900">{selectedJob.position}</span>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {isEditMode ? (
+                  <form onSubmit={handleEditSubmit} className="p-4 space-y-4">
                     <div>
-                      <div className="text-gray-600 font-medium">Category</div>
-                      <span className="bg-emerald-100 text-emerald-800 text-xs font-medium px-2 py-1 rounded-full">
-                        {selectedJob.jobCategory}
-                      </span>
+                      <Label htmlFor="position">Position</Label>
+                      <Input
+                        id="position"
+                        name="position"
+                        value={editFormData.position}
+                        onChange={handleEditChange}
+                        required
+                      />
                     </div>
                     <div>
-                      <div className="text-gray-600 font-medium">Employees</div>
-                      <div className="flex items-center space-x-1.5 text-gray-700">
-                        <Users className="size-3.5" />
-                        <span>{selectedJob.requiredEmployees} positions</span>
+                      <Label htmlFor="jobCategory">Category</Label>
+                      <Select
+                        name="jobCategory"
+                        value={editFormData.jobCategory}
+                        onValueChange={(value) => handleEditSelectChange("jobCategory", value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {categories.map((cat) => (
+                            <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="jobLocation">Location</Label>
+                      <Select
+                        name="jobLocation"
+                        value={editFormData.jobLocation}
+                        onValueChange={(value) => handleEditSelectChange("jobLocation", value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select location" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {locations.map((loc) => (
+                            <SelectItem key={loc} value={loc}>{loc}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="requiredEmployees">Required Employees</Label>
+                      <Input
+                        id="requiredEmployees"
+                        name="requiredEmployees"
+                        type="number"
+                        value={editFormData.requiredEmployees}
+                        onChange={handleEditChange}
+                        required
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="minimum">Minimum Salary</Label>
+                        <Input
+                          id="minimum"
+                          name="minimum"
+                          type="number"
+                          value={editFormData.minimum}
+                          onChange={handleEditChange}
+                          required
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="maximum">Maximum Salary</Label>
+                        <Input
+                          id="maximum"
+                          name="maximum"
+                          type="number"
+                          value={editFormData.maximum}
+                          onChange={handleEditChange}
+                          required
+                        />
                       </div>
                     </div>
                     <div>
-                      <div className="text-gray-600 font-medium">Location</div>
-                      <div className="flex items-center space-x-1.5 text-gray-700">
-                        <MapPin className="size-3.5" />
-                        <span>{selectedJob.jobLocation}</span>
-                      </div>
+                      <Label htmlFor="currency">Currency</Label>
+                      <Input
+                        id="currency"
+                        name="currency"
+                        value={editFormData.currency}
+                        onChange={handleEditChange}
+                        required
+                      />
                     </div>
                     <div>
-                      <div className="text-gray-600 font-medium">Salary</div>
-                      <div className="bg-emerald-50 text-emerald-800 p-2 rounded-md text-xs font-medium">
-                        {selectedJob.currency} {selectedJob.minimum} - {selectedJob.maximum}
-                        <span className="block text-xs text-emerald-600">{selectedJob.salaryType}</span>
-                      </div>
+                      <Label htmlFor="salaryType">Salary Type</Label>
+                      <Select
+                        name="salaryType"
+                        value={editFormData.salaryType}
+                        onValueChange={(value) => handleEditSelectChange("salaryType", value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select salary type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Hourly">Hourly</SelectItem>
+                          <SelectItem value="Monthly">Monthly</SelectItem>
+                          <SelectItem value="Yearly">Yearly</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
-                    <div className="col-span-1 md:col-span-2">
-                      <div className="text-gray-600 font-medium">Posted By</div>
-                      <div className="flex items-center space-x-2">
-                        <div className="bg-emerald-600 text-white rounded-full size-6 flex items-center justify-center text-xs font-medium">
-                          {selectedJob.postedBy.charAt(0).toUpperCase()}
+                    <DialogFooter>
+                      <Button type="submit" className="bg-emerald-600 hover:bg-emerald-700 text-white">
+                        <Save className="size-4 mr-2" />
+                        Save Changes
+                      </Button>
+                    </DialogFooter>
+                  </form>
+                ) : (
+                  <div className="p-4 space-y-4 text-sm md:text-base">
+                    <div className="flex items-center space-x-2">
+                      <Building2 className="size-4 text-emerald-600" />
+                      <span className="font-medium text-gray-900">{selectedJob.position}</span>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <div className="text-gray-600 font-medium">Category</div>
+                        <span className="bg-emerald-100 text-emerald-800 text-xs font-medium px-2 py-1 rounded-full">
+                          {selectedJob.jobCategory}
+                        </span>
+                      </div>
+                      <div>
+                        <div className="text-gray-600 font-medium">Employees</div>
+                        <div className="flex items-center space-x-1.5 text-gray-700">
+                          <Users className="size-3.5" />
+                          <span>{selectedJob.requiredEmployees} positions</span>
                         </div>
-                        <span className="text-gray-800">{selectedJob.postedBy}</span>
+                      </div>
+                      <div>
+                        <div className="text-gray-600 font-medium">Location</div>
+                        <div className="flex items-center space-x-1.5 text-gray-700">
+                          <MapPin className="size-3.5" />
+                          <span>{selectedJob.jobLocation}</span>
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-gray-600 font-medium">Salary</div>
+                        <div className="bg-emerald-50 text-emerald-800 p-2 rounded-md text-xs font-medium">
+                          {selectedJob.currency} {selectedJob.minimum} - {selectedJob.maximum}
+                          <span className="block text-xs text-emerald-600">{selectedJob.salaryType}</span>
+                        </div>
+                      </div>
+                      <div className="col-span-1 md:col-span-2">
+                        <div className="text-gray-600 font-medium">Posted By</div>
+                        <div className="flex items-center space-x-2">
+                          <div className="bg-emerald-600 text-white rounded-full size-6 flex items-center justify-center text-xs font-medium">
+                            {selectedJob.postedBy.charAt(0).toUpperCase()}
+                          </div>
+                          <span className="text-gray-800">{selectedJob.postedBy}</span>
+                        </div>
                       </div>
                     </div>
+                    <div className="flex items-center space-x-1 text-xs text-gray-500">
+                      <Clock className="size-3" />
+                      <span>Posted recently</span>
+                    </div>
                   </div>
-                  <div className="flex items-center space-x-1 text-xs text-gray-500">
-                    <Clock className="size-3" />
-                    <span>Posted recently</span>
-                  </div>
-                </div>
+                )}
               </DialogContent>
             </Dialog>
           )}
