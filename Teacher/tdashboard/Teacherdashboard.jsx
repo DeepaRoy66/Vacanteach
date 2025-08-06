@@ -1,8 +1,10 @@
 "use client";
 
 import { useSession, signOut } from "next-auth/react";
-import { useState } from "react";
-import { Bell, Search, ChevronDown, MapPin, Clock, DollarSign, Star, TrendingUp, Users, BookOpen, Award, Target, Calendar, Briefcase, Eye, Heart, ArrowUpRight, ArrowDownRight, MoreHorizontal, Filter, Download, CheckCircle, XCircle, AlertCircle, Activity, Zap, Globe, LogOut, User, Settings, BarChart } from 'lucide-react';
+import { useState, useEffect } from "react";
+import {
+  Bell, Search, ChevronDown, MapPin, Clock, DollarSign, Star, TrendingUp, Users, BookOpen, Award, Target, Calendar, Briefcase, Eye, Heart, ArrowUpRight, ArrowDownRight, MoreHorizontal, Filter, Download, CheckCircle, XCircle, AlertCircle, Activity, Zap, Globe, LogOut, User, Settings, BarChart
+} from "lucide-react";
 import { Button } from "../../app/components/ui/button";
 import { Input } from "../../app/components/ui/input";
 import { Card, CardContent, CardTitle, CardHeader } from "../../app/components/ui/card";
@@ -12,9 +14,9 @@ import { Progress } from "../../app/components/ui/progress";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../../app/components/ui/tabs";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuLabel } from "@radix-ui/react-dropdown-menu";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "../../app/components/ui/chart";
-import { Bar,  Line, LineChart, XAxis, YAxis, ResponsiveContainer, PieChart, Pie, Cell, Area, AreaChart, RadialBarChart, RadialBar } from "recharts";
+import { Bar, Line, LineChart, XAxis, YAxis, ResponsiveContainer, PieChart, Pie, Cell, Area, AreaChart } from "recharts";
 
-// Enhanced static data
+// Static data for other sections (unchanged)
 const jobCategories = [
   "Mathematics", "Science", "English", "History", "Art", "Music", "Physical Education", "Computer Science"
 ];
@@ -57,61 +59,33 @@ const topSchools = [
   { name: "Tech Academy", logo: "TA", rating: 4.9, jobs: 6, salary: "$72k" }
 ];
 
-const jobPostings = [
-  {
-    id: 1,
-    title: "Senior Mathematics Teacher",
-    school: "Lincoln High School",
-    location: "New York, NY",
-    type: "Full-time",
-    salary: "$65,000 - $80,000",
-    posted: "2 days ago",
-    description: "Lead mathematics department and teach advanced calculus and statistics courses.",
-    requirements: ["Master's degree in Mathematics", "5+ years teaching experience", "Department leadership experience"],
-    rating: 4.9,
-    applicants: 23,
-    urgent: true,
-    remote: false,
-    benefits: ["Health Insurance", "Retirement Plan", "Professional Development"]
-  },
-  {
-    id: 2,
-    title: "STEM Coordinator",
-    school: "Innovation Academy",
-    location: "San Francisco, CA",
-    type: "Full-time",
-    salary: "$70,000 - $85,000",
-    posted: "1 day ago",
-    description: "Coordinate STEM programs across K-12 and develop innovative curriculum.",
-    requirements: ["STEM Education degree", "Curriculum development", "Project management skills"],
-    rating: 4.8,
-    applicants: 31,
-    urgent: false,
-    remote: true,
-    benefits: ["Stock Options", "Flexible Hours", "Learning Budget"]
-  },
-  {
-    id: 3,
-    title: "Online ESL Instructor",
-    school: "Global Education Hub",
-    location: "Remote",
-    type: "Contract",
-    salary: "$30 - $45/hour",
-    posted: "3 hours ago",
-    description: "Teach English as a Second Language to international students online.",
-    requirements: ["TESOL Certification", "Online teaching experience", "Cultural sensitivity"],
-    rating: 4.7,
-    applicants: 18,
-    urgent: true,
-    remote: true,
-    benefits: ["Flexible Schedule", "Global Network", "Training Provided"]
-  }
-];
-
 export default function TeacherDashboard() {
   const { data: session, status } = useSession();
   const [searchQuery, setSearchQuery] = useState("");
   const [searchLocation, setSearchLocation] = useState("");
+  const [jobs, setJobs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchJobs = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch("/api/Org/getjob");
+        if (!response.ok) {
+          throw new Error("Failed to fetch jobs");
+        }
+        const data = await response.json();
+        setJobs(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchJobs();
+  }, []);
 
   if (status === "loading") {
     return (
@@ -121,9 +95,17 @@ export default function TeacherDashboard() {
     );
   }
 
+  if (error) {
+    return (
+      <div className="flex justify-center items-center min-h-screen bg-gray-100">
+        <p className="text-red-600">Error: {error}</p>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-      {/* Navigation Bar */}
+      {/* Navigation Bar (unchanged) */}
       <nav className="bg-white/80 backdrop-blur-md shadow-lg border-b border-white/20 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
@@ -264,7 +246,7 @@ export default function TeacherDashboard() {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Welcome Section */}
+        {/* Welcome Section (unchanged) */}
         <div className="mb-8">
           <div className="bg-gradient-to-r from-green-600 via-green-600 to-green-600 rounded-2xl p-8 text-white relative overflow-hidden">
             <div className="absolute inset-0 bg-black/10"></div>
@@ -284,7 +266,7 @@ export default function TeacherDashboard() {
           </div>
         </div>
 
-        {/* Dashboard Stats */}
+        {/* Dashboard Stats (unchanged) */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200 hover:shadow-lg transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -355,7 +337,7 @@ export default function TeacherDashboard() {
           </Card>
         </div>
 
-        {/* Analytics Dashboard */}
+        {/* Analytics Dashboard (unchanged) */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
           <Card className="lg:col-span-2 hover:shadow-lg transition-all duration-300">
             <CardHeader>
@@ -507,7 +489,7 @@ export default function TeacherDashboard() {
           </div>
         </div>
 
-        {/* Recent Activity & Top Schools */}
+        {/* Recent Activity & Top Schools (unchanged) */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           <Card className="hover:shadow-lg transition-all duration-300">
             <CardHeader>
@@ -603,95 +585,91 @@ export default function TeacherDashboard() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="space-y-6">
-              {jobPostings.map((job) => (
-                <div key={job.id} className="border rounded-xl p-6 hover:shadow-md transition-all duration-300 bg-gradient-to-r from-white to-gray-50">
-                  {job.urgent && (
-                    <div className="flex items-center space-x-2 mb-4">
-                      <Badge className="bg-red-100 text-red-700 border-red-200">
-                        <Zap className="h-3 w-3 mr-1" />
-                        Urgent Hiring
-                      </Badge>
-                    </div>
-                  )}
+            {loading ? (
+              <div className="flex justify-center items-center py-8">
+                <p>Loading jobs...</p>
+              </div>
+            ) : jobs.length === 0 ? (
+              <div className="flex justify-center items-center py-8">
+                <p>No jobs available.</p>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {jobs.map((job) => (
+                  <div key={job._id} className="border rounded-xl p-6 hover:shadow-md transition-all duration-300 bg-gradient-to-r from-white to-gray-50">
+                    {job.urgent && (
+                      <div className="flex items-center space-x-2 mb-4">
+                        <Badge className="bg-red-100 text-red-700 border-red-200">
+                          <Zap className="h-3 w-3 mr-1" />
+                          Urgent Hiring
+                        </Badge>
+                      </div>
+                    )}
 
-                  <div className="flex justify-between items-start mb-4">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-3 mb-2">
-                        <h3 className="text-xl font-semibold text-gray-900">{job.title}</h3>
-                        {job.remote && (
-                          <Badge variant="secondary" className="bg-green-100 text-green-700">
-                            Remote
+                    <div className="flex justify-between items-start mb-4">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-3 mb-2">
+                          <h3 className="text-xl font-semibold text-gray-900">{job.position}</h3>
+                          {job.jobLocation.toLowerCase() === "remote" && (
+                            <Badge variant="secondary" className="bg-green-100 text-green-700">
+                              Remote
+                            </Badge>
+                          )}
+                        </div>
+
+                        <div className="flex items-center space-x-4 text-sm text-gray-600 mb-3">
+                          <span className="font-medium text-blue-600">{job.postedBy}</span>
+                          <div className="flex items-center space-x-1">
+                            <MapPin className="h-4 w-4" />
+                            <span>{job.jobLocation}</span>
+                          </div>
+                          <div className="flex items-center space-x-1">
+                            <Clock className="h-4 w-4" />
+                            <span>{new Date(job.createdAt).toLocaleDateString()}</span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center space-x-4 mb-4">
+                          <Badge variant="outline" className="border-blue-200 text-blue-700">
+                            {job.jobType}
                           </Badge>
+                          <span className="text-green-600 font-semibold text-lg">
+                            {job.hideSalary ? "Salary Not Disclosed" : job.negotiable ? "Negotiable" : 
+                              job.offeredSalaryType === "Range" 
+                                ? `${job.currency} ${job.minimum.toLocaleString()} - ${job.maximum.toLocaleString()} / ${job.salaryType}`
+                                : `${job.currency} ${job.minimum.toLocaleString()} / ${job.salaryType}`}
+                          </span>
+                        </div>
+
+                        <p className="text-gray-700 mb-4 leading-relaxed">{job.description}</p>
+
+                        {job.experience && (
+                          <div className="mb-4">
+                            <h4 className="font-medium text-gray-900 mb-2">Requirements:</h4>
+                            <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
+                              <li>{job.experience}</li>
+                            </ul>
+                          </div>
                         )}
                       </div>
 
-                      <div className="flex items-center space-x-4 text-sm text-gray-600 mb-3">
-                        <span className="font-medium text-blue-600">{job.school}</span>
-                        <div className="flex items-center space-x-1">
-                          <MapPin className="h-4 w-4" />
-                          <span>{job.location}</span>
-                        </div>
-                        <div className="flex items-center space-x-1">
-                          <Clock className="h-4 w-4" />
-                          <span>{job.posted}</span>
-                        </div>
+                      <div className="ml-6 text-right space-y-3">
+                        <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 w-full">
+                          Apply Now
+                        </Button>
+                        <Button variant="outline" className="w-full">
+                          <Heart className="h-4 w-4 mr-2" />
+                          Save Job
+                        </Button>
+                        <Button variant="ghost" size="sm" className="w-full text-blue-600">
+                          View Details
+                        </Button>
                       </div>
-
-                      <div className="flex items-center space-x-4 mb-4">
-                        <Badge variant="outline" className="border-blue-200 text-blue-700">
-                          {job.type}
-                        </Badge>
-                        <span className="text-green-600 font-semibold text-lg">{job.salary}</span>
-                        <div className="flex items-center space-x-1">
-                          <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                          <span className="text-sm font-medium">{job.rating}</span>
-                        </div>
-                      </div>
-
-                      <p className="text-gray-700 mb-4 leading-relaxed">{job.description}</p>
-
-                      <div className="mb-4">
-                        <h4 className="font-medium text-gray-900 mb-2">Requirements:</h4>
-                        <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
-                          {job.requirements.map((req, index) => (
-                            <li key={index}>{req}</li>
-                          ))}
-                        </ul>
-                      </div>
-
-                      <div className="mb-4">
-                        <h4 className="font-medium text-gray-900 mb-2">Benefits:</h4>
-                        <div className="flex flex-wrap gap-2">
-                          {job.benefits.map((benefit, index) => (
-                            <Badge key={index} variant="secondary" className="bg-blue-50 text-blue-700">
-                              {benefit}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="ml-6 text-right space-y-3">
-                      <div className="text-sm text-gray-500">
-                        <Users className="h-4 w-4 inline mr-1" />
-                        {job.applicants} applicants
-                      </div>
-                      <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 w-full">
-                        Apply Now
-                      </Button>
-                      <Button variant="outline" className="w-full">
-                        <Heart className="h-4 w-4 mr-2" />
-                        Save Job
-                      </Button>
-                      <Button variant="ghost" size="sm" className="w-full text-blue-600">
-                        View Details
-                      </Button>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
 
             <div className="mt-8 text-center">
               <Button variant="outline" size="lg" className="px-8">
