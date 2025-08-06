@@ -29,7 +29,7 @@ export default function Navbar() {
   // Check rendering condition after hooks
   const shouldRenderNavbar = !(
     pathname === "/organization" ||
-    pathname === "/teachers" ||
+    pathname === "/teacher" ||
     pathname.startsWith("/organization/postjob") ||
     pathname.startsWith("/organization/Jobpage")
   );
