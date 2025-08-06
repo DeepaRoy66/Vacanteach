@@ -13,7 +13,7 @@ import { Badge } from "../../app/components/ui/badge";
 import { Avatar,AvatarFallback,AvatarImage } from "../../app/components/ui/avatar";
 import { Progress } from "../../app/components/ui/progress";
 import { Tabs,TabsList,TabsTrigger,TabsContent } from "../../app/components/ui/tabs";
-import { DropdownMenu,DropdownMenuContent,DropdownMenuTrigger,DropdownMenuSeparator,DropdownMenuItem,DropdownMenuLabel} from "../../app/components/ui/dropdown-menu";
+import { DropdownMenu,DropdownMenuItem,DropdownMenuTrigger,DropdownMenuSeparator,DropdownMenuContent,DropdownMenuLabel } from "../../app/components/ui/dropdown-menu";
 import { ChartContainer,ChartTooltip,ChartTooltipContent } from "../../app/components/ui/chart";
 import { Bar, Line, LineChart, XAxis, YAxis, ResponsiveContainer, PieChart, Pie, Cell, Area, AreaChart } from "recharts";
 
@@ -53,67 +53,99 @@ const recentActivity = [
   { id: 4, type: "profile", title: "Profile viewed by Roosevelt Middle School", time: "3 days ago", status: "viewed" }
 ];
 
-const topSchools = [
-  { name: "Lincoln High School", logo: "LH", rating: 4.9, jobs: 12, salary: "$65k" },
-  { name: "Sunshine Elementary", logo: "SE", rating: 4.8, jobs: 8, salary: "$52k" },
-  { name: "Roosevelt Middle", logo: "RM", rating: 4.7, jobs: 15, salary: "$58k" },
-  { name: "Tech Academy", logo: "TA", rating: 4.9, jobs: 6, salary: "$72k" }
-];
-
 export default function TeacherDashboard() {
   const { data: session, status } = useSession();
   const [searchQuery, setSearchQuery] = useState("");
   const [searchLocation, setSearchLocation] = useState("");
   const [jobs, setJobs] = useState([]);
+  const [topJobs, setTopJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [previousMonthJobs, setPreviousMonthJobs] = useState(0);
 
-  useEffect(() => {
-    const fetchJobs = async () => {
-      try {
-        setLoading(true);
-        console.log("Fetching jobs from /api/Org/getjob");
-        const query = new URLSearchParams({ search: searchQuery, location: searchLocation }).toString();
-        const jobsResponse = await fetch(`/api/Org/getjob?${query}`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-        console.log("Jobs response status:", jobsResponse.status);
-        if (!jobsResponse.ok) {
-          const errorData = await jobsResponse.json();
-          throw new Error(errorData.error || `HTTP error! status: ${jobsResponse.status}`);
-        }
-        const jobsData = await jobsResponse.json();
-        console.log("Fetched jobs:", jobsData);
-        setJobs(jobsData);
-
-        // Fetch job stats for the previous month
-        const currentDate = new Date();
-        const previousMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1).toISOString().slice(0, 7);
-        const statsResponse = await fetch(`/api/Org/jobstats?month=${previousMonth}`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-        if (!statsResponse.ok) {
-          console.warn("No job stats available for previous month");
-          setPreviousMonthJobs(0);
-        } else {
-          const statsData = await statsResponse.json();
-          setPreviousMonthJobs(statsData.jobCount || 0);
-        }
-      } catch (err) {
-        console.error("Fetch error:", err);
-        setError(err.message);
-      } finally {
-        setLoading(false);
+  const fetchJobs = async () => {
+    try {
+      setLoading(true);
+      console.log("Fetching jobs from /api/Org/getjob");
+      const query = new URLSearchParams({ search: searchQuery, location: searchLocation }).toString();
+      const jobsResponse = await fetch(`/api/Org/getjob?${query}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        },
+      });
+      console.log("Jobs response status:", jobsResponse.status);
+      if (!jobsResponse.ok) {
+        const text = await jobsResponse.text();
+        throw new Error(`HTTP error! status: ${jobsResponse.status}, content: ${text.substring(0, 100)}...`);
       }
-    };
+      const jobsData = await jobsResponse.json();
+      console.log("Fetched jobs:", jobsData);
+      setJobs(jobsData);
 
+      // Fetch top jobs by views
+      const topJobsResponse = await fetch(`/api/Org/getjobs?sortBy=views&limit=4`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        },
+      });
+      if (!topJobsResponse.ok) {
+        const text = await topJobsResponse.text();
+        console.warn("Failed to fetch top jobs:", text);
+        setTopJobs([]);
+      } else {
+        const topJobsData = await topJobsResponse.json();
+        console.log("Fetched top jobs:", topJobsData);
+        setTopJobs(topJobsData);
+      }
+
+      // Fetch job stats for the previous month
+      const currentDate = new Date();
+      const previousMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1).toISOString().slice(0, 7);
+      const statsResponse = await fetch(`/api/Org/jobstats?month=${previousMonth}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        },
+      });
+      if (!statsResponse.ok) {
+        console.warn("No job stats available for previous month");
+        setPreviousMonthJobs(0);
+      } else {
+        const statsData = await statsResponse.json();
+        setPreviousMonthJobs(statsData.jobCount || 0);
+      }
+    } catch (err) {
+      console.error("Fetch error:", err.message);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const incrementJobView = async (jobId) => {
+    try {
+      const response = await fetch(`/api/Org/incrementView`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        },
+        body: JSON.stringify({ jobId }),
+      });
+      if (!response.ok) {
+        console.warn("Failed to increment job view");
+      }
+    } catch (err) {
+      console.error("Error incrementing job view:", err.message);
+    }
+  };
+
+  useEffect(() => {
     fetchJobs();
   }, [searchQuery, searchLocation]);
 
@@ -129,7 +161,7 @@ export default function TeacherDashboard() {
     return (
       <div className="flex flex-col justify-center items-center min-h-screen bg-gray-100">
         <p className="text-red-600">Error: {error}</p>
-        <Button onClick={() => fetchJobs()} className="mt-4">
+        <Button onClick={fetchJobs} className="mt-4">
           Retry
         </Button>
       </div>
@@ -332,13 +364,13 @@ export default function TeacherDashboard() {
 
           <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200 hover:shadow-lg transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-green-700">Interview Rate</CardTitle>
+              <CardTitle className="text-sm font-medium text-green-700">Top Job Views</CardTitle>
               <div className="p-2 bg-green-500 rounded-lg">
-                <Users className="h-4 w-4 text-white" />
+                <Eye className="h-4 w-4 text-white" />
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-green-900">74.2%</div>
+              <div className="text-3xl font-bold text-green-900">{topJobs[0]?.views || 0}</div>
               <div className="flex items-center space-x-2 mt-2">
                 <ArrowUpRight className="h-4 w-4 text-green-500" />
                 <span className="text-sm text-green-600 font-medium">+8% from last month</span>
@@ -397,7 +429,7 @@ export default function TeacherDashboard() {
                       <MoreHorizontal className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56 bg-white shadow-lg rounded-md border border-gray-100">
+                  <DropdownMenuContent className="w-56 bg-white shadow-lg rounded-md border border-gray-100">
                     <DropdownMenuItem className="hover:bg-blue-50 px-4 py-2 cursor-pointer">Export Data</DropdownMenuItem>
                     <DropdownMenuItem className="hover:bg-blue-50 px-4 py-2 cursor-pointer">View Details</DropdownMenuItem>
                   </DropdownMenuContent>
@@ -534,7 +566,7 @@ export default function TeacherDashboard() {
           </div>
         </div>
 
-        {/* Recent Activity & Top Schools */}
+        {/* Recent Activity & Top Jobs */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           <Card className="hover:shadow-lg transition-all duration-300">
             <CardHeader>
@@ -569,38 +601,41 @@ export default function TeacherDashboard() {
           <Card className="hover:shadow-lg transition-all duration-300">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
-                <Award className="h-5 w-5 text-gold-500" />
-                <span>Top Schools</span>
+                <TrendingUp className="h-5 w-5 text-gold-500" />
+                <span>Top Jobs by Views</span>
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {topSchools.map((school, index) => (
-                  <div key={school.name} className="flex items-center space-x-4 p-3 rounded-lg hover:bg-gray-50 transition-colors">
-                    <div className="flex-shrink-0">
-                      <Avatar className="h-10 w-10">
-                        <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-500 text-white font-bold">
-                          {school.logo}
-                        </AvatarFallback>
-                      </Avatar>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900">{school.name}</p>
-                      <div className="flex items-center space-x-2">
-                        <div className="flex items-center">
-                          <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                          <span className="text-xs text-gray-500 ml-1">{school.rating}</span>
+                {topJobs.length === 0 ? (
+                  <p className="text-sm text-gray-500">No top jobs available.</p>
+                ) : (
+                  topJobs.map((job) => (
+                    <div key={job._id} className="flex items-center space-x-4 p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                      <div className="flex-shrink-0">
+                        <Avatar className="h-10 w-10">
+                          <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-500 text-white font-bold">
+                            {job.position.charAt(0)}
+                          </AvatarFallback>
+                        </Avatar>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900">{job.position}</p>
+                        <div className="flex items-center space-x-2">
+                          <span className="text-xs text-gray-500">{job.postedBy}</span>
+                          <span className="text-xs text-gray-400">•</span>
+                          <span className="text-xs text-gray-500">{job.views} views</span>
                         </div>
-                        <span className="text-xs text-gray-400">•</span>
-                        <span className="text-xs text-gray-500">{school.jobs} jobs</span>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-medium text-green-600">
+                          {job.hideSalary ? "N/A" : `${job.currency} ${job.minimum.toLocaleString()}${job.offeredSalaryType === "Range" ? ` - ${job.maximum.toLocaleString()}` : ""}`}
+                        </p>
+                        <p className="text-xs text-gray-500">salary</p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-sm font-medium text-green-600">{school.salary}</p>
-                      <p className="text-xs text-gray-500">avg salary</p>
-                    </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </CardContent>
           </Card>
@@ -672,6 +707,10 @@ export default function TeacherDashboard() {
                             <Clock className="h-4 w-4" />
                             <span>{new Date(job.createdAt).toLocaleDateString()}</span>
                           </div>
+                          <div className="flex items-center space-x-1">
+                            <Eye className="h-4 w-4" />
+                            <span>{job.views} views</span>
+                          </div>
                         </div>
 
                         <div className="flex items-center space-x-4 mb-4">
@@ -706,7 +745,12 @@ export default function TeacherDashboard() {
                           <Heart className="h-4 w-4 mr-2" />
                           Save Job
                         </Button>
-                        <Button variant="ghost" size="sm" className="w-full text-blue-600">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="w-full text-blue-600"
+                          onClick={() => incrementJobView(job._id)}
+                        >
                           View Details
                         </Button>
                       </div>

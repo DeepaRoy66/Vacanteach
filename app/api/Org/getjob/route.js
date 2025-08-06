@@ -1,4 +1,3 @@
-
 import { connectToDatabase } from "../../../../lib/mongoose";
 import Job from "../../../../lib/models/Job";
 import { NextResponse } from "next/server";
@@ -10,6 +9,8 @@ export async function GET(request) {
     const location = searchParams.get("location");
     const postedBy = searchParams.get("postedBy");
     const jobId = searchParams.get("jobId");
+    const sortBy = searchParams.get("sortBy");
+    const limit = parseInt(searchParams.get("limit")) || 0;
 
     await connectToDatabase();
 
@@ -24,10 +25,23 @@ export async function GET(request) {
       query.postedBy = postedBy;
     }
     if (jobId) {
+      if (!jobId.match(/^[0-9a-fA-F]{24}$/)) {
+        return NextResponse.json({ error: "Invalid job ID" }, { status: 400 });
+      }
       query._id = jobId;
     }
 
-    const jobs = await Job.find(query).sort({ createdAt: -1 }).lean();
+    let jobsQuery = Job.find(query).lean();
+    if (sortBy === "views") {
+      jobsQuery = jobsQuery.sort({ views: -1 });
+    } else {
+      jobsQuery = jobsQuery.sort({ createdAt: -1 });
+    }
+    if (limit > 0) {
+      jobsQuery = jobsQuery.limit(limit);
+    }
+
+    const jobs = await jobsQuery.exec();
     if (!jobs || jobs.length === 0) {
       return NextResponse.json({ error: "No jobs found" }, { status: 404 });
     }
