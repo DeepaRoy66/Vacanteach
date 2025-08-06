@@ -9,28 +9,47 @@ export async function POST(req) {
       position,
       requiredEmployees,
       jobCategory,
+      subCategory,
+      jobLevel,
+      jobType,
       experience,
       jobLocation,
+      offeredSalaryType,
       currency,
       minimum,
       maximum,
       salaryType,
+      hideSalary,
+      negotiable,
+      description,
       postedBy,
+      role,
     } = body;
 
-    // Basic validation
+    // Validation
     if (
       !position ||
       !requiredEmployees ||
       !jobCategory ||
+      !jobLevel ||
+      !jobType ||
       !jobLocation ||
-      !minimum ||
-      !maximum ||
+      !offeredSalaryType ||
       !currency ||
-      !salaryType
+      !minimum ||
+      !salaryType ||
+      !description ||
+      !postedBy
     ) {
       return new Response(
         JSON.stringify({ error: "Missing required fields." }),
+        { status: 400 }
+      );
+    }
+
+    if (offeredSalaryType === "Range" && !maximum) {
+      return new Response(
+        JSON.stringify({ error: "Maximum salary is required for range type." }),
         { status: 400 }
       );
     }
@@ -41,13 +60,21 @@ export async function POST(req) {
       position,
       requiredEmployees: Number(requiredEmployees),
       jobCategory,
+      subCategory,
+      jobLevel,
+      jobType,
       experience,
       jobLocation,
+      offeredSalaryType,
       currency,
       minimum: Number(minimum),
-      maximum: Number(maximum),
+      maximum: maximum ? Number(maximum) : null,
       salaryType,
+      hideSalary: Boolean(hideSalary),
+      negotiable: Boolean(negotiable),
+      description,
       postedBy,
+      role: role || "organization",
       createdAt: new Date(),
     });
 

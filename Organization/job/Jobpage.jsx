@@ -12,6 +12,7 @@ import {
   Plus,
   X,
   Save,
+  Info,
 } from "lucide-react"
 import { Button } from "../../app/components/ui/button"
 import { Card, CardContent } from "../../app/components/ui/card"
@@ -26,9 +27,468 @@ import {
 import { Input } from "../../app/components/ui/input"
 import { Label } from "../../app/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../app/components/ui/select"
+import { Textarea } from "../../app/components/ui/textarea"
+import { Switch } from "../../app/components/ui/switch"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../app/components/ui/tooltip"
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@radix-ui/react-accordion"
 import { Sidebar, SidebarProvider, SidebarInset, SidebarTrigger } from "../../app/components/ui/sidebar"
 import { AppSidebar } from "../../app/(pages)/organization/Sidebar"
+import { cn } from "../../lib/utilis"
 import DeleteJob from "./DeleteJob"
+
+const dropdownOptions = {
+  jobCategory: [
+    { value: "IT & Telecommunication", label: "IT & Telecommunication" },
+    { value: "Primary Education", label: "Primary Education" },
+    { value: "Secondary Education", label: "Secondary Education" },
+    { value: "Higher Education", label: "Higher Education" },
+    { value: "Special Education", label: "Special Education" },
+    { value: "Vocational Training", label: "Vocational Training" },
+    { value: "Early Childhood Education", label: "Early Childhood Education" },
+    { value: "Language Instruction", label: "Language Instruction" },
+    { value: "STEM Education", label: "STEM Education" },
+    { value: "Arts Education", label: "Arts Education" },
+  ],
+  subCategory: [
+    { value: "Mathematics", label: "Mathematics" },
+    { value: "Science", label: "Science" },
+    { value: "English", label: "English" },
+    { value: "Social Studies", label: "Social Studies" },
+    { value: "Foreign Language", label: "Foreign Language" },
+    { value: "Special Needs Education", label: "Special Needs Education" },
+    { value: "Early Literacy", label: "Early Literacy" },
+    { value: "Art and Music", label: "Art and Music" },
+    { value: "Physical Education", label: "Physical Education" },
+    { value: "Vocational Skills", label: "Vocational Skills" },
+  ],
+  jobLevel: [
+    { value: "Entry Level", label: "Entry Level" },
+    { value: "Mid Level", label: "Mid Level" },
+    { value: "Senior Level", label: "Senior Level" },
+  ],
+  jobType: [
+    { value: "Full Time", label: "Full Time" },
+    { value: "Part Time", label: "Part Time" },
+    { value: "Contract", label: "Contract" },
+    { value: "Internship", label: "Internship" },
+  ],
+  currency: [
+    { value: "USD", label: "USD" },
+    { value: "NPR", label: "NPR" },
+    { value: "INR", label: "INR" },
+  ],
+  salaryType: [
+    { value: "Monthly", label: "Monthly" },
+    { value: "Yearly", label: "Yearly" },
+    { value: "Hourly", label: "Hourly" },
+  ],
+}
+
+const FormField = ({ label, name, value, onChange, error, type = "text", placeholder, required = false }) => (
+  <div className="flex-1">
+    <Label htmlFor={name} className="block text-sm font-medium text-gray-700 mb-1">
+      {label} {required && <span className="text-red-500">*</span>}
+    </Label>
+    <Input
+      type={type}
+      id={name}
+      name={name}
+      value={value}
+      onChange={onChange}
+      className="block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+      placeholder={placeholder}
+    />
+    {error && <p className="text-sm text-red-500 mt-1">{error}</p>}
+  </div>
+)
+
+const SelectField = ({ label, name, value, onChange, error, required = false }) => {
+  const options = dropdownOptions[name] || []
+  return (
+    <div className="flex-1">
+      <Label htmlFor={name} className="block text-sm font-medium text-gray-700 mb-1">
+        {label} {required && <span className="text-red-500">*</span>}
+      </Label>
+      <Select onValueChange={(val) => onChange(name, val)} value={value || ""}>
+        <SelectTrigger className="block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+          <SelectValue placeholder={`Select ${label}`} />
+        </SelectTrigger>
+        <SelectContent className="w-[var(--radix-popper-anchor-width)] bg-white shadow-lg rounded-lg">
+          {options.map((option) => (
+            <SelectItem key={option.value} value={option.value}>
+              {option.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      {error && <p className="text-sm text-red-500 mt-1">{error}</p>}
+    </div>
+  )
+}
+
+const JobDetailSection = ({ formData, errors, handleChange, handleSelectChange }) => (
+  <Accordion type="single" collapsible defaultValue="item-1">
+    <AccordionItem value="item-1" className="border border-gray-200 rounded-xl shadow-sm bg-blue-50/50">
+      <AccordionTrigger className="px-6 py-4 text-lg font-semibold text-gray-800 hover:no-underline">
+        Job Detail
+      </AccordionTrigger>
+      <AccordionContent className="px-6 py-4 grid grid-cols-1 md:grid-cols-2 gap-6">
+        <FormField
+          label="Job Position"
+          name="position"
+          value={formData.position}
+          onChange={handleChange}
+          error={errors.position}
+          placeholder="e.g., Videographer"
+          required
+        />
+        <FormField
+          label="Req No. of Employees"
+          name="requiredEmployees"
+          value={formData.requiredEmployees}
+          onChange={handleChange}
+          error={errors.requiredEmployees}
+          type="number"
+          placeholder="e.g., 3"
+          required
+        />
+        <SelectField
+          label="Job Category"
+          name="jobCategory"
+          value={formData.jobCategory}
+          onChange={handleSelectChange}
+          error={errors.jobCategory}
+          required
+        />
+        <SelectField
+          label="Select Subject"
+          name="subCategory"
+          value={formData.subCategory}
+          onChange={handleSelectChange}
+          error={errors.subCategory}
+          placeholder="Select Subject"
+        />
+        <SelectField
+          label="Job Level"
+          name="jobLevel"
+          value={formData.jobLevel}
+          onChange={handleSelectChange}
+          error={errors.jobLevel}
+          required
+        />
+        <SelectField
+          label="Job Type"
+          name="jobType"
+          value={formData.jobType}
+          onChange={handleSelectChange}
+          error={errors.jobType}
+          required
+        />
+      </AccordionContent>
+    </AccordionItem>
+  </Accordion>
+)
+
+const JobLocationSection = ({ formData, errors, handleChange }) => (
+  <Accordion type="single" collapsible defaultValue="item-1">
+    <AccordionItem value="item-1" className="border border-gray-200 rounded-xl shadow-sm bg-blue-50/50">
+      <AccordionTrigger className="px-6 py-4 text-lg font-semibold text-gray-800 hover:no-underline">
+        Job Location
+      </AccordionTrigger>
+      <AccordionContent className="px-6 py-4">
+        <FormField
+          label="Job Location"
+          name="jobLocation"
+          value={formData.jobLocation}
+          onChange={handleChange}
+          error={errors.jobLocation}
+          placeholder="Enter Job Location"
+          required
+        />
+        <FormField
+          label="Experience"
+          name="experience"
+          value={formData.experience}
+          onChange={handleChange}
+          error={errors.experience}
+          placeholder="e.g., 2 years"
+        />
+      </AccordionContent>
+    </AccordionItem>
+  </Accordion>
+)
+
+const SalaryDescriptionSection = ({
+  formData,
+  errors,
+  handleChange,
+  handleSelectChange,
+  handleSwitchChange,
+  setFormData,
+  setErrors,
+}) => {
+  const handleRadioChange = (e) => {
+    const value = e.target.value
+    setFormData((prev) => ({ ...prev, offeredSalaryType: value }))
+    setErrors((prev) => ({ ...prev, offeredSalaryType: "" }))
+  }
+  return (
+    <Accordion type="single" collapsible defaultValue="item-1">
+      <AccordionItem value="item-1" className="border border-gray-200 rounded-xl shadow-sm bg-blue-50/50">
+        <AccordionTrigger className="px-6 py-4 text-lg font-semibold text-gray-800 hover:no-underline">
+          Salary & Description
+        </AccordionTrigger>
+        <AccordionContent className="px-6 py-4 space-y-6">
+          <div>
+            <Label className="block text-sm font-medium text-gray-700 mb-2">
+              Offered Salary Type <span className="text-red-500">*</span>
+            </Label>
+            <div className="flex flex-wrap gap-4">
+              <label className="flex items-center space-x-2 cursor-pointer">
+                <input
+                  type="radio"
+                  value="Range"
+                  checked={formData.offeredSalaryType === "Range"}
+                  onChange={handleRadioChange}
+                  className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                />
+                <span className="text-sm text-gray-700">Range</span>
+              </label>
+              <label className="flex items-center space-x-2 cursor-pointer">
+                <input
+                  type="radio"
+                  value="Fixed"
+                  checked={formData.offeredSalaryType === "Fixed"}
+                  onChange={handleRadioChange}
+                  className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                />
+                <span className="text-sm text-gray-700">Fixed</span>
+              </label>
+            </div>
+            <p className="mt-2 text-sm text-gray-500">
+              {formData.offeredSalaryType === "Range"
+                ? "Provide the minimum to maximum salary in closest range."
+                : "Provide the minimum offered salary."}
+            </p>
+            {errors.offeredSalaryType && <p className="text-sm text-red-500 mt-1">{errors.offeredSalaryType}</p>}
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+            <SelectField
+              label="Currency"
+              name="currency"
+              value={formData.currency}
+              onChange={handleSelectChange}
+              error={errors.currency}
+              required
+            />
+            <FormField
+              label="Minimum"
+              name="minimum"
+              value={formData.minimum}
+              onChange={handleChange}
+              error={errors.minimum}
+              type="number"
+              placeholder="e.g., 43000"
+              required
+            />
+            {formData.offeredSalaryType === "Range" && (
+              <FormField
+                label="Maximum"
+                name="maximum"
+                value={formData.maximum}
+                onChange={handleChange}
+                error={errors.maximum}
+                type="number"
+                placeholder="e.g., 50000"
+                required
+              />
+            )}
+            <SelectField
+              label="Salary Type"
+              name="salaryType"
+              value={formData.salaryType}
+              onChange={handleSelectChange}
+              error={errors.salaryType}
+              required
+            />
+          </div>
+          <div className="flex items-center justify-between py-2 px-4 bg-gray-50 rounded-lg border border-gray-200">
+            <div className="flex items-center space-x-6">
+              <div className="flex items-center space-x-3">
+                <Switch
+                  id="hideSalary"
+                  checked={formData.hideSalary}
+                  onCheckedChange={(checked) => handleSwitchChange("hideSalary", checked)}
+                  className={cn(
+                    "data-[state=unchecked]:bg-gray",
+                    formData.hideSalary ? "bg-green-500" : "bg-green-200"
+                  )}
+                />
+                <Label htmlFor="hideSalary" className="text-sm font-medium text-gray-700 flex items-center gap-1">
+                  Hide Salary
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Info className="h-4 w-4 text-gray-500 cursor-pointer" />
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs text-center">
+                        {'Choose this option to display "Salary Non Disclosed" to job seekers.'}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </Label>
+              </div>
+              <div className="flex items-center space-x-3">
+                <Switch
+                  id="negotiable"
+                  checked={formData.negotiable}
+                  onCheckedChange={(checked) => handleSwitchChange("negotiable", checked)}
+                  className={cn(
+                    "data-[state=unchecked]:bg-gray",
+                    formData.negotiable ? "bg-green-500" : "bg-green-200"
+                  )}
+                />
+                <Label htmlFor="negotiable" className="text-sm font-medium text-gray-700 flex items-center gap-1">
+                  Negotiable
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Info className="h-4 w-4 text-gray-500 cursor-pointer" />
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs text-center">
+                        {'Choose this option to indicate that the salary is negotiable.'}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </Label>
+              </div>
+            </div>
+          </div>
+          <div>
+            <Label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
+              Description <span className="text-red-500">*</span>
+            </Label>
+            <Textarea
+              id="description"
+              name="description"
+              value={formData.description}
+              onChange={handleChange}
+              className="block w-full px-4 py-2 border border-gray-300 rounded-lg min-h-[150px] focus:ring-blue-500 focus:border-blue-500"
+              placeholder="Enter job description..."
+            />
+            {errors.description && <p className="text-sm text-red-500 mt-1">{errors.description}</p>}
+          </div>
+        </AccordionContent>
+      </AccordionItem>
+    </Accordion>
+  )
+}
+
+function EditJobModal({
+  isModalOpen,
+  setIsModalOpen,
+  selectedJob,
+  editFormData,
+  setEditFormData,
+  onSubmit,
+}) {
+  const [errors, setErrors] = useState({})
+
+  const handleEditChange = (e) => {
+    const { name, value } = e.target
+    setEditFormData((prev) => ({ ...prev, [name]: value }))
+    setErrors((prev) => ({ ...prev, [name]: "" }))
+  }
+
+  const handleEditSelectChange = (name, value) => {
+    setEditFormData((prev) => ({ ...prev, [name]: value }))
+    setErrors((prev) => ({ ...prev, [name]: "" }))
+  }
+
+  const handleSwitchChange = (name, checked) => {
+    setEditFormData((prev) => ({ ...prev, [name]: checked }))
+  }
+
+  const validateForm = () => {
+    const newErrors = {}
+    if (!editFormData.position.trim()) newErrors.position = "Job position is required"
+    if (!editFormData.requiredEmployees.toString().trim()) newErrors.requiredEmployees = "Number of employees is required"
+    if (!editFormData.jobCategory.trim()) newErrors.jobCategory = "Job category is required"
+    if (!editFormData.jobLevel.trim()) newErrors.jobLevel = "Job level is required"
+    if (!editFormData.jobType.trim()) newErrors.jobType = "Job type is required"
+    if (!editFormData.jobLocation.trim()) newErrors.jobLocation = "Job location is required"
+    if (!editFormData.currency.trim()) newErrors.currency = "Currency is required"
+    if (!editFormData.minimum.toString().trim()) newErrors.minimum = "Minimum salary is required"
+    if (editFormData.offeredSalaryType === "Range" && !editFormData.maximum.toString().trim())
+      newErrors.maximum = "Maximum salary is required for range"
+    if (!editFormData.offeredSalaryType.trim()) newErrors.offeredSalaryType = "Offered salary type is required"
+    if (!editFormData.salaryType.trim()) newErrors.salaryType = "Salary type is required"
+    if (!editFormData.description.trim()) newErrors.description = "Job description is required"
+    return newErrors
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    const validationErrors = validateForm()
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors)
+      return
+    }
+    await onSubmit(e)
+  }
+
+  return (
+    <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+      <DialogContent className="sm:max-w-[500px] md:max-w-[800px] bg-white rounded-xl max-h-[90vh] flex flex-col">
+        <TooltipProvider>
+          <DialogHeader className="flex justify-between items-center sticky top-0 bg-white z-10 px-6 py-4 border-b border-gray-100">
+            <DialogTitle className="text-xl md:text-2xl font-semibold text-gray-900">Edit Job</DialogTitle>
+            <DialogClose asChild>
+              <Button variant="ghost" size="sm" className="p-2 hover:bg-gray-100">
+                <X className="size-5 text-gray-600" />
+              </Button>
+            </DialogClose>
+          </DialogHeader>
+          <div className="p-6 overflow-y-auto flex-1 space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <JobDetailSection
+                formData={editFormData}
+                errors={errors}
+                handleChange={handleEditChange}
+                handleSelectChange={handleEditSelectChange}
+              />
+              <JobLocationSection
+                formData={editFormData}
+                errors={errors}
+                handleChange={handleEditChange}
+              />
+              <SalaryDescriptionSection
+                formData={editFormData}
+                errors={errors}
+                handleChange={handleEditChange}
+                handleSelectChange={handleEditSelectChange}
+                handleSwitchChange={handleSwitchChange}
+                setFormData={setEditFormData}
+                setErrors={setErrors}
+              />
+              <DialogFooter className="sticky bottom-0 bg-white pt-4 border-t border-gray-100 flex justify-end gap-2">
+                <DialogClose asChild>
+                  <Button variant="outline" className="border-gray-300 text-gray-700 hover:bg-gray-100">
+                    Cancel
+                  </Button>
+                </DialogClose>
+                <Button type="submit" className="bg-emerald-600 hover:bg-emerald-700 text-white">
+                  <Save className="size-4 mr-2" />
+                  Save Changes
+                </Button>
+              </DialogFooter>
+            </form>
+          </div>
+        </TooltipProvider>
+      </DialogContent>
+    </Dialog>
+  )
+}
 
 export default function JobListPage() {
   const [jobs, setJobs] = useState([])
@@ -38,8 +498,8 @@ export default function JobListPage() {
   const [filterCategory, setFilterCategory] = useState("all")
   const [filterLocation, setFilterLocation] = useState("all")
   const [selectedJob, setSelectedJob] = useState(null)
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [isEditMode, setIsEditMode] = useState(false)
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false)
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [editFormData, setEditFormData] = useState({})
 
   useEffect(() => {
@@ -75,33 +535,30 @@ export default function JobListPage() {
 
   const handleViewClick = (job) => {
     setSelectedJob(job)
-    setIsEditMode(false)
-    setIsModalOpen(true)
+    setIsViewModalOpen(true)
   }
 
   const handleEditClick = (job) => {
     setSelectedJob(job)
     setEditFormData({
-      position: job.position,
-      jobCategory: job.jobCategory,
-      jobLocation: job.jobLocation,
-      requiredEmployees: job.requiredEmployees,
-      minimum: job.minimum,
-      maximum: job.maximum,
-      currency: job.currency,
-      salaryType: job.salaryType,
+      position: job.position || "",
+      requiredEmployees: job.requiredEmployees || "",
+      jobCategory: job.jobCategory || "",
+      subCategory: job.subCategory || "",
+      jobLevel: job.jobLevel || "",
+      jobType: job.jobType || "",
+      experience: job.experience || "",
+      jobLocation: job.jobLocation || "",
+      offeredSalaryType: job.offeredSalaryType || "Range",
+      currency: job.currency || "USD",
+      minimum: job.minimum || "",
+      maximum: job.maximum || "",
+      salaryType: job.salaryType || "Monthly",
+      hideSalary: job.hideSalary || false,
+      negotiable: job.negotiable || false,
+      description: job.description || "",
     })
-    setIsEditMode(true)
-    setIsModalOpen(true)
-  }
-
-  const handleEditChange = (e) => {
-    const { name, value } = e.target
-    setEditFormData((prev) => ({ ...prev, [name]: value }))
-  }
-
-  const handleEditSelectChange = (name, value) => {
-    setEditFormData((prev) => ({ ...prev, [name]: value }))
+    setIsEditModalOpen(true)
   }
 
   const handleEditSubmit = async (e) => {
@@ -123,8 +580,7 @@ export default function JobListPage() {
       setJobs((prevJobs) =>
         prevJobs.map((job) => (job._id === updatedJob._id ? updatedJob : job))
       )
-      setIsModalOpen(false)
-      setIsEditMode(false)
+      setIsEditModalOpen(false)
       setSelectedJob(null)
     } catch (err) {
       console.error("Edit job error:", err)
@@ -214,7 +670,7 @@ export default function JobListPage() {
                 <option value="all">All Categories</option>
                 {categories.map((cat) => (
                   <option key={cat} value={cat}>{cat}</option>
-                ))}
+                  ))}
               </select>
               <select
                 value={filterLocation}
@@ -224,7 +680,7 @@ export default function JobListPage() {
                 <option value="all">All Locations</option>
                 {locations.map((loc) => (
                   <option key={loc} value={loc}>{loc}</option>
-                ))}
+                  ))}
               </select>
               <input
                 type="text"
@@ -444,134 +900,19 @@ export default function JobListPage() {
             )}
           </main>
           {selectedJob && (
-            <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-              <DialogContent className="sm:max-w-[425px] md:max-w-[600px] bg-white rounded-lg">
-                <DialogHeader className="flex justify-between items-center">
-                  <DialogTitle className="text-lg md:text-xl text-gray-900">
-                    {isEditMode ? "Edit Job" : selectedJob.position}
-                  </DialogTitle>
-                  <DialogClose asChild>
-                    <Button variant="ghost" size="sm" className="p-1">
-                      <X className="size-4 text-gray-600" />
-                    </Button>
-                  </DialogClose>
-                </DialogHeader>
-                {isEditMode ? (
-                  <form onSubmit={handleEditSubmit} className="p-4 space-y-4">
-                    <div>
-                      <Label htmlFor="position">Position</Label>
-                      <Input
-                        id="position"
-                        name="position"
-                        value={editFormData.position}
-                        onChange={handleEditChange}
-                        required
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="jobCategory">Category</Label>
-                      <Select
-                        name="jobCategory"
-                        value={editFormData.jobCategory}
-                        onValueChange={(value) => handleEditSelectChange("jobCategory", value)}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select category" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {categories.map((cat) => (
-                            <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label htmlFor="jobLocation">Location</Label>
-                      <Select
-                        name="jobLocation"
-                        value={editFormData.jobLocation}
-                        onValueChange={(value) => handleEditSelectChange("jobLocation", value)}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select location" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {locations.map((loc) => (
-                            <SelectItem key={loc} value={loc}>{loc}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label htmlFor="requiredEmployees">Required Employees</Label>
-                      <Input
-                        id="requiredEmployees"
-                        name="requiredEmployees"
-                        type="number"
-                        value={editFormData.requiredEmployees}
-                        onChange={handleEditChange}
-                        required
-                      />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="minimum">Minimum Salary</Label>
-                        <Input
-                          id="minimum"
-                          name="minimum"
-                          type="number"
-                          value={editFormData.minimum}
-                          onChange={handleEditChange}
-                          required
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="maximum">Maximum Salary</Label>
-                        <Input
-                          id="maximum"
-                          name="maximum"
-                          type="number"
-                          value={editFormData.maximum}
-                          onChange={handleEditChange}
-                          required
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <Label htmlFor="currency">Currency</Label>
-                      <Input
-                        id="currency"
-                        name="currency"
-                        value={editFormData.currency}
-                        onChange={handleEditChange}
-                        required
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="salaryType">Salary Type</Label>
-                      <Select
-                        name="salaryType"
-                        value={editFormData.salaryType}
-                        onValueChange={(value) => handleEditSelectChange("salaryType", value)}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select salary type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Hourly">Hourly</SelectItem>
-                          <SelectItem value="Monthly">Monthly</SelectItem>
-                          <SelectItem value="Yearly">Yearly</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <DialogFooter>
-                      <Button type="submit" className="bg-emerald-600 hover:bg-emerald-700 text-white">
-                        <Save className="size-4 mr-2" />
-                        Save Changes
+            <>
+              <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
+                <DialogContent className="sm:max-w-[425px] md:max-w-[600px] bg-white rounded-lg">
+                  <DialogHeader className="flex justify-between items-center">
+                    <DialogTitle className="text-lg md:text-xl text-gray-900">
+                      {selectedJob.position}
+                    </DialogTitle>
+                    <DialogClose asChild>
+                      <Button variant="ghost" size="sm" className="p-1">
+                        <X className="size-4 text-gray-600" />
                       </Button>
-                    </DialogFooter>
-                  </form>
-                ) : (
+                    </DialogClose>
+                  </DialogHeader>
                   <div className="p-4 space-y-4 text-sm md:text-base">
                     <div className="flex items-center space-x-2">
                       <Building2 className="size-4 text-emerald-600" />
@@ -620,9 +961,17 @@ export default function JobListPage() {
                       <span>Posted recently</span>
                     </div>
                   </div>
-                )}
-              </DialogContent>
-            </Dialog>
+                </DialogContent>
+              </Dialog>
+              <EditJobModal
+                isModalOpen={isEditModalOpen}
+                setIsModalOpen={setIsEditModalOpen}
+                selectedJob={selectedJob}
+                editFormData={editFormData}
+                setEditFormData={setEditFormData}
+                onSubmit={handleEditSubmit}
+              />
+            </>
           )}
         </SidebarInset>
       </div>

@@ -4,33 +4,47 @@ import { NextResponse } from "next/server";
 
 export async function PUT(req, { params }) {
   try {
-    const { job_id } = params; 
+    const { job_id } = params;
     const body = await req.json();
     const {
       position,
       requiredEmployees,
       jobCategory,
+      subCategory,
+      jobLevel,
+      jobType,
       experience,
       jobLocation,
+      offeredSalaryType,
       currency,
       minimum,
       maximum,
       salaryType,
+      hideSalary,
+      negotiable,
+      description,
       postedBy,
     } = body;
 
-    // Basic validation
+    // Validation
     if (
       !position ||
       !requiredEmployees ||
       !jobCategory ||
+      !jobLevel ||
+      !jobType ||
       !jobLocation ||
+      !offeredSalaryType ||
       !currency ||
       !minimum ||
-      !maximum ||
-      !salaryType
+      !salaryType ||
+      !description
     ) {
       return NextResponse.json({ error: "Missing required fields." }, { status: 400 });
+    }
+
+    if (offeredSalaryType === "Range" && !maximum) {
+      return NextResponse.json({ error: "Maximum salary is required for range type." }, { status: 400 });
     }
 
     await connectToDatabase();
@@ -46,12 +60,19 @@ export async function PUT(req, { params }) {
         position,
         requiredEmployees: Number(requiredEmployees),
         jobCategory,
-        experience,
+        subCategory: subCategory || null,
+        jobLevel,
+        jobType,
+        experience: experience || null,
         jobLocation,
+        offeredSalaryType,
         currency,
         minimum: Number(minimum),
-        maximum: Number(maximum),
+        maximum: maximum ? Number(maximum) : null,
         salaryType,
+        hideSalary: Boolean(hideSalary),
+        negotiable: Boolean(negotiable),
+        description,
         postedBy,
       },
       { new: true, runValidators: true, lean: true }
@@ -64,6 +85,6 @@ export async function PUT(req, { params }) {
     return NextResponse.json(updatedJob, { status: 200 });
   } catch (error) {
     console.error("Error updating job:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return NextResponse.json({ error: error.message || "Internal Server Error" }, { status: 500 });
   }
 }

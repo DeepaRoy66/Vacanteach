@@ -47,10 +47,6 @@ const data = {
           url: "#",
         },
         {
-          title: "Archived Jobs",
-          url: "#",
-        },
-        {
           title: "Expired Jobs",
           url: "#",
         },
