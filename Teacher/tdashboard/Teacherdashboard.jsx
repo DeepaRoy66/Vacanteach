@@ -1,22 +1,23 @@
+
 "use client";
 
 import { useSession, signOut } from "next-auth/react";
 import { useState, useEffect } from "react";
 import {
-  Bell, Search, ChevronDown, MapPin, Clock, DollarSign, Star, TrendingUp, Users, BookOpen, Award, Target, Calendar, Briefcase, Eye, Heart, ArrowUpRight, ArrowDownRight, MoreHorizontal, Filter, Download, CheckCircle, XCircle, AlertCircle, Activity, Zap, Globe, LogOut, User, Settings, BarChart
+  Bell, Search, ChevronDown, MapPin, Clock, DollarSign, Star, TrendingUp, Users, BookOpen, Award, Target, Calendar, Briefcase, Eye, Heart, ArrowUpRight, ArrowDownRight, MoreHorizontal, Filter, Download, CheckCircle, AlertCircle, Activity, Zap, Globe, LogOut, User, Settings, BarChart
 } from "lucide-react";
 import { Button } from "../../app/components/ui/button";
 import { Input } from "../../app/components/ui/input";
-import { Card, CardContent, CardTitle, CardHeader } from "../../app/components/ui/card";
+import { Card,CardContent,CardHeader,CardTitle } from "../../app/components/ui/card";
 import { Badge } from "../../app/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "../../app/components/ui/avatar";
+import { Avatar,AvatarFallback,AvatarImage } from "../../app/components/ui/avatar";
 import { Progress } from "../../app/components/ui/progress";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "../../app/components/ui/tabs";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuLabel } from "@radix-ui/react-dropdown-menu";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "../../app/components/ui/chart";
+import { Tabs,TabsList,TabsTrigger,TabsContent } from "../../app/components/ui/tabs";
+import { DropdownMenu,DropdownMenuContent,DropdownMenuTrigger,DropdownMenuSeparator,DropdownMenuItem,DropdownMenuLabel} from "../../app/components/ui/dropdown-menu";
+import { ChartContainer,ChartTooltip,ChartTooltipContent } from "../../app/components/ui/chart";
 import { Bar, Line, LineChart, XAxis, YAxis, ResponsiveContainer, PieChart, Pie, Cell, Area, AreaChart } from "recharts";
 
-// Static data for other sections (unchanged)
+// Static data for other sections
 const jobCategories = [
   "Mathematics", "Science", "English", "History", "Art", "Music", "Physical Education", "Computer Science"
 ];
@@ -66,18 +67,47 @@ export default function TeacherDashboard() {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [previousMonthJobs, setPreviousMonthJobs] = useState(0);
 
   useEffect(() => {
     const fetchJobs = async () => {
       try {
         setLoading(true);
-        const response = await fetch("/api/Org/getjob");
-        if (!response.ok) {
-          throw new Error("Failed to fetch jobs");
+        console.log("Fetching jobs from /api/Org/getjob");
+        const query = new URLSearchParams({ search: searchQuery, location: searchLocation }).toString();
+        const jobsResponse = await fetch(`/api/Org/getjob?${query}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+        console.log("Jobs response status:", jobsResponse.status);
+        if (!jobsResponse.ok) {
+          const errorData = await jobsResponse.json();
+          throw new Error(errorData.error || `HTTP error! status: ${jobsResponse.status}`);
         }
-        const data = await response.json();
-        setJobs(data);
+        const jobsData = await jobsResponse.json();
+        console.log("Fetched jobs:", jobsData);
+        setJobs(jobsData);
+
+        // Fetch job stats for the previous month
+        const currentDate = new Date();
+        const previousMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1).toISOString().slice(0, 7);
+        const statsResponse = await fetch(`/api/Org/jobstats?month=${previousMonth}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+        if (!statsResponse.ok) {
+          console.warn("No job stats available for previous month");
+          setPreviousMonthJobs(0);
+        } else {
+          const statsData = await statsResponse.json();
+          setPreviousMonthJobs(statsData.jobCount || 0);
+        }
       } catch (err) {
+        console.error("Fetch error:", err);
         setError(err.message);
       } finally {
         setLoading(false);
@@ -85,7 +115,7 @@ export default function TeacherDashboard() {
     };
 
     fetchJobs();
-  }, []);
+  }, [searchQuery, searchLocation]);
 
   if (status === "loading") {
     return (
@@ -97,15 +127,24 @@ export default function TeacherDashboard() {
 
   if (error) {
     return (
-      <div className="flex justify-center items-center min-h-screen bg-gray-100">
+      <div className="flex flex-col justify-center items-center min-h-screen bg-gray-100">
         <p className="text-red-600">Error: {error}</p>
+        <Button onClick={() => fetchJobs()} className="mt-4">
+          Retry
+        </Button>
       </div>
     );
   }
 
+  const currentJobs = jobs.length;
+  const percentageChange = previousMonthJobs
+    ? ((currentJobs - previousMonthJobs) / previousMonthJobs) * 100
+    : 0;
+  const isPositiveChange = percentageChange >= 0;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-      {/* Navigation Bar (unchanged) */}
+      {/* Navigation Bar */}
       <nav className="bg-white/80 backdrop-blur-md shadow-lg border-b border-white/20 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
@@ -246,7 +285,7 @@ export default function TeacherDashboard() {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Welcome Section (unchanged) */}
+        {/* Welcome Section */}
         <div className="mb-8">
           <div className="bg-gradient-to-r from-green-600 via-green-600 to-green-600 rounded-2xl p-8 text-white relative overflow-hidden">
             <div className="absolute inset-0 bg-black/10"></div>
@@ -266,22 +305,28 @@ export default function TeacherDashboard() {
           </div>
         </div>
 
-        {/* Dashboard Stats (unchanged) */}
+        {/* Dashboard Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200 hover:shadow-lg transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-blue-700">Total Applications</CardTitle>
+              <CardTitle className="text-sm font-medium text-blue-700">Total Jobs Posted</CardTitle>
               <div className="p-2 bg-blue-500 rounded-lg">
                 <Briefcase className="h-4 w-4 text-white" />
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-blue-900">328</div>
+              <div className="text-3xl font-bold text-blue-900">{currentJobs}</div>
               <div className="flex items-center space-x-2 mt-2">
-                <ArrowUpRight className="h-4 w-4 text-green-500" />
-                <span className="text-sm text-green-600 font-medium">+12% from last month</span>
+                {isPositiveChange ? (
+                  <ArrowUpRight className="h-4 w-4 text-green-500" />
+                ) : (
+                  <ArrowDownRight className="h-4 w-4 text-red-500" />
+                )}
+                <span className={`text-sm font-medium ${isPositiveChange ? "text-green-600" : "text-red-600"}`}>
+                  {Math.abs(percentageChange).toFixed(1)}% from last month
+                </span>
               </div>
-              <Progress value={75} className="mt-3" />
+              <Progress value={Math.min((currentJobs / 500) * 100, 100)} className="mt-3" />
             </CardContent>
           </Card>
 
@@ -337,7 +382,7 @@ export default function TeacherDashboard() {
           </Card>
         </div>
 
-        {/* Analytics Dashboard (unchanged) */}
+        {/* Analytics Dashboard */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
           <Card className="lg:col-span-2 hover:shadow-lg transition-all duration-300">
             <CardHeader>
@@ -352,7 +397,7 @@ export default function TeacherDashboard() {
                       <MoreHorizontal className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-56 bg-white shadow-lg rounded-md border border-gray-100">
+            <DropdownMenuContent className="w-56 bg-white shadow-lg rounded-md border border-gray-100">
                     <DropdownMenuItem className="hover:bg-blue-50 px-4 py-2 cursor-pointer">Export Data</DropdownMenuItem>
                     <DropdownMenuItem className="hover:bg-blue-50 px-4 py-2 cursor-pointer">View Details</DropdownMenuItem>
                   </DropdownMenuContent>
@@ -489,7 +534,7 @@ export default function TeacherDashboard() {
           </div>
         </div>
 
-        {/* Recent Activity & Top Schools (unchanged) */}
+        {/* Recent Activity & Top Schools */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           <Card className="hover:shadow-lg transition-all duration-300">
             <CardHeader>
@@ -634,8 +679,8 @@ export default function TeacherDashboard() {
                             {job.jobType}
                           </Badge>
                           <span className="text-green-600 font-semibold text-lg">
-                            {job.hideSalary ? "Salary Not Disclosed" : job.negotiable ? "Negotiable" : 
-                              job.offeredSalaryType === "Range" 
+                            {job.hideSalary ? "Salary Not Disclosed" : job.negotiable ? "Negotiable" :
+                              job.offeredSalaryType === "Range"
                                 ? `${job.currency} ${job.minimum.toLocaleString()} - ${job.maximum.toLocaleString()} / ${job.salaryType}`
                                 : `${job.currency} ${job.minimum.toLocaleString()} / ${job.salaryType}`}
                           </span>

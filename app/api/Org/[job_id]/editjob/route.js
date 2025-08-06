@@ -1,11 +1,12 @@
+
 import { connectToDatabase } from "../../../../../lib/mongoose";
 import Job from "../../../../../lib/models/Job";
 import { NextResponse } from "next/server";
 
-export async function PUT(req, { params }) {
+export async function PUT(request, { params }) {
   try {
-    const { job_id } = params;
-    const body = await req.json();
+    const { jobId } = params;
+    const body = await request.json();
     const {
       position,
       requiredEmployees,
@@ -24,6 +25,8 @@ export async function PUT(req, { params }) {
       negotiable,
       description,
       postedBy,
+      role,
+      urgent,
     } = body;
 
     // Validation
@@ -38,24 +41,30 @@ export async function PUT(req, { params }) {
       !currency ||
       !minimum ||
       !salaryType ||
-      !description
+      !description ||
+      !postedBy
     ) {
-      return NextResponse.json({ error: "Missing required fields." }, { status: 400 });
+      return NextResponse.json(
+        { error: "Missing required fields." },
+        { status: 400 }
+      );
     }
 
     if (offeredSalaryType === "Range" && !maximum) {
-      return NextResponse.json({ error: "Maximum salary is required for range type." }, { status: 400 });
+      return NextResponse.json(
+        { error: "Maximum salary is required for range type." },
+        { status: 400 }
+      );
+    }
+
+    if (!jobId || !jobId.match(/^[0-9a-fA-F]{24}$/)) {
+      return NextResponse.json({ error: "Invalid job ID" }, { status: 400 });
     }
 
     await connectToDatabase();
 
-    // Validate job ID
-    if (!job_id || !job_id.match(/^[0-9a-fA-F]{24}$/)) {
-      return NextResponse.json({ error: "Invalid job ID" }, { status: 400 });
-    }
-
     const updatedJob = await Job.findByIdAndUpdate(
-      job_id,
+      jobId,
       {
         position,
         requiredEmployees: Number(requiredEmployees),
@@ -74,6 +83,9 @@ export async function PUT(req, { params }) {
         negotiable: Boolean(negotiable),
         description,
         postedBy,
+        role: role || "organization",
+        urgent: Boolean(urgent),
+        updatedAt: new Date(),
       },
       { new: true, runValidators: true, lean: true }
     );
@@ -84,7 +96,10 @@ export async function PUT(req, { params }) {
 
     return NextResponse.json(updatedJob, { status: 200 });
   } catch (error) {
-    console.error("Error updating job:", error);
-    return NextResponse.json({ error: error.message || "Internal Server Error" }, { status: 500 });
+    console.error("Error updating job:", error.message);
+    return NextResponse.json(
+      { error: "Internal Server Error", details: error.message },
+      { status: 500 }
+    );
   }
 }
