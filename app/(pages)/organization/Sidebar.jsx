@@ -32,11 +32,11 @@ const data = {
         },
         {
           title: "Active Jobs",
-          url: "#",
+          url: "/organization/Activejob",
         },
         {
           title: "Pending Jobs",
-          url: "#",
+          url: "/organization/Pendingpage",
         },
         {
           title: "Denied Jobs",
