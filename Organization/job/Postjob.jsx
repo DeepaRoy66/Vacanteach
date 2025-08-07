@@ -31,6 +31,7 @@ const initialFormData = {
   salaryType: "Monthly",
   hideSalary: false,
   negotiable: false,
+  active: true,
   description: "",
 }
 
@@ -180,6 +181,15 @@ const JobDetailSection = ({ formData, errors, handleChange, handleSelectChange }
           value={formData.jobType}
           onChange={handleSelectChange}
           error={errors.jobType}
+          required
+        />
+        <FormField
+          label="Experience"
+          name="experience"
+          value={formData.experience}
+          onChange={handleChange}
+          error={errors.experience}
+          placeholder="e.g., 2-3 years"
           required
         />
       </AccordionContent>
@@ -352,6 +362,30 @@ const SalaryDescriptionSection = ({
                   </TooltipProvider>
                 </Label>
               </div>
+              <div className="flex items-center space-x-3">
+                <Switch
+                  id="active"
+                  checked={formData.active}
+                  onCheckedChange={(checked) => handleSwitchChange("active", checked)}
+                  className={cn(
+                    "data-[state=unchecked]:bg-gray",
+                    formData.active ? "bg-green-500" : "bg-green-200"
+                  )}
+                />
+                <Label htmlFor="active" className="text-sm font-medium text-gray-700 flex items-center gap-1">
+                  Active
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Info className="h-4 w-4 text-gray-500 cursor-pointer" />
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs text-center">
+                        {'Enable to make the job listing active and visible to job seekers.'}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </Label>
+              </div>
             </div>
           </div>
           <div>
@@ -423,6 +457,7 @@ export default function PostJobPage() {
     if (!formData.jobCategory.trim()) newErrors.jobCategory = "Job category is required"
     if (!formData.jobLevel.trim()) newErrors.jobLevel = "Job level is required"
     if (!formData.jobType.trim()) newErrors.jobType = "Job type is required"
+    if (!formData.experience.trim()) newErrors.experience = "Experience is required"
     if (!formData.jobLocation.trim()) newErrors.jobLocation = "Job location is required"
     if (!formData.currency.trim()) newErrors.currency = "Currency is required"
     if (!formData.minimum.toString().trim()) newErrors.minimum = "Minimum salary is required"

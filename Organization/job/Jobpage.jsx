@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useMemo } from "react"
 import {
   MapPin,
   Users,
@@ -320,7 +320,7 @@ const SalaryDescriptionSection = ({
                   checked={formData.hideSalary}
                   onCheckedChange={(checked) => handleSwitchChange("hideSalary", checked)}
                   className={cn(
-                    "data-[state=unchecked]:bg-gray",
+                    "data-[state=unchecked]:bg-gray-300",
                     formData.hideSalary ? "bg-green-500" : "bg-green-200"
                   )}
                 />
@@ -344,7 +344,7 @@ const SalaryDescriptionSection = ({
                   checked={formData.negotiable}
                   onCheckedChange={(checked) => handleSwitchChange("negotiable", checked)}
                   className={cn(
-                    "data-[state=unchecked]:bg-gray",
+                    "data-[state=unchecked]:bg-gray-300",
                     formData.negotiable ? "bg-green-500" : "bg-green-200"
                   )}
                 />
@@ -357,6 +357,30 @@ const SalaryDescriptionSection = ({
                       </TooltipTrigger>
                       <TooltipContent className="max-w-xs text-center">
                         {'Choose this option to indicate that the salary is negotiable.'}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </Label>
+              </div>
+              <div className="flex items-center space-x-3">
+                <Switch
+                  id="active"
+                  checked={formData.active}
+                  onCheckedChange={(checked) => handleSwitchChange("active", checked)}
+                  className={cn(
+                    "data-[state=unchecked]:bg-gray-300",
+                    formData.active ? "bg-green-500" : "bg-green-200"
+                  )}
+                />
+                <Label htmlFor="active" className="text-sm font-medium text-gray-700 flex items-center gap-1">
+                  Active
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Info className="h-4 w-4 text-gray-500 cursor-pointer" />
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs text-center">
+                        {'Choose this option to indicate that the job is active.'}
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
@@ -521,14 +545,16 @@ export default function JobListPage() {
     fetchJobs()
   }, [])
 
-  const filteredJobs = jobs.filter((job) => {
-    const matchesSearch =
-      job.position.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.jobCategory.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesCategory = filterCategory === "all" || job.jobCategory === filterCategory
-    const matchesLocation = filterLocation === "all" || job.jobLocation === filterLocation
-    return matchesSearch && matchesCategory && matchesLocation
-  })
+  const filteredJobs = useMemo(() => {
+    return jobs.filter((job) => {
+      const matchesSearch =
+        job.position.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        job.jobCategory.toLowerCase().includes(searchTerm.toLowerCase())
+      const matchesCategory = filterCategory === "all" || job.jobCategory === filterCategory
+      const matchesLocation = filterLocation === "all" || job.jobLocation === filterLocation
+      return matchesSearch && matchesCategory && matchesLocation
+    })
+  }, [jobs, searchTerm, filterCategory, filterLocation])
 
   const categories = [...new Set(jobs.map((job) => job.jobCategory))]
   const locations = [...new Set(jobs.map((job) => job.jobLocation))]
@@ -552,6 +578,7 @@ export default function JobListPage() {
       offeredSalaryType: job.offeredSalaryType || "Range",
       currency: job.currency || "USD",
       minimum: job.minimum || "",
+      active: job.active || true,
       maximum: job.maximum || "",
       salaryType: job.salaryType || "Monthly",
       hideSalary: job.hideSalary || false,
@@ -670,7 +697,7 @@ export default function JobListPage() {
                 <option value="all">All Categories</option>
                 {categories.map((cat) => (
                   <option key={cat} value={cat}>{cat}</option>
-                  ))}
+                ))}
               </select>
               <select
                 value={filterLocation}
@@ -680,7 +707,7 @@ export default function JobListPage() {
                 <option value="all">All Locations</option>
                 {locations.map((loc) => (
                   <option key={loc} value={loc}>{loc}</option>
-                  ))}
+                ))}
               </select>
               <input
                 type="text"
@@ -846,7 +873,7 @@ export default function JobListPage() {
                           </Button>
                         </div>
                       </CardContent>
-                    </Card>
+                    </Card> 
                   ))}
                 </div>
                 <div className="bg-gradient-to-r from-emerald-50 to-green-50 border-t border-emerald-100 p-4">

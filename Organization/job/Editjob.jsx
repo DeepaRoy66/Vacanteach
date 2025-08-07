@@ -269,23 +269,23 @@ function EditJobModal({
                 <div className="space-y-2">
                   <Label htmlFor="offeredSalaryType" className="text-sm font-medium text-gray-700">
                     Offered Salary Type <span className="text-red-500">*</span>
-                    </Label>
-                    <Select
-                      name="offeredSalaryType"
-                      value={editFormData.offeredSalaryType}
-                      onValueChange={(value) => handleEditSelectChange("offeredSalaryType", value)}
-                    >
-                      <SelectTrigger className="border-gray-300 focus:border-emerald-500 focus:ring-emerald-500">
-                        <SelectValue placeholder="Select a salary type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {dropdownOptions.offeredSalaryType.map((type) => (
-                          <SelectItem key={type.value} value={type.value}>
-                            {type.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                  </Label>
+                  <Select
+                    name="offeredSalaryType"
+                    value={editFormData.offeredSalaryType}
+                    onValueChange={(value) => handleEditSelectChange("offeredSalaryType", value)}
+                  >
+                    <SelectTrigger className="border-gray-300 focus:border-emerald-500 focus:ring-emerald-500">
+                      <SelectValue placeholder="Select a salary type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {dropdownOptions.offeredSalaryType.map((type) => (
+                        <SelectItem key={type.value} value={type.value}>
+                          {type.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="space-y-2">
@@ -347,18 +347,18 @@ function EditJobModal({
                     name="salaryType"
                     value={editFormData.salaryType}
                     onValueChange={(value) => handleEditSelectChange("salaryType", value)}
-                    >
-                      <SelectTrigger className="border-gray-300 focus:border-emerald-500 focus:ring-emerald-500">
-                        <SelectValue placeholder="Select a salary type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {dropdownOptions.salaryType.map((type) => (
-                          <SelectItem key={type.value} value={type.value}>
-                            {type.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                  >
+                    <SelectTrigger className="border-gray-300 focus:border-emerald-500 focus:ring-emerald-500">
+                      <SelectValue placeholder="Select a salary type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {dropdownOptions.salaryType.map((type) => (
+                        <SelectItem key={type.value} value={type.value}>
+                          {type.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                   <div className="flex items-center space-x-2">
@@ -392,6 +392,22 @@ function EditJobModal({
                           <Info className="h-4 w-4 text-gray-500" />
                         </TooltipTrigger>
                         <TooltipContent>Choose this option to indicate that the salary is negotiable.</TooltipContent>
+                      </Tooltip>
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id="active"
+                      checked={editFormData.active}
+                      onCheckedChange={(checked) => handleSwitchChange("active", checked)}
+                    />
+                    <Label htmlFor="active" className="flex items-center gap-1 text-sm font-medium text-gray-700 cursor-pointer">
+                      Active
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Info className="h-4 w-4 text-gray-500" />
+                        </TooltipTrigger>
+                        <TooltipContent>Toggle to activate or deactivate the job listing.</TooltipContent>
                       </Tooltip>
                     </Label>
                   </div>
@@ -495,13 +511,14 @@ export default function JobListPage() {
       jobType: job.jobType || "",
       experience: job.experience || "",
       jobLocation: job.jobLocation || "",
-      offeredSalaryType: job.offeredSalaryType || "",
+      offeredSalaryType: job.offeredSalaryType || "Range",
       currency: job.currency || "",
       minimum: job.minimum || "",
       maximum: job.maximum || "",
       salaryType: job.salaryType || "",
       hideSalary: job.hideSalary || false,
       negotiable: job.negotiable || false,
+      active: job.active !== undefined ? job.active : true,
       description: job.description || "",
       postedBy: job.postedBy || "",
     })
@@ -544,62 +561,124 @@ export default function JobListPage() {
 
     return (
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle>Job Details</DialogTitle>
+        <DialogContent className="sm:max-w-[600px] bg-white rounded-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="flex justify-between items-center sticky top-0 bg-white z-10 border-b border-gray-100 p-4">
+            <DialogTitle className="text-lg md:text-xl text-gray-900">
+              {job.position}
+            </DialogTitle>
+            <DialogClose asChild>
+              <Button variant="ghost" size="sm" className="p-1">
+                <X className="size-4 text-gray-600" />
+              </Button>
+            </DialogClose>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label className="text-right font-medium">Position</Label>
-              <div className="col-span-3">{job.position}</div>
+          <div className="p-4 space-y-4 text-sm md:text-base">
+            <div className="flex items-center space-x-2">
+              <Building2 className="size-4 text-emerald-600" />
+              <span className="font-medium text-gray-900">{job.position}</span>
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label className="text-right font-medium">Category</Label>
-              <div className="col-span-3">{job.jobCategory}</div>
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label className="text-right font-medium">Sub Category</Label>
-              <div className="col-span-3">{job.subCategory || "N/A"}</div>
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label className="text-right font-medium">Job Level</Label>
-              <div className="col-span-3">{job.jobLevel}</div>
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label className="text-right font-medium">Job Type</Label>
-              <div className="col-span-3">{job.jobType}</div>
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label className="text-right font-medium">Experience</Label>
-              <div className="col-span-3">{job.experience || "N/A"}</div>
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label className="text-right font-medium">Location</Label>
-              <div className="col-span-3">{job.jobLocation}</div>
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label className="text-right font-medium">Salary</Label>
-              <div className="col-span-3">
-                {job.hideSalary ? "Hidden" : `${job.currency} ${job.minimum} - ${job.maximum || "N/A"} (${job.salaryType})`}
-                {job.negotiable && " (Negotiable)"}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <div className="text-gray-600 font-medium">Category</div>
+                <span className="bg-emerald-100 text-emerald-800 text-xs font-medium px-2 py-1 rounded-full">
+                  {job.jobCategory}
+                </span>
+              </div>
+              <div>
+                <div className="text-gray-600 font-medium">Sub Category</div>
+                <span className="text-gray-700 text-xs md:text-sm">
+                  {job.subCategory || "N/A"}
+                </span>
+              </div>
+              <div>
+                <div className="text-gray-600 font-medium">Job Level</div>
+                <span className="text-gray-700 text-xs md:text-sm">{job.jobLevel}</span>
+              </div>
+              <div>
+                <div className="text-gray-600 font-medium">Job Type</div>
+                <span className="text-gray-700 text-xs md:text-sm">{job.jobType}</span>
+              </div>
+              <div>
+                <div className="text-gray-600 font-medium">Employees</div>
+                <div className="flex items-center space-x-1.5 text-gray-700">
+                  <Users className="size-3.5" />
+                  <span>{job.requiredEmployees} positions</span>
+                </div>
+              </div>
+              <div>
+                <div className="text-gray-600 font-medium">Experience</div>
+                <span className="text-gray-700 text-xs md:text-sm">
+                  {job.experience || "N/A"}
+                </span>
+              </div>
+              <div>
+                <div className="text-gray-600 font-medium">Location</div>
+                <div className="flex items-center space-x-1.5 text-gray-700">
+                  <MapPin className="size-3.5" />
+                  <span>{job.jobLocation}</span>
+                </div>
+              </div>
+              <div>
+                <div className="text-gray-600 font-medium">Salary</div>
+                <div className="bg-emerald-50 text-emerald-800 p-2 rounded-md text-xs font-medium">
+                  {job.hideSalary ? (
+                    "Non Disclosed"
+                  ) : (
+                    <>
+                      {job.offeredSalaryType === "Range" ? (
+                        <>
+                          {job.currency} {job.minimum} - {job.maximum || "N/A"}
+                        </>
+                      ) : (
+                        <>
+                          {job.currency} {job.minimum}
+                        </>
+                      )}
+                      <span className="block text-xs text-emerald-600">{job.salaryType}</span>
+                      {job.negotiable && (
+                        <span className="block text-xs text-emerald-600">Negotiable</span>
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
+              <div>
+                <div className="text-gray-600 font-medium">Status</div>
+                <span
+                  className={`text-xs font-medium px-2 py-1 rounded-full ${
+                    job.active ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+                  }`}
+                >
+                  {job.active ? "Active" : "Inactive"}
+                </span>
+              </div>
+              <div>
+                <div className="text-gray-600 font-medium">Posted By</div>
+                <div className="flex items-center space-x-2">
+                  <div className="bg-emerald-600 text-white rounded-full size-6 flex items-center justify-center text-xs font-medium">
+                    {job.postedBy.charAt(0).toUpperCase()}
+                  </div>
+                  <span className="text-gray-800">{job.postedBy}</span>
+                </div>
+              </div>
+              <div className="col-span-1 md:col-span-2">
+                <div className="text-gray-600 font-medium">Description</div>
+                <p className="text-gray-700 text-xs md:text-sm">{job.description}</p>
+              </div>
+              <div className="col-span-1 md:col-span-2">
+                <div className="text-gray-600 font-medium">Posted On</div>
+                <div className="flex items-center space-x-1.5 text-gray-700">
+                  <Clock className="size-3.5" />
+                  <span>{new Date(job.createdAt).toLocaleDateString()}</span>
+                </div>
               </div>
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label className="text-right font-medium">Employees Needed</Label>
-              <div className="col-span-3">{job.requiredEmployees}</div>
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label className="text-right font-medium">Description</Label>
-              <div className="col-span-3">{job.description}</div>
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label className="text-right font-medium">Posted By</Label>
-              <div className="col-span-3">{job.postedBy}</div>
-            </div>
           </div>
-          <DialogFooter>
+          <DialogFooter className="p-4 border-t border-gray-100">
             <DialogClose asChild>
-              <Button variant="outline">Close</Button>
+              <Button variant="outline" className="border-gray-300 text-gray-700 hover:bg-gray-100">
+                Close
+              </Button>
             </DialogClose>
           </DialogFooter>
         </DialogContent>
