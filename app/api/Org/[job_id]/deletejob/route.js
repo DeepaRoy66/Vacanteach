@@ -1,7 +1,6 @@
-
 import { connectToDatabase } from "../../../../../lib/mongoose";
 import Job from "../../../../../lib/models/Job";
-import JobStats from "../../../../../lib/models/JobStats";
+import JobStats from "../../../../../lib/models/jobstats";
 import { NextResponse } from "next/server";
 
 export async function DELETE(request, { params }) {

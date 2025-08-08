@@ -36,6 +36,7 @@ import { AppSidebar } from "../../app/(pages)/organization/Sidebar"
 import { cn } from "../../lib/utilis"
 import DeleteJob from "./DeleteJob"
 
+
 const dropdownOptions = {
   jobCategory: [
     { value: "IT & Telecommunication", label: "IT & Telecommunication" },
@@ -578,11 +579,11 @@ export default function JobListPage() {
       offeredSalaryType: job.offeredSalaryType || "Range",
       currency: job.currency || "USD",
       minimum: job.minimum || "",
-      active: job.active || true,
       maximum: job.maximum || "",
       salaryType: job.salaryType || "Monthly",
       hideSalary: job.hideSalary || false,
       negotiable: job.negotiable || false,
+      active: job.active !== undefined ? job.active : true, // Fallback to true if undefined
       description: job.description || "",
     })
     setIsEditModalOpen(true)
@@ -617,6 +618,10 @@ export default function JobListPage() {
 
   const handleDeleteSuccess = (jobId) => {
     setJobs((prevJobs) => prevJobs.filter((job) => job._id !== jobId))
+    if (selectedJob?._id === jobId) {
+      setIsViewModalOpen(false) // Close view modal if the deleted job is being viewed
+      setSelectedJob(null) // Clear selected job
+    }
   }
 
   if (loading) {
@@ -873,7 +878,7 @@ export default function JobListPage() {
                           </Button>
                         </div>
                       </CardContent>
-                    </Card> 
+                    </Card>
                   ))}
                 </div>
                 <div className="bg-gradient-to-r from-emerald-50 to-green-50 border-t border-emerald-100 p-4">
@@ -969,8 +974,21 @@ export default function JobListPage() {
                       <div>
                         <div className="text-gray-600 font-medium">Salary</div>
                         <div className="bg-emerald-50 text-emerald-800 p-2 rounded-md text-xs font-medium">
-                          {selectedJob.currency} {selectedJob.minimum} - {selectedJob.maximum}
+                          {selectedJob.hideSalary ? "Salary Non Disclosed" : `${selectedJob.currency} ${selectedJob.minimum}${selectedJob.offeredSalaryType === "Range" ? ` - ${selectedJob.maximum}` : ""}`}
                           <span className="block text-xs text-emerald-600">{selectedJob.salaryType}</span>
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-gray-600 font-medium">Status</div>
+                        <div className="flex items-center space-x-1.5 text-gray-700">
+                          <span
+                            className={cn(
+                              "inline-flex items-center px-2 py-1 rounded-full text-xs font-medium",
+                              selectedJob.active !== undefined && selectedJob.active ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+                            )}
+                          >
+                            {selectedJob.active !== undefined && selectedJob.active ? "Active" : "Inactive"}
+                          </span>
                         </div>
                       </div>
                       <div className="col-span-1 md:col-span-2">

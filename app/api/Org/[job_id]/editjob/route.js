@@ -1,4 +1,3 @@
-
 import { connectToDatabase } from "../../../../../lib/mongoose";
 import Job from "../../../../../lib/models/Job";
 import { NextResponse } from "next/server";
@@ -23,6 +22,7 @@ export async function PUT(request, { params }) {
       salaryType,
       hideSalary,
       negotiable,
+      active, // Add active field
       description,
       postedBy,
       role,
@@ -42,7 +42,8 @@ export async function PUT(request, { params }) {
       !minimum ||
       !salaryType ||
       !description ||
-      !postedBy
+      !postedBy ||
+      active === undefined // Validate active field
     ) {
       return NextResponse.json(
         { error: "Missing required fields." },
@@ -81,6 +82,7 @@ export async function PUT(request, { params }) {
         salaryType,
         hideSalary: Boolean(hideSalary),
         negotiable: Boolean(negotiable),
+        active: Boolean(active), // Add active field
         description,
         postedBy,
         role: role || "organization",

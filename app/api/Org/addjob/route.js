@@ -21,6 +21,7 @@ export async function POST(req) {
       salaryType,
       hideSalary,
       negotiable,
+      active, // Add active field
       description,
       postedBy,
       role,
@@ -39,7 +40,8 @@ export async function POST(req) {
       !minimum ||
       !salaryType ||
       !description ||
-      !postedBy
+      !postedBy ||
+      active === undefined // Validate active field
     ) {
       return new Response(
         JSON.stringify({ error: "Missing required fields." }),
@@ -72,6 +74,7 @@ export async function POST(req) {
       salaryType,
       hideSalary: Boolean(hideSalary),
       negotiable: Boolean(negotiable),
+      active: Boolean(active), // Add active field
       description,
       postedBy,
       role: role || "organization",
