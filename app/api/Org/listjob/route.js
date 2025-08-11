@@ -11,10 +11,16 @@ export async function GET(request) {
     const jobId = searchParams.get("jobId");
     const sortBy = searchParams.get("sortBy");
     const limit = parseInt(searchParams.get("limit")) || 0;
+    const active = searchParams.get("active") === "true"; // Explicitly parse active parameter
 
     await connectToDatabase();
-
     let query = {};
+
+    // Always filter for active jobs when active=true is specified
+    if (active) {
+      query.active = true;
+    }
+
     if (search) {
       query.position = { $regex: search, $options: "i" };
     }
@@ -42,6 +48,10 @@ export async function GET(request) {
     }
 
     const jobs = await jobsQuery.exec();
+    // Log the query and results for debugging
+    console.log("Query:", query);
+    console.log("Fetched jobs:", jobs);
+
     if (!jobs || jobs.length === 0) {
       return NextResponse.json({ error: "No jobs found" }, { status: 404 });
     }
