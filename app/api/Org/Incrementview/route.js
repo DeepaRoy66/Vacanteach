@@ -5,9 +5,9 @@ import { NextResponse } from "next/server";
 
 export async function POST(request) {
   try {
-    const { jobId } = await request.json();
+    const { job_id } = await request.json();
 
-    if (!jobId || !jobId.match(/^[0-9a-fA-F]{24}$/)) {
+    if (!job_id || !job_id.match(/^[0-9a-fA-F]{24}$/)) {
       return NextResponse.json({ error: "Invalid job ID" }, { status: 400 });
     }
 

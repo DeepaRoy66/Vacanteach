@@ -71,22 +71,7 @@ export default function DashboardStats({
         </CardContent>
       </Card>
 
-      <Card className="bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200 hover:shadow-lg transition-all duration-300">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium text-orange-700">Avg. Salary</CardTitle>
-          <div className="p-2 bg-orange-500 rounded-lg">
-            <DollarSign className="h-4 w-4 text-white" />
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="text-3xl font-bold text-orange-900">$68,400</div>
-          <div className="flex items-center space-x-2 mt-2">
-            <ArrowUpRight className="h-4 w-4 text-green-500" />
-            <span className="text-sm text-green-600 font-medium">+5.2% from last month</span>
-          </div>
-          <Progress value={68} className="mt-3" />
-        </CardContent>
-      </Card>
+      
     </div>
   );
 }
