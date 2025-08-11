@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 
 export async function PUT(request, { params }) {
   try {
-    const { jobId } = params;
+    const { job_id } = params;
     const body = await request.json();
     const {
       position,
@@ -22,14 +22,13 @@ export async function PUT(request, { params }) {
       salaryType,
       hideSalary,
       negotiable,
-      active, // Add active field
+      active, 
       description,
       postedBy,
       role,
       urgent,
     } = body;
 
-    // Validation
     if (
       !position ||
       !requiredEmployees ||
@@ -43,7 +42,7 @@ export async function PUT(request, { params }) {
       !salaryType ||
       !description ||
       !postedBy ||
-      active === undefined // Validate active field
+      active === undefined
     ) {
       return NextResponse.json(
         { error: "Missing required fields." },
@@ -58,14 +57,14 @@ export async function PUT(request, { params }) {
       );
     }
 
-    if (!jobId || !jobId.match(/^[0-9a-fA-F]{24}$/)) {
+    if (!job_id || !job_id.match(/^[0-9a-fA-F]{24}$/)) {
       return NextResponse.json({ error: "Invalid job ID" }, { status: 400 });
     }
 
     await connectToDatabase();
 
     const updatedJob = await Job.findByIdAndUpdate(
-      jobId,
+      job_id,
       {
         position,
         requiredEmployees: Number(requiredEmployees),

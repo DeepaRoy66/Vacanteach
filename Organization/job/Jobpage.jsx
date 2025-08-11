@@ -59,8 +59,8 @@ const dropdownOptions = {
     { value: "Special Needs Education", label: "Special Needs Education" },
     { value: "Early Literacy", label: "Early Literacy" },
     { value: "Art and Music", label: "Art and Music" },
-    { value: "Physical Education", label: "Physical Education" },
     { value: "Vocational Skills", label: "Vocational Skills" },
+    { value: "none", label: "None" },
   ],
   jobLevel: [
     { value: "Entry Level", label: "Entry Level" },
@@ -418,6 +418,7 @@ function EditJobModal({
   onSubmit,
 }) {
   const [errors, setErrors] = useState({})
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handleEditChange = (e) => {
     const { name, value } = e.target
@@ -436,30 +437,52 @@ function EditJobModal({
 
   const validateForm = () => {
     const newErrors = {}
-    if (!editFormData.position.trim()) newErrors.position = "Job position is required"
-    if (!editFormData.requiredEmployees.toString().trim()) newErrors.requiredEmployees = "Number of employees is required"
-    if (!editFormData.jobCategory.trim()) newErrors.jobCategory = "Job category is required"
-    if (!editFormData.jobLevel.trim()) newErrors.jobLevel = "Job level is required"
-    if (!editFormData.jobType.trim()) newErrors.jobType = "Job type is required"
-    if (!editFormData.jobLocation.trim()) newErrors.jobLocation = "Job location is required"
-    if (!editFormData.currency.trim()) newErrors.currency = "Currency is required"
-    if (!editFormData.minimum.toString().trim()) newErrors.minimum = "Minimum salary is required"
-    if (editFormData.offeredSalaryType === "Range" && !editFormData.maximum.toString().trim())
+    if (!editFormData.position?.trim()) newErrors.position = "Job position is required"
+    if (!editFormData.requiredEmployees?.toString().trim()) newErrors.requiredEmployees = "Number of employees is required"
+    if (Number(editFormData.requiredEmployees) <= 0) newErrors.requiredEmployees = "Number of employees must be positive"
+    if (!editFormData.jobCategory?.trim()) newErrors.jobCategory = "Job category is required"
+    if (!editFormData.jobLevel?.trim()) newErrors.jobLevel = "Job level is required"
+    if (!editFormData.jobType?.trim()) newErrors.jobType = "Job type is required"
+    if (!editFormData.jobLocation?.trim()) newErrors.jobLocation = "Job location is required"
+    if (!editFormData.currency?.trim()) newErrors.currency = "Currency is required"
+    if (!editFormData.minimum?.toString().trim()) newErrors.minimum = "Minimum salary is required"
+    if (Number(editFormData.minimum) <= 0) newErrors.minimum = "Minimum salary must be positive"
+    if (editFormData.offeredSalaryType === "Range" && !editFormData.maximum?.toString().trim()) {
       newErrors.maximum = "Maximum salary is required for range"
-    if (!editFormData.offeredSalaryType.trim()) newErrors.offeredSalaryType = "Offered salary type is required"
-    if (!editFormData.salaryType.trim()) newErrors.salaryType = "Salary type is required"
-    if (!editFormData.description.trim()) newErrors.description = "Job description is required"
+    }
+    if (editFormData.offeredSalaryType === "Range" && Number(editFormData.maximum) <= Number(editFormData.minimum)) {
+      newErrors.maximum = "Maximum salary must be greater than minimum"
+    }
+    if (!editFormData.offeredSalaryType?.trim()) newErrors.offeredSalaryType = "Offered salary type is required"
+    if (!editFormData.salaryType?.trim()) newErrors.salaryType = "Salary type is required"
+    if (!editFormData.description?.trim()) newErrors.description = "Job description is required"
+    if (editFormData.active === undefined) newErrors.active = "Active status is required"
+    if (!editFormData.postedBy?.trim()) newErrors.postedBy = "Posted by is required"
     return newErrors
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     const validationErrors = validateForm()
+    console.log("handleSubmit: validationErrors:", validationErrors)
+    setErrors(validationErrors)
     if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors)
       return
     }
-    await onSubmit(e)
+    const job_id = selectedJob?._id
+    if (!job_id || !job_id.match(/^[0-9a-fA-F]{24}$/)) {
+      setErrors({ submit: "Invalid job ID. Please try selecting the job again." })
+      setIsSubmitting(false)
+      return
+    }
+    setIsSubmitting(true)
+    try {
+      await onSubmit(e)
+    } catch (error) {
+      setErrors({ submit: error.message || "Failed to update job" })
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -496,15 +519,16 @@ function EditJobModal({
                 setFormData={setEditFormData}
                 setErrors={setErrors}
               />
+              {errors.submit && <p className="text-sm text-red-500 mt-2">{errors.submit}</p>}
               <DialogFooter className="sticky bottom-0 bg-white pt-4 border-t border-gray-100 flex justify-end gap-2">
                 <DialogClose asChild>
                   <Button variant="outline" className="border-gray-300 text-gray-700 hover:bg-gray-100">
                     Cancel
                   </Button>
                 </DialogClose>
-                <Button type="submit" className="bg-emerald-600 hover:bg-emerald-700 text-white">
+                <Button type="submit" className="bg-emerald-600 hover:bg-emerald-700 text-white" disabled={isSubmitting}>
                   <Save className="size-4 mr-2" />
-                  Save Changes
+                  {isSubmitting ? "Saving..." : "Save Changes"}
                 </Button>
               </DialogFooter>
             </form>
@@ -566,25 +590,28 @@ export default function JobListPage() {
   }
 
   const handleEditClick = (job) => {
+    console.log("handleEditClick: selectedJob:", job)
     setSelectedJob(job)
     setEditFormData({
       position: job.position || "",
-      requiredEmployees: job.requiredEmployees || "",
+      requiredEmployees: job.requiredEmployees?.toString() || "",
       jobCategory: job.jobCategory || "",
-      subCategory: job.subCategory || "",
+      subCategory: job.subCategory || "none",
       jobLevel: job.jobLevel || "",
       jobType: job.jobType || "",
       experience: job.experience || "",
       jobLocation: job.jobLocation || "",
       offeredSalaryType: job.offeredSalaryType || "Range",
       currency: job.currency || "USD",
-      minimum: job.minimum || "",
-      maximum: job.maximum || "",
+      minimum: job.minimum?.toString() || "",
+      maximum: job.maximum?.toString() || "",
       salaryType: job.salaryType || "Monthly",
       hideSalary: job.hideSalary || false,
       negotiable: job.negotiable || false,
-      active: job.active !== undefined ? job.active : true, // Fallback to true if undefined
+      active: job.active !== undefined ? job.active : true,
       description: job.description || "",
+      postedBy: job.postedBy || "",
+      urgent: job.urgent || false,
     })
     setIsEditModalOpen(true)
   }
@@ -592,35 +619,57 @@ export default function JobListPage() {
   const handleEditSubmit = async (e) => {
     e.preventDefault()
     const job_id = selectedJob?._id
+    console.log("handleEditSubmit: selectedJob:", selectedJob, "job_id:", job_id)
+    if (!job_id || !job_id.match(/^[0-9a-fA-F]{24}$/)) {
+      return
+    }
     try {
+      console.log("handleEditSubmit: editFormData:", editFormData)
+      const payload = {
+        ...editFormData,
+        requiredEmployees: Number(editFormData.requiredEmployees),
+        minimum: Number(editFormData.minimum),
+        maximum: editFormData.offeredSalaryType === "Range" ? Number(editFormData.maximum) : null,
+        subCategory: editFormData.subCategory === "none" ? "" : editFormData.subCategory,
+      }
+      console.log("handleEditSubmit: payload:", payload)
+      console.log("handleEditSubmit: before fetch")
       const response = await fetch(`/api/Org/${job_id}/editjob`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(editFormData),
+        body: JSON.stringify(payload),
       })
+      console.log("handleEditSubmit: response status:", response.status)
+      const data = await response.json()
+      console.log("handleEditSubmit: response data:", data)
       if (!response.ok) {
-        const data = await response.json()
-        throw new Error(data.error || "Failed to update job")
+        throw new Error(data.error || `Failed to update job (status: ${response.status})`)
       }
-      const updatedJob = await response.json()
-      setJobs((prevJobs) =>
-        prevJobs.map((job) => (job._id === updatedJob._id ? updatedJob : job))
-      )
+      const updatedJob = data
+      setJobs((prevJobs) => {
+        const newJobs = [...prevJobs]
+        const index = newJobs.findIndex((job) => job._id === updatedJob._id)
+        if (index !== -1) {
+          newJobs[index] = { ...updatedJob }
+        }
+        return newJobs
+      })
       setIsEditModalOpen(false)
       setSelectedJob(null)
-    } catch (err) {
-      console.error("Edit job error:", err)
-      setError(err.message)
+      alert(`Job ${job_id} updated successfully!`)
+    } catch (error) {
+      console.error("Edit job error:", error)
+      throw new Error(error.message || "Failed to update job. Please try again.")
     }
   }
 
   const handleDeleteSuccess = (jobId) => {
     setJobs((prevJobs) => prevJobs.filter((job) => job._id !== jobId))
     if (selectedJob?._id === jobId) {
-      setIsViewModalOpen(false) // Close view modal if the deleted job is being viewed
-      setSelectedJob(null) // Clear selected job
+      setIsViewModalOpen(false)
+      setSelectedJob(null)
     }
   }
 
@@ -692,7 +741,7 @@ export default function JobListPage() {
               <span className="text-emerald-700 font-semibold text-sm">All Jobs</span>
             </div>
           </header>
-          <main className="p-4 md:p-6 lg:p-8 max-w-6xl ml-96">
+          <main className="p-4 md:p-6 lg:p-8 max-w-6xl ml-96 mx-auto">
             <div className="mb-4 flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-4">
               <select
                 value={filterCategory}
@@ -736,7 +785,10 @@ export default function JobListPage() {
                       ? "You haven't posted any jobs yet. Start by creating your first job posting!"
                       : "No jobs match your current search criteria. Try adjusting your filters."}
                   </p>
-                  <Button className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 md:px-6 md:py-3 rounded-xl font-medium text-sm md:text-base">
+                  <Button 
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 md:px-6 md:py-3 rounded-xl font-medium text-sm md:text-base"
+                    onClick={() => window.location.href = "/organization/postjob"}
+                  >
                     <Plus className="size-4 mr-2" />
                     Post Your First Job
                   </Button>
@@ -995,7 +1047,7 @@ export default function JobListPage() {
                         <div className="text-gray-600 font-medium">Posted By</div>
                         <div className="flex items-center space-x-2">
                           <div className="bg-emerald-600 text-white rounded-full size-6 flex items-center justify-center text-xs font-medium">
-                            {selectedJob.postedBy.charAt(0).toUpperCase()}
+                            {selectedJob.postedBy?.charAt(0).toUpperCase()}
                           </div>
                           <span className="text-gray-800">{selectedJob.postedBy}</span>
                         </div>
