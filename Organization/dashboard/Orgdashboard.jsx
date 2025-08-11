@@ -9,27 +9,61 @@ import { SidebarProvider, SidebarInset, SidebarTrigger } from "../../app/compone
 import { AppSidebar } from "../../app/(pages)/organization/Sidebar"
 import {
   X,
-  ShoppingCart,
   Users,
   TrendingUp,
   Calendar,
-  Clock,
   Sparkles,
   Target,
   Award,
-  ChevronRight,
+  BriefcaseBusiness,
+  AlertCircle,
 } from "lucide-react"
+import { toast, ToastContainer } from "react-toastify"
+import "react-toastify/dist/ReactToastify.css"
 
 export default function OrganizationDashboard() {
-  const { data: session, status } = useSession()
+  const { data: session, status } = useSession({
+    required: true,
+    onUnauthenticated: () => router.push("/auth"),
+  })
   const router = useRouter()
   const [showWelcome, setShowWelcome] = React.useState(true)
+  const [activeJobs, setActiveJobs] = React.useState([])
+  const [isLoadingJobs, setIsLoadingJobs] = React.useState(true)
+  const [selectedCategory, setSelectedCategory] = React.useState("all")
 
   React.useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/")
+    if (status === "authenticated" && session?.user?.role === "organization") {
+      fetchActiveJobs()
+    } else if (status === "authenticated" && session?.user?.role !== "organization") {
+      router.push("/unauthorized")
     }
-  }, [status, router])
+  }, [status, session])
+
+  const fetchActiveJobs = async () => {
+    setIsLoadingJobs(true)
+    try {
+      const response = await fetch(
+        `/api/Org/listjob?active=true&postedBy=${encodeURIComponent(session?.user?.email)}`,
+        {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+        }
+      )
+      if (!response.ok) throw new Error("Failed to fetch jobs")
+      const jobs = await response.json()
+      setActiveJobs(jobs)
+    } catch (error) {
+      console.error("Error fetching active jobs:", error)
+      toast.error("Failed to load active jobs. Please try again.")
+    } finally {
+      setIsLoadingJobs(false)
+    }
+  }
+
+  const filteredJobs = selectedCategory === "all"
+    ? activeJobs
+    : activeJobs.filter(job => job.jobCategory === selectedCategory)
 
   if (status === "loading") {
     return (
@@ -42,14 +76,19 @@ export default function OrganizationDashboard() {
     )
   }
 
-  if (status === "unauthenticated") {
-    return null
+  if (status === "authenticated" && session?.user?.role !== "organization") {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-red-600 text-xl">Unauthorized: Only organizations can view this dashboard.</div>
+      </div>
+    )
   }
 
   const user = session?.user
 
   return (
     <SidebarProvider>
+      <ToastContainer />
       <div className="flex min-h-screen bg-gradient-to-br from-emerald-50 to-green-100 overflow-x-hidden">
         {/* Sidebar */}
         <div className="fixed top-0 left-0 w-80 h-screen overflow-y-auto bg-white border-r border-gray-200 z-10">
@@ -80,7 +119,10 @@ export default function OrganizationDashboard() {
                       Welcome, <span className="font-semibold">{user?.name || "there"}</span>! We're excited to have
                       you on board. To get started, you can post your first job to attract top talent, view and manage
                       applications. Let's get started on finding the best candidates for your team! But first, let's{" "}
-                      <span className="text-yellow-300 underline cursor-pointer hover:text-yellow-200 transition-colors">
+                      <span
+                        className="text-yellow-300 underline cursor-pointer hover:text-yellow-200 transition-colors"
+                        onClick={() => router.push("/organization/profile")}
+                      >
                         complete your profile
                       </span>
                       .
@@ -95,7 +137,7 @@ export default function OrganizationDashboard() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-emerald-600">Active Jobs</p>
-                      <p className="text-3xl font-bold text-gray-900">24</p>
+                      <p className="text-3xl font-bold text-gray-900">{activeJobs.length}</p>
                     </div>
                     <div className="bg-emerald-100 p-3 rounded-xl">
                       <Target className="size-6 text-emerald-600" />
@@ -106,8 +148,7 @@ export default function OrganizationDashboard() {
                     +12% from last month
                   </p>
                 </div>
-
-                <div className="bg-white rounded-2xl p-6 shadow-sm border border-emerald-100 hover:shadow-md transition-shadow">
+                <div className="bg-white Rounded-2xl p-6 shadow-sm border border-emerald-100 hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-emerald-600">Applications</p>
@@ -122,7 +163,6 @@ export default function OrganizationDashboard() {
                     +8% from last month
                   </p>
                 </div>
-
                 <div className="bg-white rounded-2xl p-6 shadow-sm border border-emerald-100 hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between">
                     <div>
@@ -138,7 +178,6 @@ export default function OrganizationDashboard() {
                     +23% from last month
                   </p>
                 </div>
-
                 <div className="bg-white rounded-2xl p-6 shadow-sm border border-emerald-100 hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between">
                     <div>
@@ -155,6 +194,86 @@ export default function OrganizationDashboard() {
                   </p>
                 </div>
               </div>
+
+              {/* Active Jobs Section */}
+              <Card className="bg-white shadow-lg border border-emerald-100 rounded-2xl overflow-hidden">
+                <CardHeader className="text-center pb-6 bg-gradient-to-r from-emerald-50 to-green-50 border-b border-emerald-100">
+                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div>
+                      <CardTitle className="text-3xl font-bold text-gray-900 mb-2">Active Jobs</CardTitle>
+                      <CardDescription className="text-emerald-600 text-lg">
+                        View all active job listings posted by your organization.
+                      </CardDescription>
+                    </div>
+                    <Button
+                      variant="outline"
+                      className="flex items-center gap-2 text-gray-700 bg-transparent border-gray-300 hover:bg-gray-100"
+                      onClick={() => router.push("/organization/PostJob")}
+                    >
+                      <BriefcaseBusiness className="h-4 w-4" /> Post New Job
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-8">
+                  <div className="mb-8">
+                    <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                      <SelectTrigger className="w-full h-12 border-emerald-200 focus:border-emerald-500 focus:ring-emerald-500 rounded-xl">
+                        <SelectValue placeholder="Filter by job category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Categories</SelectItem>
+                        <SelectItem value="IT & Telecommunication">IT & Telecommunication</SelectItem>
+                        <SelectItem value="Education">Education</SelectItem>
+                        <SelectItem value="Finance">Finance</SelectItem>
+                        <SelectItem value="Healthcare">Healthcare</SelectItem>
+                        <SelectItem value="Marketing">Marketing</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {isLoadingJobs ? (
+                    <div className="text-center text-gray-600">Loading active jobs...</div>
+                  ) : filteredJobs.length === 0 ? (
+                    <div className="text-center text-gray-600">No active jobs found.</div>
+                  ) : (
+                    <div className="grid gap-6">
+                      {filteredJobs.map((job) => (
+                        <Card key={job._id} className="border border-gray-200 rounded-lg shadow-sm">
+                          <CardHeader>
+                            <CardTitle className="text-xl font-semibold text-gray-800 flex items-center gap-2">
+                              {job.position}
+                              {job.urgent && <AlertCircle className="h-5 w-5 text-red-500" title="Urgent" />}
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent className="space-y-2">
+                            <p className="text-sm text-gray-600"><strong>Category:</strong> {job.jobCategory}</p>
+                            <p className="text-sm text-gray-600"><strong>Location:</strong> {job.jobLocation}</p>
+                            <p className="text-sm text-gray-600"><strong>Type:</strong> {job.jobType}</p>
+                            <p className="text-sm text-gray-600">
+                              <strong>Salary:</strong>{" "}
+                              {job.hideSalary
+                                ? "Salary Non Disclosed"
+                                : `${job.currency} ${job.minimum}${
+                                    job.offeredSalaryType === "Range" ? ` - ${job.maximum}` : ""
+                                  } ${job.salaryType}`}
+                            </p>
+                            <p className="text-sm text-gray-600"><strong>Status:</strong> {job.active ? "Active" : "Inactive"}</p>
+                            {job.urgent && (
+                              <p className="text-sm text-red-500"><strong>Urgent:</strong> This job is marked as urgent</p>
+                            )}
+                            <Button
+                              variant="outline"
+                              className="mt-4"
+                              onClick={() => router.push(`/organization/Jobpage/${job._id}`)}
+                            >
+                              View Details
+                            </Button>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
 
               {/* Jobseeker Insight Section */}
               <Card className="bg-white shadow-lg border border-emerald-100 rounded-2xl overflow-hidden">
@@ -179,9 +298,7 @@ export default function OrganizationDashboard() {
                       </SelectContent>
                     </Select>
                   </div>
-
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    {/* Total Jobseekers */}
                     <div className="bg-gradient-to-br from-emerald-50 to-green-50 p-6 rounded-2xl border border-emerald-100">
                       <h3 className="text-xl font-bold text-emerald-900 mb-4 flex items-center">
                         <Users className="size-5 mr-2" />
@@ -202,8 +319,6 @@ export default function OrganizationDashboard() {
                         </div>
                       </div>
                     </div>
-
-                    {/* Job Level */}
                     <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-2xl border border-blue-100">
                       <h3 className="text-xl font-bold text-blue-900 mb-2 flex items-center">
                         <TrendingUp className="size-5 mr-2" />
@@ -232,8 +347,6 @@ export default function OrganizationDashboard() {
                         ))}
                       </div>
                     </div>
-
-                    {/* Gender Distribution */}
                     <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-6 rounded-2xl border border-purple-100">
                       <h3 className="text-xl font-bold text-purple-900 mb-2">Gender Distribution</h3>
                       <p className="text-sm text-purple-600 mb-6">Active jobseekers across all genders</p>
@@ -293,7 +406,10 @@ export default function OrganizationDashboard() {
                       candidates with ease to meet your hiring needs efficiently.
                     </p>
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                      <Button className="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold px-8 py-4 rounded-xl text-lg shadow-lg hover:shadow-xl transition-all">
+                      <Button
+                        className="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold px-8 py-4 rounded-xl text-lg shadow-lg hover:shadow-xl transition-all"
+                        onClick={() => router.push("/organization/PostJob")}
+                      >
                         Post a Job
                       </Button>
                       <Button
