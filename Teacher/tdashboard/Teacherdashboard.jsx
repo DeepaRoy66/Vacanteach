@@ -6,11 +6,9 @@ import { useState, useEffect } from "react";
 import NavBar from "./Navbar";
 import WelcomeSection from "./WelcomeSection";
 import DashboardStats from "./DashBoardStats";
-import AnalyticsDashboard from "./AnalyticsDashboard";
 import RecentActivity from "./RecentActivity";
 import TopJobs from "./TopJobs";
 import JobListings from "./JobListings";
-
 const jobCategories = [
   "Mathematics", "Science", "English", "History", "Art", "Music", "Physical Education", "Computer Science"
 ];
@@ -182,11 +180,6 @@ export default function TeacherDashboard() {
           percentageChange={percentageChange}
           isPositiveChange={isPositiveChange}
           topJobs={topJobs}
-        />
-        <AnalyticsDashboard
-          performanceData={performanceData}
-          skillsData={skillsData}
-          categoryData={categoryData}
         />
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           <RecentActivity recentActivity={recentActivity} />
