@@ -16,10 +16,15 @@ import {
 const data = {
   navMain: [
     {
-      title: "Dashboard",
-      url: "/organization",
-      icon: LayoutDashboard,
-      isActive: true,
+    title: "Dashboard",
+    url: "#",
+    icon: LayoutDashboard,
+    items: [
+      {
+        title: "Organization Dashboard",
+        url: "/organization",
+      },
+    ],
     },
     {
       title: "Manage Jobs",

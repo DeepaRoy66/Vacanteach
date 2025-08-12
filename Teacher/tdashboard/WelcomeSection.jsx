@@ -15,12 +15,12 @@ export default function WelcomeSection({ session }) {
             <Button className="bg-white text-blue-600 hover:bg-blue-50">
               View Matches
             </Button>
-            <Button variant="outline" className="border-white text-white hover:bg-white/10">
+            <Button variant="outline" className="border-green text-green hover:bg-white/10">
               Schedule Interviews
             </Button>
           </div>
         </div>
-        <div className="absolute right-0 top-0 w-64 h-64 bg-white/10 rounded-full -translate-y-32 translate-x-32"></div>
+        <div className="absolute right-0 top-0 w-64 h-64 bg-green/10 rounded-full -translate-y-32 translate-x-32"></div>
       </div>
     </div>
   );
