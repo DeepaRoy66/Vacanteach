@@ -61,15 +61,22 @@ const dropdownOptions = {
     { value: "Vocational Skills", label: "Vocational Skills" },
   ],
   jobLevel: [
-    { value: "Entry Level", label: "Entry Level" },
-    { value: "Mid Level", label: "Mid Level" },
-    { value: "Senior Level", label: "Senior Level" },
+    { value: "Top Level(15+yrs)", label: "Top Level(15+yrs)" },
+    { value: "Entry Level(0-3yrs)", label: "Entry Level(0-3yrs)" },
+    { value: "Mid Level(3-7yrs)", label: "Mid Level(3-7yrs)" },
+    { value: "Senior Level(7-15yrs)", label: "Senior Level(7-15yrs)" },
   ],
   jobType: [
     { value: "Full Time", label: "Full Time" },
     { value: "Part Time", label: "Part Time" },
     { value: "Contract", label: "Contract" },
     { value: "Internship", label: "Internship" },
+     { value: "Temporary", label: "Temporary" },
+      { value: "Freelance", label: "Freelance" },
+       { value: "Volunteer", label: "Volunteer" },
+         { value: "Traineeship", label: "Traineeship" },
+
+
   ],
   currency: [
     { value: "USD", label: "USD" },
@@ -80,6 +87,8 @@ const dropdownOptions = {
     { value: "Monthly", label: "Monthly" },
     { value: "Yearly", label: "Yearly" },
     { value: "Hourly", label: "Hourly" },
+     { value: "Daily", label: "Daily" },
+      { value: "Weekly", label: "Weekly" },
   ],
 }
 

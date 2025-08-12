@@ -105,7 +105,7 @@ export default function NavBar({
                       {session?.user?.name?.[0] || "JD"}
                     </AvatarFallback>
                   </Avatar>
-                  <span className="hidden md:block font-medium">{session?.user?.name || "John Doe"}</span>
+                  <span className="hidden md:block font-medium">{session?.user?.name }</span>
                   <ChevronDown className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>

@@ -13,7 +13,23 @@ import {
   TrendingUp,
   Calendar,
   Sparkles,
+  Bell,
   Target,
+  Settings,
+  Plus,
+  BarChart3,
+  FileText,
+  Search,
+  Filter,
+  UserCheck,
+  Badge,
+  Building2,
+  MapPin,
+  Clock,
+  DollarSign,
+  Eye,
+  Edit,
+  MoreVertical,
   Award,
   BriefcaseBusiness,
   AlertCircle,
@@ -31,6 +47,7 @@ export default function OrganizationDashboard() {
   const [activeJobs, setActiveJobs] = React.useState([])
   const [isLoadingJobs, setIsLoadingJobs] = React.useState(true)
   const [selectedCategory, setSelectedCategory] = React.useState("all")
+  const [searchTerm, setSearchTerm] = React.useState("")
 
   React.useEffect(() => {
     if (status === "authenticated" && session?.user?.role === "organization") {
@@ -48,7 +65,7 @@ export default function OrganizationDashboard() {
         {
           method: "GET",
           headers: { "Content-Type": "application/json" },
-        }
+        },
       )
       if (!response.ok) throw new Error("Failed to fetch jobs")
       const jobs = await response.json()
@@ -61,16 +78,20 @@ export default function OrganizationDashboard() {
     }
   }
 
-  const filteredJobs = selectedCategory === "all"
-    ? activeJobs
-    : activeJobs.filter(job => job.jobCategory === selectedCategory)
+  const filteredJobs = activeJobs.filter((job) => {
+    const matchesCategory = selectedCategory === "all" || job.jobCategory === selectedCategory
+    const matchesSearch =
+      job.position.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      job.jobLocation.toLowerCase().includes(searchTerm.toLowerCase())
+    return matchesCategory && matchesSearch
+  })
 
   if (status === "loading") {
     return (
-      <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-emerald-50 to-green-100">
+      <div className="flex justify-center items-center min-h-screen bg-gray-50">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto mb-4"></div>
-          <p className="text-lg text-emerald-700 font-medium">Loading your dashboard...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+          <p className="text-lg text-gray-700 font-medium">Loading your dashboard...</p>
         </div>
       </div>
     )
@@ -78,7 +99,7 @@ export default function OrganizationDashboard() {
 
   if (status === "authenticated" && session?.user?.role !== "organization") {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-red-600 text-xl">Unauthorized: Only organizations can view this dashboard.</div>
       </div>
     )
@@ -89,7 +110,7 @@ export default function OrganizationDashboard() {
   return (
     <SidebarProvider>
       <ToastContainer />
-      <div className="flex min-h-screen bg-gradient-to-br from-emerald-50 to-green-100 overflow-x-hidden">
+      <div className="flex min-h-screen bg-gray-50">
         {/* Sidebar */}
         <div className="fixed top-0 left-0 w-80 h-screen overflow-y-auto bg-white border-r border-gray-200 z-10">
           <AppSidebar />
@@ -97,176 +118,301 @@ export default function OrganizationDashboard() {
 
         {/* Main Content */}
         <SidebarInset className="ml-80 flex-1">
-          <div className="p-8">
-            <div className="max-w-7xl mx-auto space-y-8">
-              {/* Welcome Message */}
-              {showWelcome && (
-                <div className="bg-gradient-to-r from-emerald-500 to-green-600 text-white p-6 rounded-2xl shadow-lg relative overflow-hidden">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-16 translate-x-16"></div>
-                  <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full translate-y-12 -translate-x-12"></div>
-                  <button
-                    onClick={() => setShowWelcome(false)}
-                    className="absolute top-4 right-4 text-white/80 hover:text-white transition-colors"
+          <div className="p-6">
+            <div className="max-w-7xl mx-auto space-y-6">
+              {/* Header Section */}
+              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                <div>
+                  <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+                  <p className="text-gray-600 mt-1">
+                    Welcome back, {user?.name || "there"}! Here's what's happening with your jobs.
+                  </p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Button variant="outline" size="sm" className="gap-2 bg-transparent">
+                    <Bell className="h-4 w-4" />
+                    Notifications
+                  </Button>
+                  <Button variant="outline" size="sm" className="gap-2 bg-transparent">
+                    <Settings className="h-4 w-4" />
+                    Settings
+                  </Button>
+                  <Button
+                    className="gap-2 bg-green-600 hover:bg-green-700"
+                    onClick={() => router.push("/organization/postjob")}
                   >
-                    <X className="h-5 w-5" />
-                  </button>
-                  <div className="relative z-10">
-                    <div className="flex items-center space-x-3 mb-4">
-                      <Sparkles className="h-6 w-6 text-yellow-300" />
-                      <h2 className="text-xl font-bold">Welcome to HireFlow!</h2>
-                    </div>
-                    <p className="text-emerald-50 leading-relaxed pr-8">
-                      Welcome, <span className="font-semibold">{user?.name || "there"}</span>! We're excited to have
-                      you on board. To get started, you can post your first job to attract top talent, view and manage
-                      applications. Let's get started on finding the best candidates for your team! But first, let's{" "}
-                      <span
-                        className="text-yellow-300 underline cursor-pointer hover:text-yellow-200 transition-colors"
-                        onClick={() => router.push("/organization/profile")}
-                      >
-                        complete your profile
-                      </span>
-                      .
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {/* Quick Stats */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <div className="bg-white rounded-2xl p-6 shadow-sm border border-emerald-100 hover:shadow-md transition-shadow">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-emerald-600">Active Jobs</p>
-                      <p className="text-3xl font-bold text-gray-900">{activeJobs.length}</p>
-                    </div>
-                    <div className="bg-emerald-100 p-3 rounded-xl">
-                      <Target className="size-6 text-emerald-600" />
-                    </div>
-                  </div>
-                  <p className="text-xs text-emerald-600 mt-2 flex items-center">
-                    <TrendingUp className="size-3 mr-1" />
-                    +12% from last month
-                  </p>
-                </div>
-                <div className="bg-white Rounded-2xl p-6 shadow-sm border border-emerald-100 hover:shadow-md transition-shadow">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-emerald-600">Applications</p>
-                      <p className="text-3xl font-bold text-gray-900">1,847</p>
-                    </div>
-                    <div className="bg-blue-100 p-3 rounded-xl">
-                      <Users className="size-6 text-blue-600" />
-                    </div>
-                  </div>
-                  <p className="text-xs text-blue-600 mt-2 flex items-center">
-                    <TrendingUp className="size-3 mr-1" />
-                    +8% from last month
-                  </p>
-                </div>
-                <div className="bg-white rounded-2xl p-6 shadow-sm border border-emerald-100 hover:shadow-md transition-shadow">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-emerald-600">Interviews</p>
-                      <p className="text-3xl font-bold text-gray-900">89</p>
-                    </div>
-                    <div className="bg-purple-100 p-3 rounded-xl">
-                      <Calendar className="size-6 text-purple-600" />
-                    </div>
-                  </div>
-                  <p className="text-xs text-purple-600 mt-2 flex items-center">
-                    <TrendingUp className="size-3 mr-1" />
-                    +23% from last month
-                  </p>
-                </div>
-                <div className="bg-white rounded-2xl p-6 shadow-sm border border-emerald-100 hover:shadow-md transition-shadow">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-emerald-600">Hired</p>
-                      <p className="text-3xl font-bold text-gray-900">34</p>
-                    </div>
-                    <div className="bg-green-100 p-3 rounded-xl">
-                      <Award className="size-6 text-green-600" />
-                    </div>
-                  </div>
-                  <p className="text-xs text-green-600 mt-2 flex items-center">
-                    <TrendingUp className="size-3 mr-1" />
-                    +15% from last month
-                  </p>
+                    <Plus className="h-4 w-4" />
+                    Post New Job
+                  </Button>
                 </div>
               </div>
 
-              {/* Active Jobs Section */}
-              <Card className="bg-white shadow-lg border border-emerald-100 rounded-2xl overflow-hidden">
-                <CardHeader className="text-center pb-6 bg-gradient-to-r from-emerald-50 to-green-50 border-b border-emerald-100">
-                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                    <div>
-                      <CardTitle className="text-3xl font-bold text-gray-900 mb-2">Active Jobs</CardTitle>
-                      <CardDescription className="text-emerald-600 text-lg">
-                        View all active job listings posted by your organization.
-                      </CardDescription>
+              {/* Welcome Banner */}
+              {showWelcome && (
+                <Card className="bg-gradient-to-r from-green-600 to-green-600 text-white border-0 relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-16 translate-x-16"></div>
+                  <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full translate-y-12 -translate-x-12"></div>
+                  <CardContent className="p-6 relative z-10">
+                    <button
+                      onClick={() => setShowWelcome(false)}
+                      className="absolute top-4 right-4 text-white/80 hover:text-white transition-colors"
+                    >
+                      <X className="h-5 w-5" />
+                    </button>
+                    <div className="flex items-start gap-4">
+                      <div className="bg-white/20 p-3 rounded-lg">
+                        <Sparkles className="h-6 w-6" />
+                      </div>
+                      <div className="flex-1">
+                        <h1 className="text-xl font-bold mb-2">Welcome back, {user?.name || "there"}! Here's what's happening with your jobs.</h1>
+
+
+                        <p className="text-sm text-gray-600">You have {activeJobs.length} active job postings.</p>
+                      </div>
                     </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Stats Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <Card className="hover:shadow-md transition-shadow">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">Active Jobs</p>
+                        <p className="text-3xl font-bold text-gray-900 mt-1">{activeJobs.length}</p>
+                        <p className="text-xs text-green-600 mt-2 flex items-center">
+                          <TrendingUp className="h-3 w-3 mr-1" />
+                          +12% from last month
+                        </p>
+                      </div>
+                      <div className="bg-green-100 p-3 rounded-xl">
+                        <Target className="h-6 w-6 text-green-600" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="hover:shadow-md transition-shadow">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">Total Applications</p>
+                        <p className="text-3xl font-bold text-gray-900 mt-1">1,847</p>
+                        <p className="text-xs text-green-600 mt-2 flex items-center">
+                          <TrendingUp className="h-3 w-3 mr-1" />
+                          +8% from last month
+                        </p>
+                      </div>
+                      <div className="bg-green-100 p-3 rounded-xl">
+                        <Users className="h-6 w-6 text-green-600" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="hover:shadow-md transition-shadow">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">Interviews Scheduled</p>
+                        <p className="text-3xl font-bold text-gray-900 mt-1">89</p>
+                        <p className="text-xs text-green-600 mt-2 flex items-center">
+                          <TrendingUp className="h-3 w-3 mr-1" />
+                          +23% from last month
+                        </p>
+                      </div>
+                      <div className="bg-green-100 p-3 rounded-xl">
+                        <Calendar className="h-6 w-6 text-green-600" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="hover:shadow-md transition-shadow">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">Successful Hires</p>
+                        <p className="text-3xl font-bold text-gray-900 mt-1">34</p>
+                        <p className="text-xs text-green-600 mt-2 flex items-center">
+                          <TrendingUp className="h-3 w-3 mr-1" />
+                          +15% from last month
+                        </p>
+                      </div>
+                      <div className="bg-orange-100 p-3 rounded-xl">
+                        <Award className="h-6 w-6 text-orange-600" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Quick Actions */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <BarChart3 className="h-5 w-5" />
+                    Quick Actions
+                  </CardTitle>
+                  <CardDescription>Manage your recruitment process efficiently</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <Button
                       variant="outline"
-                      className="flex items-center gap-2 text-gray-700 bg-transparent border-gray-300 hover:bg-gray-100"
-                      onClick={() => router.push("/organization/PostJob")}
+                      className="h-20 flex-col gap-2 bg-transparent"
+                      onClick={() => router.push("/organization/postjob")}
                     >
-                      <BriefcaseBusiness className="h-4 w-4" /> Post New Job
+                      <Plus className="h-5 w-5" />
+                      Post New Job
+                    </Button>
+                    <Button variant="outline" className="h-20 flex-col gap-2 bg-transparent">
+                      <Users className="h-5 w-5" />
+                      Browse Candidates
+                    </Button>
+                    <Button variant="outline" className="h-20 flex-col gap-2 bg-transparent">
+                      <FileText className="h-5 w-5" />
+                      View Applications
                     </Button>
                   </div>
-                </CardHeader>
-                <CardContent className="p-8">
-                  <div className="mb-8">
-                    <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                      <SelectTrigger className="w-full h-12 border-emerald-200 focus:border-emerald-500 focus:ring-emerald-500 rounded-xl">
-                        <SelectValue placeholder="Filter by job category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Categories</SelectItem>
-                        <SelectItem value="IT & Telecommunication">IT & Telecommunication</SelectItem>
-                        <SelectItem value="Education">Education</SelectItem>
-                        <SelectItem value="Finance">Finance</SelectItem>
-                        <SelectItem value="Healthcare">Healthcare</SelectItem>
-                        <SelectItem value="Marketing">Marketing</SelectItem>
-                      </SelectContent>
-                    </Select>
+                </CardContent>
+              </Card>
+
+              {/* Job Management Section */}
+              <Card>
+                <CardHeader>
+                  <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                    <div>
+                      <CardTitle className="flex items-center gap-2">
+                        <BriefcaseBusiness className="h-5 w-5" />
+                        Active Job Listings
+                      </CardTitle>
+                      <CardDescription>Manage and monitor your posted jobs</CardDescription>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="relative">
+                        <Search className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                        <input
+                          type="text"
+                          placeholder="Search jobs..."
+                          className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                      </div>
+                      <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                        <SelectTrigger className="w-48">
+                          <Filter className="h-4 w-4 mr-2" />
+                          <SelectValue placeholder="Filter by category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Categories</SelectItem>
+                          <SelectItem value="IT & Telecommunication">IT & Telecommunication</SelectItem>
+                          <SelectItem value="Education">Education</SelectItem>
+                          <SelectItem value="Finance">Finance</SelectItem>
+                          <SelectItem value="Healthcare">Healthcare</SelectItem>
+                          <SelectItem value="Marketing">Marketing</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
+                </CardHeader>
+                <CardContent>
                   {isLoadingJobs ? (
-                    <div className="text-center text-gray-600">Loading active jobs...</div>
+                    <div className="flex items-center justify-center py-12">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+                      <span className="ml-3 text-gray-600">Loading jobs...</span>
+                    </div>
                   ) : filteredJobs.length === 0 ? (
-                    <div className="text-center text-gray-600">No active jobs found.</div>
+                    <div className="text-center py-12">
+                      <BriefcaseBusiness className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">No jobs found</h3>
+                      <p className="text-gray-600 mb-4">
+                        {searchTerm || selectedCategory !== "all"
+                          ? "Try adjusting your search or filter criteria"
+                          : "Get started by posting your first job"}
+                      </p>
+                      <Button onClick={() => router.push("/organization/postjob")}>
+                        <Plus className="h-4 w-4 mr-2" />
+                        Post Your First Job
+                      </Button>
+                    </div>
                   ) : (
-                    <div className="grid gap-6">
+                    <div className="space-y-4">
                       {filteredJobs.map((job) => (
-                        <Card key={job._id} className="border border-gray-200 rounded-lg shadow-sm">
-                          <CardHeader>
-                            <CardTitle className="text-xl font-semibold text-gray-800 flex items-center gap-2">
-                              {job.position}
-                              {job.urgent && <AlertCircle className="h-5 w-5 text-red-500" title="Urgent" />}
-                            </CardTitle>
-                          </CardHeader>
-                          <CardContent className="space-y-2">
-                            <p className="text-sm text-gray-600"><strong>Category:</strong> {job.jobCategory}</p>
-                            <p className="text-sm text-gray-600"><strong>Location:</strong> {job.jobLocation}</p>
-                            <p className="text-sm text-gray-600"><strong>Type:</strong> {job.jobType}</p>
-                            <p className="text-sm text-gray-600">
-                              <strong>Salary:</strong>{" "}
-                              {job.hideSalary
-                                ? "Salary Non Disclosed"
-                                : `${job.currency} ${job.minimum}${
-                                    job.offeredSalaryType === "Range" ? ` - ${job.maximum}` : ""
-                                  } ${job.salaryType}`}
-                            </p>
-                            <p className="text-sm text-gray-600"><strong>Status:</strong> {job.active ? "Active" : "Inactive"}</p>
-                            {job.urgent && (
-                              <p className="text-sm text-red-500"><strong>Urgent:</strong> This job is marked as urgent</p>
-                            )}
-                            <Button
-                              variant="outline"
-                              className="mt-4"
-                              onClick={() => router.push(`/organization/Jobpage/${job._id}`)}
-                            >
-                              View Details
-                            </Button>
+                        <Card key={job._id} className="hover:shadow-md transition-shadow border-l-4 border-l-green-500">
+                          <CardContent className="p-6">
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-3 mb-3">
+                                  <h3 className="text-xl font-semibold text-gray-900">{job.position}</h3>
+                                  {job.urgent && (
+                                    <Badge variant="destructive" className="gap-1">
+                                      <AlertCircle className="h-3 w-3" />
+                                      Urgent
+                                    </Badge>
+                                  )}
+                                  <Badge variant={job.active ? "default" : "secondary"}>
+                                    {job.active ? "Active" : "Inactive"}
+                                  </Badge>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                                    <Building2 className="h-4 w-4" />
+                                    {job.jobCategory}
+                                  </div>
+                                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                                    <MapPin className="h-4 w-4" />
+                                    {job.jobLocation}
+                                  </div>
+                                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                                    <Clock className="h-4 w-4" />
+                                    {job.jobType}
+                                  </div>
+                                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                                    <DollarSign className="h-4 w-4" />
+                                    {job.hideSalary
+                                      ? "Salary Undisclosed"
+                                      : `${job.currency} ${job.minimum}${
+                                          job.offeredSalaryType === "Range" ? ` - ${job.maximum}` : ""
+                                        }`}
+                                  </div>
+                                </div>
+
+                                <div className="flex items-center gap-4 text-sm text-gray-500">
+                                  <span className="flex items-center gap-1">
+                                    <Users className="h-4 w-4" />
+                                    {Math.floor(Math.random() * 50) + 10} applications
+                                  </span>
+                                  <span className="flex items-center gap-1">
+                                    <Eye className="h-4 w-4" />
+                                    {Math.floor(Math.random() * 200) + 50} views
+                                  </span>
+                                  <span>Posted {Math.floor(Math.random() * 30) + 1} days ago</span>
+                                </div>
+                              </div>
+
+                              <div className="flex items-center gap-2 ml-4">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => router.push(`/organization/Jobpage/${job._id}`)}
+                                >
+                                  <Eye className="h-4 w-4 mr-1" />
+                                  View
+                                </Button>
+                                <Button variant="outline" size="sm">
+                                  <Edit className="h-4 w-4 mr-1" />
+                                  Edit
+                                </Button>
+                                <Button variant="outline" size="sm">
+                                  <MoreVertical className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
                           </CardContent>
                         </Card>
                       ))}
@@ -275,71 +421,43 @@ export default function OrganizationDashboard() {
                 </CardContent>
               </Card>
 
-              {/* Jobseeker Insight Section */}
-              <Card className="bg-white shadow-lg border border-emerald-100 rounded-2xl overflow-hidden">
-                <CardHeader className="text-center pb-6 bg-gradient-to-r from-emerald-50 to-green-50 border-b border-emerald-100">
-                  <CardTitle className="text-3xl font-bold text-gray-900 mb-2">Jobseeker Insights</CardTitle>
-                  <CardDescription className="text-emerald-600 text-lg">
-                    Discover key information about people searching for jobs right now
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="p-8">
-                  <div className="mb-8">
-                    <Select defaultValue="">
-                      <SelectTrigger className="w-full h-12 border-emerald-200 focus:border-emerald-500 focus:ring-emerald-500 rounded-xl">
-                        <SelectValue placeholder="Select a category to view insights of available Jobseekers" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Categories</SelectItem>
-                        <SelectItem value="tech">Technology</SelectItem>
-                        <SelectItem value="finance">Finance</SelectItem>
-                        <SelectItem value="healthcare">Healthcare</SelectItem>
-                        <SelectItem value="marketing">Marketing</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <div className="bg-gradient-to-br from-emerald-50 to-green-50 p-6 rounded-2xl border border-emerald-100">
-                      <h3 className="text-xl font-bold text-emerald-900 mb-4 flex items-center">
-                        <Users className="size-5 mr-2" />
-                        Total Jobseekers
-                      </h3>
-                      <div className="space-y-4">
+              {/* Insights Section */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Candidate Insights */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Users className="h-5 w-5" />
+                      Candidate Pool Insights
+                    </CardTitle>
+                    <CardDescription>Overview of available talent in your industry</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg">
                         <div>
-                          <p className="text-4xl font-bold text-gray-900">1,003,163</p>
-                          <p className="text-sm text-emerald-600 font-medium">Total registered</p>
+                          <p className="text-2xl font-bold text-green-900">80,818</p>
+                          <p className="text-sm text-green-600">Active Job Seekers</p>
                         </div>
-                        <div className="bg-white p-4 rounded-xl border border-emerald-200">
-                          <p className="text-3xl font-bold text-emerald-700 flex items-center">
-                            80,818
-                            <Sparkles className="size-6 text-yellow-500 ml-2" />
-                          </p>
-                          <p className="text-sm font-semibold text-emerald-800">Active Jobseekers</p>
-                          <p className="text-xs text-emerald-600">Active Since 90 Days</p>
-                        </div>
+                        <UserCheck className="h-8 w-8 text-green-600" />
                       </div>
-                    </div>
-                    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-2xl border border-blue-100">
-                      <h3 className="text-xl font-bold text-blue-900 mb-2 flex items-center">
-                        <TrendingUp className="size-5 mr-2" />
-                        Job Level Distribution
-                      </h3>
-                      <p className="text-sm text-blue-600 mb-6">Applicants across different experience levels</p>
-                      <div className="space-y-4">
+
+                      <div className="space-y-3">
+                        <h4 className="font-medium text-gray-900">Experience Level Distribution</h4>
                         {[
-                          { level: "Entry Level", percentage: 60, color: "bg-blue-300" },
-                          { level: "Mid Level", percentage: 45, color: "bg-blue-400" },
-                          { level: "Senior Level", percentage: 25, color: "bg-blue-600" },
-                          { level: "Top Level", percentage: 15, color: "bg-blue-800" },
+                          { level: "Entry Level", percentage: 60, count: "48,491" },
+                          { level: "Mid Level", percentage: 45, count: "36,368" },
+                          { level: "Senior Level", percentage: 25, count: "20,205" },
+                          { level: "Executive", percentage: 15, count: "12,123" },
                         ].map((item) => (
                           <div key={item.level} className="space-y-2">
-                            <div className="flex items-center justify-between">
-                              <span className="text-sm font-medium text-blue-800">{item.level}</span>
-                              <span className="text-xs text-blue-600">{item.percentage}%</span>
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="font-medium text-gray-700">{item.level}</span>
+                              <span className="text-gray-500">{item.count}</span>
                             </div>
-                            <div className="w-full bg-blue-100 rounded-full h-3">
+                            <div className="w-full bg-gray-200 rounded-full h-2">
                               <div
-                                className={`${item.color} h-3 rounded-full transition-all duration-500`}
+                                className="bg-green-600 h-2 rounded-full transition-all duration-500"
                                 style={{ width: `${item.percentage}%` }}
                               ></div>
                             </div>
@@ -347,96 +465,83 @@ export default function OrganizationDashboard() {
                         ))}
                       </div>
                     </div>
-                    <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-6 rounded-2xl border border-purple-100">
-                      <h3 className="text-xl font-bold text-purple-900 mb-2">Gender Distribution</h3>
-                      <p className="text-sm text-purple-600 mb-6">Active jobseekers across all genders</p>
-                      <div className="flex justify-center items-center mb-4">
-                        <div className="relative w-32 h-32">
-                          <svg className="w-32 h-32 transform -rotate-90" viewBox="0 0 36 36">
-                            <path
-                              d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                              fill="none"
-                              stroke="#e5e7eb"
-                              strokeWidth="3"
-                            />
-                            <path
-                              d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                              fill="none"
-                              stroke="#8b5cf6"
-                              strokeWidth="3"
-                              strokeDasharray="75, 25"
-                              strokeLinecap="round"
-                            />
-                          </svg>
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <span className="text-2xl font-bold text-purple-700">75%</span>
-                          </div>
+                  </CardContent>
+                </Card>
+
+                {/* Performance Metrics */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <BarChart3 className="h-5 w-5" />
+                      Your Performance
+                    </CardTitle>
+                    <CardDescription>How your jobs are performing this month</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-6">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="text-center p-4 bg-green-50 rounded-lg">
+                          <p className="text-2xl font-bold text-green-900">94%</p>
+                          <p className="text-sm text-green-600">Application Rate</p>
+                        </div>
+                        <div className="text-center p-4 bg-green-50 rounded-lg">
+                          <p className="text-2xl font-bold text-green-900">4.8</p>
+                          <p className="text-sm text-green-600">Company Rating</p>
                         </div>
                       </div>
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-2">
-                            <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
-                            <span className="text-sm text-purple-800">Male</span>
-                          </div>
-                          <span className="text-sm font-medium text-purple-700">75%</span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-2">
-                            <div className="w-3 h-3 bg-gray-300 rounded-full"></div>
-                            <span className="text-sm text-purple-800">Female</span>
-                          </div>
-                          <span className="text-sm font-medium text-purple-700">25%</span>
+
+                      <div className="space-y-3">
+                        <h4 className="font-medium text-gray-900">Top Performing Jobs</h4>
+                        <div className="space-y-2">
+                          {filteredJobs.slice(0, 3).map((job, index) => (
+                            <div key={job._id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                              <div>
+                                <p className="font-medium text-gray-900">{job.position}</p>
+                                <p className="text-sm text-gray-600">{job.jobLocation}</p>
+                              </div>
+                              <div className="text-right">
+                                <p className="font-medium text-gray-900">{Math.floor(Math.random() * 50) + 20}</p>
+                                <p className="text-sm text-gray-600">applications</p>
+                              </div>
+                            </div>
+                          ))}
                         </div>
                       </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              </div>
 
-              {/* Enhanced Hiring Needs Section */}
-              <Card className="bg-gradient-to-br from-emerald-600 to-green-700 text-white shadow-2xl border-0 rounded-2xl overflow-hidden">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-32 translate-x-32"></div>
-                <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full translate-y-24 -translate-x-24"></div>
-                <CardContent className="text-center py-12 relative z-10">
-                  <div className="max-w-3xl mx-auto">
-                    <h2 className="text-4xl font-bold mb-4">Fulfill your Hiring needs Quick & Easy</h2>
-                    <p className="text-emerald-100 text-lg mb-8 leading-relaxed">
-                      Streamline your recruitment process with our platform. Post job openings and search for skilled
-                      candidates with ease to meet your hiring needs efficiently.
+    
+              <Card className="bg-gradient-to-r from-green-600 to-green-600 text-white border-0">
+                <CardContent className="text-center py-12">
+                  <div className="max-w-2xl mx-auto">
+                    <h2 className="text-3xl font-bold mb-4">Ready to Find Your Next Great Hire?</h2>
+                    <p className="text-green-100 text-lg mb-8 leading-relaxed">
+                      Join thousands of companies using our platform to connect with top talent. Post your job today and
+                      start receiving applications from qualified candidates.
                     </p>
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
                       <Button
-                        className="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold px-8 py-4 rounded-xl text-lg shadow-lg hover:shadow-xl transition-all"
-                        onClick={() => router.push("/organization/PostJob")}
+                        size="lg"
+                        className="bg-white text-green-600 hover:bg-green-50 font-semibold"
+                        onClick={() => router.push("/organization/postjob")}
                       >
-                        Post a Job
+                        <Plus className="h-5 w-5 mr-2" />
+                        Post a Job Now
                       </Button>
                       <Button
+                        size="lg"
                         variant="outline"
-                        className="border-white/30 text-white hover:bg-white/10 px-8 py-4 rounded-xl text-lg bg-transparent"
+                        className="border-white/30 text-white hover:bg-white/10 bg-transparent"
                       >
-                        Browse Candidates
+                        <Users className="h-5 w-5 mr-2" />
+                        Browse Talent Pool
                       </Button>
                     </div>
                   </div>
                 </CardContent>
               </Card>
-
-              {/* Enhanced Footer */}
-              <footer className="bg-gray-900 text-white rounded-2xl p-8 text-center shadow-lg">
-                <div className="max-w-4xl mx-auto">
-                  <div className="flex items-center justify-center mb-4">
-                    <div className="bg-emerald-600 p-2 rounded-lg mr-3">
-                      <Users className="size-5" />
-                    </div>
-                    <span className="text-xl font-semibold">HireFlow</span>
-                  </div>
-                  <p className="text-gray-400 text-sm">
-                    © 2025 HireFlow. Terms of Service | Privacy Policy | Cookie Settings | Accessibility
-                  </p>
-                </div>
-              </footer>
             </div>
           </div>
         </SidebarInset>
