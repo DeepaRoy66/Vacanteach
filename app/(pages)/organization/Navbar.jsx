@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useSession } from 'next-auth/react';
+import { useSession, signOut } from 'next-auth/react';
 import { useEffect, useState } from 'react';
 
 export default function Navbar() {
@@ -19,7 +19,7 @@ export default function Navbar() {
             headers: {
               'Content-Type': 'application/json',
             },
-            credentials: 'include', // important to include cookies for authentication
+            credentials: 'include',
           });
           const data = await response.json();
           if (response.ok) {
@@ -37,12 +37,10 @@ export default function Navbar() {
           setLoading(false);
         }
       } else if (status !== 'loading') {
-        // Only set error and loading if status is not loading
         setError('User not authenticated');
         setOrganization(null);
         setLoading(false);
       }
-      // If status is loading, do nothing here (wait for next effect)
     }
 
     fetchOrganization();
@@ -87,6 +85,13 @@ export default function Navbar() {
                   Create Organization
                 </Link>
               )}
+              {/* Logout button */}
+              <button
+                onClick={() => signOut({ callbackUrl: '/' })}
+                className="ml-3 bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600 transition-colors"
+              >
+                Logout
+              </button>
             </div>
           )}
         </div>
