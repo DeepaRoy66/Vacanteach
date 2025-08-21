@@ -11,15 +11,16 @@ export default function Navbar() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    async function fetchOrganization() {
-      if (status === 'authenticated' && session?.user?.email) {
+    // Only fetch if authenticated
+    if (status === 'authenticated' && session?.user?.email) {
+      const fetchOrganization = async () => {
+        setLoading(true);
         try {
           const response = await fetch('/api/user/organizationdata', {
             method: 'GET',
             headers: {
               'Content-Type': 'application/json',
             },
-            credentials: 'include',
           });
           const data = await response.json();
           if (response.ok) {
@@ -36,15 +37,16 @@ export default function Navbar() {
         } finally {
           setLoading(false);
         }
-      } else if (status !== 'loading') {
-        setError('User not authenticated');
-        setOrganization(null);
-        setLoading(false);
-      }
-    }
+      };
 
-    fetchOrganization();
-  }, [session, status]);
+      fetchOrganization();
+    } else if (status === 'unauthenticated') {
+      setError('User not authenticated');
+      setOrganization(null);
+      setLoading(false);
+    }
+    // Do nothing if status is 'loading'
+  }, [status, session]);
 
   return (
     <nav className="bg-white shadow-md p-4">
@@ -60,10 +62,10 @@ export default function Navbar() {
 
           {status === 'loading' || loading ? (
             <span>Loading session...</span>
+          ) : status === 'unauthenticated' ? (
+            <span className="text-red-500">Not signed in</span>
           ) : error ? (
             <span className="text-red-500">{error}</span>
-          ) : !session ? (
-            <span className="text-red-500">Not signed in</span>
           ) : (
             <div className="flex items-center space-x-2">
               <span className="text-gray-700">
@@ -85,7 +87,6 @@ export default function Navbar() {
                   Create Organization
                 </Link>
               )}
-              {/* Logout button */}
               <button
                 onClick={() => signOut({ callbackUrl: '/' })}
                 className="ml-3 bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600 transition-colors"
