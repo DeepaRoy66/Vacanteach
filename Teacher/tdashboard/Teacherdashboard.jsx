@@ -4,6 +4,7 @@
 import { useSession, signOut } from "next-auth/react";
 import { useState, useEffect } from "react";
 import NavBar from "./Navbar";
+import { Button } from "../../app/components/ui/button";
 import WelcomeSection from "./WelcomeSection";
 import DashboardStats from "./DashBoardStats";
 import RecentActivity from "./RecentActivity";

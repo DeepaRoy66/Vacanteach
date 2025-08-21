@@ -1,29 +1,30 @@
 "use client";
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import toast from "react-hot-toast";
 
 export function useUserRedirect() {
   const { status, data: session } = useSession();
   const router = useRouter();
-  const redirected = useRef(false); // To prevent multiple redirects
 
   useEffect(() => {
-    if (status !== "authenticated" || redirected.current) return;
+    if (status !== "authenticated") {
+      return;
+    }
 
     const role = session?.user?.role;
     const profileCompleted = session?.user?.profileCompleted;
 
-    redirected.current = true;
-
+    // Only redirect if the user's profile is incomplete and they are not on the /select-role page.
     if (!role || !profileCompleted) {
-      console.log("Incomplete profile, redirecting to /select-role");
-      router.replace("/select-role"); // `replace` avoids pushing to history stack
+      if (router.pathname !== '/select-role') {
+        router.replace("/select-role");
+      }
     } else {
       const redirectPath = role === "organization" ? "/organization" : "/teacher";
-      console.log(`Redirecting to ${redirectPath}`);
-      router.replace(redirectPath);
+      if (router.pathname !== redirectPath) {
+        router.replace(redirectPath);
+      }
     }
   }, [status, session, router]);
 }

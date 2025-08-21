@@ -1,10 +1,10 @@
-import { connectToDatabase } from "@/lib/mongoose";
-import User from "@/lib/models/User";
-import { auth } from "../../auth/[...nextauth]/route";
+import { connectToDatabase } from "../../../../lib/mongoose";
+import User from "../../../../lib/models/teacher";
+import {  authOptions } from "../../auth/[...nextauth]/route";
 
 export async function GET(req) {
   try {
-    const session = await auth();
+    const session = await authOptions();
 
     if (!session || !session.user?.email) {
       console.error("check-role: Authentication failed", { session });

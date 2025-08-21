@@ -1,6 +1,6 @@
 import { connectToDatabase } from "@/lib/mongoose";
 import User from "@/lib/models/Teacher";
-import { auth } from "../../auth/[...nextauth]/route";
+import { authOptions } from "../auth/[...nextauth]/route";
 
 export async function POST(request) {
   const { role } = await request.json();
@@ -13,7 +13,7 @@ export async function POST(request) {
   }
 
   try {
-    const session = await auth();
+    const session = await authOptions();
 
     if (!session || !session.user?.email) {
       return new Response(JSON.stringify({ error: "User not authenticated" }), {
