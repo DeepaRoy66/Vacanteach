@@ -1,3 +1,4 @@
+//app/api/user/check-role/route.js
 import { connectToDatabase } from "../../../../lib/mongoose";
 import User from "../../../../lib/models/teacher";
 import {  authOptions } from "../../auth/[...nextauth]/route";
