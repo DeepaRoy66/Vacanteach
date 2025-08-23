@@ -1,19 +1,19 @@
-"use client"
-import { useState } from "react"
-import { useSession } from "next-auth/react"
-import { useRouter } from "next/navigation"
-import { Sidebar,SidebarInset,SidebarProvider} from "../../app/components/ui/sidebar"
-import { AppSidebar } from "../../app/(pages)/organization/Sidebar"
-import { Button } from "../../app/components/ui/button"
-import { Accordion,AccordionContent,AccordionItem,AccordionTrigger } from "@radix-ui/react-accordion"
-import { Input } from "../../app/components/ui/input"
-import { Select, SelectContent, SelectTrigger, SelectItem, SelectValue } from "../../app/components/ui/select"
-import { Switch } from "../../app/components/ui/switch"
-import { Label } from "../../app/components/ui/label"
-import { Textarea } from "../../app/components/ui/textarea"
-import { BarChart2, Eye, Sparkles, Info } from "lucide-react"
-import { cn } from "../../lib/utilis"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../app/components/ui/tooltip"
+"use client";
+import { useState } from "react";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { Sidebar, SidebarInset, SidebarProvider } from "../../app/components/ui/sidebar";
+import { AppSidebar } from "../../app/(pages)/organization/Sidebar";
+import { Button } from "../../app/components/ui/button";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@radix-ui/react-accordion";
+import { Input } from "../../app/components/ui/input";
+import { Select, SelectContent, SelectTrigger, SelectItem, SelectValue } from "../../app/components/ui/select";
+import { Switch } from "../../app/components/ui/switch";
+import { Label } from "../../app/components/ui/label";
+import { Textarea } from "../../app/components/ui/textarea";
+import { BarChart2, Eye, Sparkles, Info } from "lucide-react";
+import { cn } from "../../lib/utilis";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../app/components/ui/tooltip";
 
 const initialFormData = {
   position: "",
@@ -33,7 +33,7 @@ const initialFormData = {
   negotiable: false,
   active: true,
   description: "",
-}
+};
 
 const dropdownOptions = {
   jobCategory: [
@@ -61,22 +61,20 @@ const dropdownOptions = {
     { value: "Vocational Skills", label: "Vocational Skills" },
   ],
   jobLevel: [
-    { value: "Top Level(15+yrs)", label: "Top Level(15+yrs)" },
     { value: "Entry Level(0-3yrs)", label: "Entry Level(0-3yrs)" },
-    { value: "Mid Level(3-7yrs)", label: "Mid Level(3-7yrs)" },
-    { value: "Senior Level(7-15yrs)", label: "Senior Level(7-15yrs)" },
+    { value: "Mid Level(3-5yrs)", label: "Mid Level(3-5yrs)" },
+    { value: "Senior Level(5+yrs)", label: "Senior Level(5+yrs)" },
+    { value: "Manager", label: "Manager" },
+    { value: "Director", label: "Director" },
+    { value: "Executive", label: "Executive" },
   ],
   jobType: [
-    { value: "Full Time", label: "Full Time" },
-    { value: "Part Time", label: "Part Time" },
+    { value: "Full-time", label: "Full-time" },
+    { value: "Part-time", label: "Part-time" },
     { value: "Contract", label: "Contract" },
+    { value: "Freelance", label: "Freelance" },
     { value: "Internship", label: "Internship" },
-     { value: "Temporary", label: "Temporary" },
-      { value: "Freelance", label: "Freelance" },
-       { value: "Volunteer", label: "Volunteer" },
-         { value: "Traineeship", label: "Traineeship" },
-
-
+    { value: "Temporary", label: "Temporary" },
   ],
   currency: [
     { value: "USD", label: "USD" },
@@ -87,10 +85,10 @@ const dropdownOptions = {
     { value: "Monthly", label: "Monthly" },
     { value: "Yearly", label: "Yearly" },
     { value: "Hourly", label: "Hourly" },
-     { value: "Daily", label: "Daily" },
-      { value: "Weekly", label: "Weekly" },
+    { value: "Daily", label: "Daily" },
+    { value: "Weekly", label: "Weekly" },
   ],
-}
+};
 
 const FormField = ({ label, name, value, onChange, error, type = "text", placeholder, required = false }) => (
   <div className="flex-1">
@@ -108,10 +106,10 @@ const FormField = ({ label, name, value, onChange, error, type = "text", placeho
     />
     {error && <p className="text-sm text-red-500 mt-1">{error}</p>}
   </div>
-)
+);
 
 const SelectField = ({ label, name, value, onChange, error, required = false }) => {
-  const options = dropdownOptions[name] || []
+  const options = dropdownOptions[name] || [];
   return (
     <div className="flex-1">
       <Label htmlFor={name} className="block text-sm font-medium text-gray-700 mb-1">
@@ -131,8 +129,8 @@ const SelectField = ({ label, name, value, onChange, error, required = false }) 
       </Select>
       {error && <p className="text-sm text-red-500 mt-1">{error}</p>}
     </div>
-  )
-}
+  );
+};
 
 const JobDetailSection = ({ formData, errors, handleChange, handleSelectChange }) => (
   <Accordion type="single" collapsible defaultValue="item-1">
@@ -204,7 +202,7 @@ const JobDetailSection = ({ formData, errors, handleChange, handleSelectChange }
       </AccordionContent>
     </AccordionItem>
   </Accordion>
-)
+);
 
 const JobLocationSection = ({ formData, errors, handleChange }) => (
   <Accordion type="single" collapsible defaultValue="item-1">
@@ -225,7 +223,7 @@ const JobLocationSection = ({ formData, errors, handleChange }) => (
       </AccordionContent>
     </AccordionItem>
   </Accordion>
-)
+);
 
 const SalaryDescriptionSection = ({
   formData,
@@ -237,10 +235,10 @@ const SalaryDescriptionSection = ({
   setErrors,
 }) => {
   const handleRadioChange = (e) => {
-    const value = e.target.value
-    setFormData((prev) => ({ ...prev, offeredSalaryType: value }))
-    setErrors((prev) => ({ ...prev, offeredSalaryType: "" }))
-  }
+    const value = e.target.value;
+    setFormData((prev) => ({ ...prev, offeredSalaryType: value }));
+    setErrors((prev) => ({ ...prev, offeredSalaryType: "" }));
+  };
   return (
     <Accordion type="single" collapsible defaultValue="item-1">
       <AccordionItem value="item-1" className="border border-gray-200 rounded-xl shadow-sm bg-blue-50/50">
@@ -414,25 +412,25 @@ const SalaryDescriptionSection = ({
         </AccordionContent>
       </AccordionItem>
     </Accordion>
-  )
-}
+  );
+};
 
 export default function PostJobPage() {
   const { data: session, status } = useSession({
     required: true,
     onUnauthenticated: () => router.push("/auth"),
-  })
-  const router = useRouter()
-  const [formData, setFormData] = useState(initialFormData)
-  const [errors, setErrors] = useState({})
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  });
+  const router = useRouter();
+  const [formData, setFormData] = useState(initialFormData);
+  const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (status === "loading") {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <div className="animate-pulse text-blue-600 text-xl">Loading...</div>
       </div>
-    )
+    );
   }
 
   if (session.user.role !== "organization") {
@@ -445,73 +443,81 @@ export default function PostJobPage() {
   }
 
   const handleChange = (e) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
-    setErrors((prev) => ({ ...prev, [name]: "" }))
-  }
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    setErrors((prev) => ({ ...prev, [name]: "" }));
+  };
 
   const handleSelectChange = (name, value) => {
-    setFormData((prev) => ({ ...prev, [name]: value }))
-    setErrors((prev) => ({ ...prev, [name]: "" }))
-  }
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    setErrors((prev) => ({ ...prev, [name]: "" }));
+  };
 
   const handleSwitchChange = (name, checked) => {
-    setFormData((prev) => ({ ...prev, [name]: checked }))
-  }
+    setFormData((prev) => ({ ...prev, [name]: checked }));
+  };
 
   const validateForm = () => {
-    const newErrors = {}
-    if (!formData.position.trim()) newErrors.position = "Job position is required"
-    if (!formData.requiredEmployees.toString().trim()) newErrors.requiredEmployees = "Number of employees is required"
-    if (!formData.jobCategory.trim()) newErrors.jobCategory = "Job category is required"
-    if (!formData.jobLevel.trim()) newErrors.jobLevel = "Job level is required"
-    if (!formData.jobType.trim()) newErrors.jobType = "Job type is required"
-    if (!formData.experience.trim()) newErrors.experience = "Experience is required"
-    if (!formData.jobLocation.trim()) newErrors.jobLocation = "Job location is required"
-    if (!formData.currency.trim()) newErrors.currency = "Currency is required"
-    if (!formData.minimum.toString().trim()) newErrors.minimum = "Minimum salary is required"
-    if (formData.offeredSalaryType === "Range" && !formData.maximum.toString().trim())
-      newErrors.maximum = "Maximum salary is required for range"
-    if (!formData.offeredSalaryType.trim()) newErrors.offeredSalaryType = "Offered salary type is required"
-    if (!formData.salaryType.trim()) newErrors.salaryType = "Salary type is required"
-    if (!formData.description.trim()) newErrors.description = "Job description is required"
-    return newErrors
-  }
+    const newErrors = {};
+    if (!formData.position.trim()) newErrors.position = "Job position is required";
+    if (!formData.requiredEmployees.toString().trim() || isNaN(formData.requiredEmployees) || Number(formData.requiredEmployees) <= 0) {
+      newErrors.requiredEmployees = "Number of employees must be a positive number";
+    }
+    if (!formData.jobCategory.trim()) newErrors.jobCategory = "Job category is required";
+    if (!formData.jobLevel.trim()) newErrors.jobLevel = "Job level is required";
+    if (!formData.jobType.trim()) newErrors.jobType = "Job type is required";
+    if (!formData.experience.trim()) newErrors.experience = "Experience is required";
+    if (!formData.jobLocation.trim()) newErrors.jobLocation = "Job location is required";
+    if (!formData.currency.trim()) newErrors.currency = "Currency is required";
+    if (!formData.minimum.toString().trim() || isNaN(formData.minimum) || Number(formData.minimum) < 0) {
+      newErrors.minimum = "Minimum salary must be a non-negative number";
+    }
+    if (formData.offeredSalaryType === "Range" && (!formData.maximum.toString().trim() || isNaN(formData.maximum) || Number(formData.maximum) < Number(formData.minimum))) {
+      newErrors.maximum = "Maximum salary is required for range and must be greater than minimum";
+    }
+    if (!formData.offeredSalaryType.trim()) newErrors.offeredSalaryType = "Offered salary type is required";
+    if (!formData.salaryType.trim()) newErrors.salaryType = "Salary type is required";
+    if (!formData.description.trim()) newErrors.description = "Job description is required";
+    return newErrors;
+  };
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    const validationErrors = validateForm()
+    e.preventDefault();
+    const validationErrors = validateForm();
     if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors)
-      return
+      setErrors(validationErrors);
+      return;
     }
-    setIsSubmitting(true)
+    setIsSubmitting(true);
     try {
       const jobData = {
         ...formData,
+        requiredEmployees: Number(formData.requiredEmployees),
+        minimum: Number(formData.minimum),
+        maximum: formData.offeredSalaryType === "Range" ? Number(formData.maximum) : null,
         postedBy: session?.user?.email,
         role: session?.user?.role || "organization",
-        createdAt: new Date().toISOString(),
-      }
+      };
+      console.log("Sending job data:", jobData);
       const response = await fetch("/api/Org/addjob", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(jobData),
-      })
+      });
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || "Failed to post job")
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to post job");
       }
-      alert("Job posted successfully!")
-      setFormData(initialFormData)
-      router.push("/organization/Jobpage")
+      alert("Job posted successfully!");
+      setFormData(initialFormData);
+      router.push("/organization/Jobpage");
     } catch (error) {
-      console.error("Error posting job:", error)
-      alert(`Failed to post job: ${error.message}`)
+      console.error("Error posting job:", error);
+      alert(`Failed to post job: ${error.message}`);
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   return (
     <SidebarProvider>
@@ -608,5 +614,5 @@ export default function PostJobPage() {
         </div>
       </div>
     </SidebarProvider>
-  )
+  );
 }

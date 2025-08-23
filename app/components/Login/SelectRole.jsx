@@ -60,7 +60,7 @@ export default function SelectRole() {
   }
 
   if (status === "unauthenticated") {
-    router.push("/login");
+    router.push("/auth");
     return <div>Redirecting to login...</div>;
   }
 

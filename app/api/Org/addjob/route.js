@@ -4,6 +4,7 @@ import Job from "../../../../lib/models/Job";
 export async function POST(req) {
   try {
     const body = await req.json();
+    console.log("Received job data:", body);
 
     const {
       position,
@@ -21,7 +22,7 @@ export async function POST(req) {
       salaryType,
       hideSalary,
       negotiable,
-      active, // Add active field
+      active,
       description,
       postedBy,
       role,
@@ -30,28 +31,28 @@ export async function POST(req) {
     // Validation
     if (
       !position ||
-      !requiredEmployees ||
+      requiredEmployees === undefined || isNaN(requiredEmployees) || requiredEmployees <= 0 ||
       !jobCategory ||
       !jobLevel ||
       !jobType ||
       !jobLocation ||
       !offeredSalaryType ||
       !currency ||
-      !minimum ||
+      minimum === undefined || isNaN(minimum) || minimum < 0 ||
       !salaryType ||
       !description ||
       !postedBy ||
-      active === undefined // Validate active field
+      active === undefined
     ) {
       return new Response(
-        JSON.stringify({ error: "Missing required fields." }),
+        JSON.stringify({ error: "Missing or invalid required fields." }),
         { status: 400 }
       );
     }
 
-    if (offeredSalaryType === "Range" && !maximum) {
+    if (offeredSalaryType === "Range" && (maximum === undefined || isNaN(maximum) || maximum < minimum)) {
       return new Response(
-        JSON.stringify({ error: "Maximum salary is required for range type." }),
+        JSON.stringify({ error: "Maximum salary is required for range type and must be greater than minimum." }),
         { status: 400 }
       );
     }
@@ -74,7 +75,7 @@ export async function POST(req) {
       salaryType,
       hideSalary: Boolean(hideSalary),
       negotiable: Boolean(negotiable),
-      active: Boolean(active), // Add active field
+      active: Boolean(active),
       description,
       postedBy,
       role: role || "organization",
@@ -86,8 +87,14 @@ export async function POST(req) {
     });
   } catch (error) {
     console.error("Error posting job:", error);
+    let errorMessage = "Internal Server Error";
+    if (error.name === "ValidationError") {
+      errorMessage = Object.values(error.errors).map(e => e.message).join(", ");
+    } else if (error.name === "MongoServerError") {
+      errorMessage = error.message;
+    }
     return new Response(
-      JSON.stringify({ error: "Internal Server Error" }),
+      JSON.stringify({ error: errorMessage }),
       { status: 500 }
     );
   }

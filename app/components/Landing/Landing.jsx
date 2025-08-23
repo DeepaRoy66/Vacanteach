@@ -1,32 +1,21 @@
-"use client";
-import { useUserRedirect } from "../useUserRedirect";
-import { useSession } from "next-auth/react";
-
-import CallToAction from "./Calltoaction";
-import ClientBenefits from "./ClientBenefits";
-import ExplorePros from "./Explore";
-import GetInsights from "./Getinsights";
-import HeroSection from "./Hero";
-import HowItWorks from "./Howitworks";
-import RealResults from "./Realresult";
-
+"use client"
+import CallToAction from "./Calltoaction.jsx"
+import ClientBenefits from "./ClientBenefits.jsx"
+import ExplorePros from "./Explore.jsx"
+import GetInsights from "./Getinsights.jsx"
+import HeroSection from "./Hero.jsx"
+import HowItWorks from "./Howitworks.jsx"
+import RealResults from "./Realresult.jsx"
 export default function LandingPage() {
-  const { status } = useSession();
-  useUserRedirect();
-
-  if (status === "loading") {
-    return <div className="p-6 text-center text-lg">Loading...</div>;
-  }
-
   return (
-    <div className="bg-white">
+    <div className="bg-background min-h-screen"> 
       <HeroSection />
       <HowItWorks />
-      <GetInsights />
       <ExplorePros />
-      <CallToAction />
+      <GetInsights />
       <ClientBenefits />
       <RealResults />
+      <CallToAction />
     </div>
-  );
+  )
 }

@@ -6,52 +6,58 @@ import { useEffect, useState } from 'react';
 
 export default function Navbar() {
   const { data: session, status } = useSession();
-  const [organization, setOrganization] = useState(null);
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    async function fetchOrganization() {
+    async function fetchUser() {
       if (status === 'authenticated' && session?.user?.email) {
         try {
           const response = await fetch('/api/user/organizationdata', {
             method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            credentials: 'include', // important to include cookies for authentication
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
           });
           const data = await response.json();
           if (response.ok) {
-            setOrganization(data.organization);
+            setUser(data.user); // keep same structure as ITMStaff code
             setError(null);
           } else {
             setError(data.message || 'Failed to fetch organization data');
-            setOrganization(null);
+            setUser(null);
           }
         } catch (err) {
           setError('Error fetching organization data');
-          setOrganization(null);
+          setUser(null);
           console.error(err);
         } finally {
           setLoading(false);
         }
       } else if (status !== 'loading') {
-        // Only set error and loading if status is not loading
         setError('User not authenticated');
-        setOrganization(null);
+        setUser(null);
         setLoading(false);
       }
-      // If status is loading, do nothing here (wait for next effect)
     }
 
-    fetchOrganization();
+    fetchUser();
   }, [session, status]);
 
   return (
-    <nav className="bg-white shadow-md p-4">
+    <nav className=" sticky top-0 bg-white shadow-md p-4 z-50">
       <div className="container mx-auto flex justify-between items-center">
-        <div className="text-2xl font-bold"></div>
+        {/* Left side: Logo + Brand */}
+        <div className="flex items-center space-x-2">
+          <img
+            src="https://i.ibb.co/tcwbH6R/vacanteach-logo.png" // <-- replace with your VacanTeach logo
+            alt="VacanTeach Logo"
+            className="h-12 w-12 object-contain"
+          />
+          <span className="text-2xl font-bold text-green-800">VacanTeach</span>
+        </div>
+
+        {/* Right side: PostJob + User Info */}
         <div className="flex items-center space-x-4">
           <Link
             href="/organization/postjob"
@@ -69,7 +75,7 @@ export default function Navbar() {
           ) : (
             <div className="flex items-center space-x-2">
               <span className="text-gray-700">
-                {organization?.organizationName || session?.user?.email}
+                {user?.organizationName || session?.user?.email || 'No organization'}
               </span>
               {session.user.image ? (
                 <img
@@ -81,11 +87,6 @@ export default function Navbar() {
                 <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
                   {session.user.email?.charAt(0).toUpperCase() || '?'}
                 </div>
-              )}
-              {!organization && (
-                <Link href="/create-organization" className="text-blue-600 hover:underline">
-                  Create Organization
-                </Link>
               )}
             </div>
           )}
