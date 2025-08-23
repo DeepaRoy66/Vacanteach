@@ -38,11 +38,12 @@ import { toast, ToastContainer } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
 
 export default function OrganizationDashboard() {
+  const router = useRouter()
   const { data: session, status } = useSession({
-    required: true,
+ 
     onUnauthenticated: () => router.push("/auth"),
   })
-  const router = useRouter()
+
   const [showWelcome, setShowWelcome] = React.useState(true)
   const [activeJobs, setActiveJobs] = React.useState([])
   const [isLoadingJobs, setIsLoadingJobs] = React.useState(true)

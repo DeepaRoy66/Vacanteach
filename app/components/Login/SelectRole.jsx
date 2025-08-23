@@ -20,7 +20,7 @@ export default function SelectRole() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   useUserRedirect();
 
-  // Pre-fill form data
+  // Pre-fill form data from session
   useEffect(() => {
     if (status === "authenticated" && session?.user?.email) {
       setFormData((prev) => ({
@@ -28,28 +28,8 @@ export default function SelectRole() {
         email: session.user.email,
         name: session.user.name || "",
       }));
-      const fetchUserData = async () => {
-        try {
-          const response = await fetch(
-            `/api/user/rolepost?role=${selectedRole || "teacher"}`
-          );
-          const result = await response.json();
-          if (response.ok && result.data) {
-            setFormData((prev) => ({
-              ...prev,
-              name: result.data.name || result.data.organizationName || prev.name,
-              phone: result.data.phone || "",
-              organizationName: result.data.organizationName || "",
-              industry: result.data.industry || "",
-            }));
-          }
-        } catch (error) {
-          console.error("Error fetching user data:", error);
-        }
-      };
-      fetchUserData();
     }
-  }, [status, session, selectedRole]);
+  }, [status, session]);
 
   if (status === "loading") {
     return (
@@ -131,21 +111,12 @@ export default function SelectRole() {
         toast.success(result.message || "Profile created successfully!");
 
         // Refresh session
-        await signIn("google", { redirect: false });
+        await getSession();
 
-        // Verify session update
-        const updatedSession = await getSession();
-        if (
-          updatedSession?.user?.role === selectedRole &&
-          updatedSession?.user?.profileCompleted
-        ) {
-          const redirectPath =
-            selectedRole === "organization" ? "/organization" : "/teacher";
-          router.push(redirectPath);
-        } else {
-          toast.error("Session update failed. Please try again.");
-          console.error("Session not updated:", updatedSession);
-        }
+        const redirectPath =
+          selectedRole === "organization" ? "/organization" : "/teacher";
+        router.push(redirectPath);
+
       } else {
         toast.error(result.message || "Failed to create profile.");
         console.error("API Error:", result);
@@ -263,10 +234,13 @@ export default function SelectRole() {
                   {isSubmitting ? "Submitting..." : "Continue"}
                 </button>
                 <p className="text-center text-sm text-gray-600 mt-4">
-                  Already have an employer account?{" "}
-                  <a href="/login" className="underline">
-                    Login Here
-                  </a>
+                  Want to change your role?{" "}
+                  <span
+                    onClick={() => setIsFormVisible(false)}
+                    className="underline cursor-pointer"
+                  >
+                    Go back
+                  </span>
                 </p>
               </>
             ) : (

@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useSession } from 'next-auth/react';
+import { useSession, signOut } from 'next-auth/react';
 import { useEffect, useState } from 'react';
 
 export default function Navbar() {
@@ -11,13 +11,15 @@ export default function Navbar() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    async function fetchUser() {
+    async function fetchOrganization() {
       if (status === 'authenticated' && session?.user?.email) {
         try {
           const response = await fetch('/api/user/organizationdata', {
             method: 'GET',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            credentials: 'include', // important to include cookies for authentication
           });
           const data = await response.json();
           if (response.ok) {
@@ -35,13 +37,15 @@ export default function Navbar() {
           setLoading(false);
         }
       } else if (status !== 'loading') {
+        // Only set error and loading if status is not loading
         setError('User not authenticated');
-        setUser(null);
+        setOrganization(null);
         setLoading(false);
       }
+      // If status is loading, do nothing here (wait for next effect)
     }
 
-    fetchUser();
+    fetchOrganization();
   }, [session, status]);
 
   return (
@@ -68,10 +72,10 @@ export default function Navbar() {
 
           {status === 'loading' || loading ? (
             <span>Loading session...</span>
+          ) : status === 'unauthenticated' ? (
+            <span className="text-red-500">Not signed in</span>
           ) : error ? (
             <span className="text-red-500">{error}</span>
-          ) : !session ? (
-            <span className="text-red-500">Not signed in</span>
           ) : (
             <div className="flex items-center space-x-2">
               <span className="text-gray-700">
@@ -87,6 +91,11 @@ export default function Navbar() {
                 <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
                   {session.user.email?.charAt(0).toUpperCase() || '?'}
                 </div>
+              )}
+              {!organization && (
+                <Link href="/create-organization" className="text-blue-600 hover:underline">
+                  Create Organization
+                </Link>
               )}
             </div>
           )}
