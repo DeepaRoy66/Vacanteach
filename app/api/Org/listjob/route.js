@@ -51,10 +51,10 @@ export async function GET(request) {
     // Log the query and results for debugging
     console.log("Query:", query);
     console.log("Fetched jobs:", jobs);
-
-    if (!jobs || jobs.length === 0) {
-      return NextResponse.json({ error: "No jobs found" }, { status: 404 });
-    }
+    
+if (!jobs || jobs.length === 0) {
+  return NextResponse.json([], { status: 200 });
+}
 
     return NextResponse.json(jobs, { status: 200 });
   } catch (error) {
