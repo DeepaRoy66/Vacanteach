@@ -41,7 +41,7 @@ export async function POST(req) {
       role,
     } = body;
 
-    // Validation
+    // Validation for required fields
     if (
       !position?.trim() ||
       requiredEmployees === undefined ||
@@ -53,9 +53,6 @@ export async function POST(req) {
       !jobLocation?.trim() ||
       !offeredSalaryType?.trim() ||
       !currency?.trim() ||
-      minimum === undefined ||
-      isNaN(minimum) ||
-      minimum < 0 ||
       !salaryType?.trim() ||
       !description?.trim() ||
       !postedBy?.trim()
@@ -69,19 +66,51 @@ export async function POST(req) {
       );
     }
 
-    if (
-      offeredSalaryType === "Range" &&
-      (maximum === undefined || isNaN(maximum) || maximum < minimum)
-    ) {
+    // Description length validation
+    if (description.length < 50) {
       return new Response(
-        JSON.stringify({
-          error: "Maximum salary is required for range type and must be greater than minimum.",
-        }),
+        JSON.stringify({ error: "Job description must be at least 50 characters." }),
         {
           status: 400,
           headers: { "Content-Type": "application/json" },
         }
       );
+    }
+    if (description.length > 5000) {
+      return new Response(
+        JSON.stringify({ error: "Job description cannot exceed 5000 characters." }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    // Salary validation when hideSalary is false
+    if (!hideSalary) {
+      if (minimum === undefined || isNaN(minimum) || minimum < 0) {
+        return new Response(
+          JSON.stringify({ error: "Minimum salary must be a non-negative number when salary is not hidden." }),
+          {
+            status: 400,
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+      }
+      if (
+        offeredSalaryType === "Range" &&
+        (maximum === undefined || isNaN(maximum) || maximum < minimum)
+      ) {
+        return new Response(
+          JSON.stringify({
+            error: "Maximum salary is required for range type and must be greater than minimum when salary is not hidden.",
+          }),
+          {
+            status: 400,
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+      }
     }
 
     await connectToDatabase();
@@ -93,15 +122,15 @@ export async function POST(req) {
       subCategory: subCategory || null,
       jobLevel,
       jobType,
-      experience,
+      experience: experience?.trim() || null, // Experience is optional
       jobLocation,
       offeredSalaryType,
       currency,
-      minimum: Number(minimum),
-      maximum: offeredSalaryType === "Range" ? Number(maximum) : null,
+      minimum: hideSalary ? null : Number(minimum),
+      maximum: hideSalary || offeredSalaryType !== "Range" ? null : Number(maximum),
       salaryType,
       hideSalary: Boolean(hideSalary),
-      negotiable: Boolean(negotiable),
+      negotiable: hideSalary ? false : Boolean(negotiable), // Negotiable is false if hideSalary is true
       active: Boolean(active),
       description,
       postedBy: session.user.email, // Override with session email for security

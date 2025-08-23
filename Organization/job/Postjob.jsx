@@ -197,7 +197,7 @@ const dropdownOptions = {
 };
 
 // Reusable Form Field
-const FormField = ({ label, name, value, onChange, error, type = "text", placeholder, required = false }) => (
+const FormField = ({ label, name, value, onChange, error, type = "text", placeholder, required = false, hint }) => (
   <div className="flex-1">
     <Label htmlFor={name} className="block text-sm font-medium text-gray-700 mb-1">
       {label} {required && <span className="text-red-500">*</span>}
@@ -211,10 +211,12 @@ const FormField = ({ label, name, value, onChange, error, type = "text", placeho
       placeholder={placeholder}
       className="block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
     />
+    {hint && <p className="text-sm text-gray-500 mt-1">{hint}</p>}
     {error && <p className="text-sm text-red-500 mt-1">{error}</p>}
   </div>
 );
 
+// Enhanced Select Field
 const EnhancedSelectField = ({
   label,
   name,
@@ -227,13 +229,10 @@ const EnhancedSelectField = ({
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isOpen, setIsOpen] = useState(false);
-
   const filteredOptions = searchable
     ? options.filter((opt) => opt.label.toLowerCase().includes(searchTerm.toLowerCase()))
     : options;
-
   const selectedOption = options.find((opt) => opt.value === value);
-
   return (
     <div className="flex-1">
       <Label htmlFor={name} className="block text-sm font-medium text-gray-700 mb-2">
@@ -411,7 +410,7 @@ const JobDetailSection = ({ formData, errors, handleChange, handleSelectChange }
           onChange={handleChange}
           error={errors.experience}
           placeholder="e.g., 2-3 years in teaching"
-          required
+          hint="Optional: Specify required experience, if any"
         />
       </AccordionContent>
     </AccordionItem>
@@ -535,7 +534,7 @@ const SalaryDescriptionSection = ({
               onChange={handleChange}
               error={errors.minimum}
               placeholder="e.g., 43000"
-              required
+              required={!formData.hideSalary}
             />
             {formData.offeredSalaryType === "Range" && (
               <FormField
@@ -546,7 +545,7 @@ const SalaryDescriptionSection = ({
                 onChange={handleChange}
                 error={errors.maximum}
                 placeholder="e.g., 50000"
-                required
+                required={!formData.hideSalary}
               />
             )}
             <EnhancedSelectField
@@ -565,9 +564,14 @@ const SalaryDescriptionSection = ({
                 <Switch
                   id="hideSalary"
                   checked={formData.hideSalary}
-                  onCheckedChange={(checked) => handleSwitchChange("hideSalary", checked)}
+                  onCheckedChange={(checked) => {
+                    handleSwitchChange("hideSalary", checked);
+                    if (checked) {
+                      handleSwitchChange("negotiable", false); // Disable negotiable when hideSalary is true
+                    }
+                  }}
                   className={cn(
-                    "data-[state=unchecked]:bg-gray",
+                    "data-[state=unchecked]:bg-gray-300",
                     formData.hideSalary ? "bg-green-500" : "bg-green-200"
                   )}
                 />
@@ -589,21 +593,38 @@ const SalaryDescriptionSection = ({
                 <Switch
                   id="negotiable"
                   checked={formData.negotiable}
-                  onCheckedChange={(checked) => handleSwitchChange("negotiable", checked)}
+                  onCheckedChange={(checked) => {
+                    if (!formData.hideSalary) {
+                      handleSwitchChange("negotiable", checked);
+                    }
+                  }}
+                  disabled={formData.hideSalary}
                   className={cn(
-                    "data-[state=unchecked]:bg-gray",
-                    formData.negotiable ? "bg-green-500" : "bg-green-200"
+                    "data-[state=unchecked]:bg-gray-300",
+                    formData.negotiable ? "bg-green-500" : "bg-green-200",
+                    formData.hideSalary && "opacity-50 cursor-not-allowed"
                   )}
                 />
-                <Label htmlFor="negotiable" className="text-sm font-medium text-gray-700 flex items-center gap-1">
+                <Label
+                  htmlFor="negotiable"
+                  className={cn(
+                    "text-sm font-medium text-gray-700 flex items-center gap-1",
+                    formData.hideSalary && "text-gray-400"
+                  )}
+                >
                   Negotiable
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <Info className="h-4 w-4 text-gray-500 cursor-pointer" />
+                        <Info
+                          className={cn(
+                            "h-4 w-4 cursor-pointer",
+                            formData.hideSalary ? "text-gray-400" : "text-gray-500"
+                          )}
+                        />
                       </TooltipTrigger>
                       <TooltipContent className="max-w-xs text-center">
-                        {"Choose this option to indicate that the salary is negotiable."}
+                        {"Choose this option to indicate that the salary is negotiable. Disabled when salary is hidden."}
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
@@ -614,7 +635,10 @@ const SalaryDescriptionSection = ({
                   id="active"
                   checked={formData.active}
                   onCheckedChange={(checked) => handleSwitchChange("active", checked)}
-                  className={cn("data-[state=unchecked]:bg-gray", formData.active ? "bg-green-500" : "bg-green-200")}
+                  className={cn(
+                    "data-[state=unchecked]:bg-gray-300",
+                    formData.active ? "bg-green-500" : "bg-green-200"
+                  )}
                 />
                 <Label htmlFor="active" className="text-sm font-medium text-gray-700 flex items-center gap-1">
                   Active
@@ -642,9 +666,18 @@ const SalaryDescriptionSection = ({
               value={formData.description}
               onChange={handleChange}
               className="block w-full px-4 py-2 border border-gray-300 rounded-lg min-h-[150px] focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Enter job description..."
+              placeholder="Enter detailed job description (50-5000 characters)..."
+              maxLength={5000}
             />
-            {errors.description && <p className="text-sm text-red-500 mt-1">{errors.description}</p>}
+            <p className="text-sm text-gray-500 mt-1">
+              {formData.description.length}/5000 characters
+            </p>
+            {errors.description && (
+              <p className="text-sm text-red-500 mt-1 flex items-center gap-1">
+                <Info className="h-4 w-4" />
+                {errors.description}
+              </p>
+            )}
           </div>
         </AccordionContent>
       </AccordionItem>
@@ -691,13 +724,16 @@ export default function PostJobPage() {
     if (!formData.jobCategory.trim()) newErrors.jobCategory = "Job category is required";
     if (!formData.jobLevel.trim()) newErrors.jobLevel = "Job level is required";
     if (!formData.jobType.trim()) newErrors.jobType = "Job type is required";
-    if (!formData.experience.trim()) newErrors.experience = "Experience is required";
     if (!formData.jobLocation.trim()) newErrors.jobLocation = "Job location is required";
     if (!formData.currency.trim()) newErrors.currency = "Currency is required";
-    if (!formData.minimum.toString().trim() || isNaN(formData.minimum) || Number(formData.minimum) < 0) {
+    if (
+      !formData.hideSalary &&
+      (!formData.minimum.toString().trim() || isNaN(formData.minimum) || Number(formData.minimum) < 0)
+    ) {
       newErrors.minimum = "Minimum salary must be a non-negative number";
     }
     if (
+      !formData.hideSalary &&
       formData.offeredSalaryType === "Range" &&
       (!formData.maximum.toString().trim() ||
         isNaN(formData.maximum) ||
@@ -707,7 +743,13 @@ export default function PostJobPage() {
     }
     if (!formData.offeredSalaryType.trim()) newErrors.offeredSalaryType = "Offered salary type is required";
     if (!formData.salaryType.trim()) newErrors.salaryType = "Salary type is required";
-    if (!formData.description.trim()) newErrors.description = "Job description is required";
+    if (!formData.description.trim()) {
+      newErrors.description = "Job description is required";
+    } else if (formData.description.length < 50) {
+      newErrors.description = "Job description must be at least 50 characters";
+    } else if (formData.description.length > 5000) {
+      newErrors.description = "Job description cannot exceed 5000 characters";
+    }
     return newErrors;
   };
 
@@ -724,8 +766,8 @@ export default function PostJobPage() {
       const jobData = {
         ...formData,
         requiredEmployees: Number(formData.requiredEmployees),
-        minimum: Number(formData.minimum),
-        maximum: formData.offeredSalaryType === "Range" ? Number(formData.maximum) : null,
+        minimum: formData.hideSalary ? null : Number(formData.minimum),
+        maximum: formData.hideSalary || formData.offeredSalaryType !== "Range" ? null : Number(formData.maximum),
         postedBy: session?.user?.email,
         role: session?.user?.role || "organization",
       };
