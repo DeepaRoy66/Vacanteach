@@ -15,56 +15,6 @@ function getModelByRole(role) {
   }
 }
 
-export async function GET(req) {
-  try {
-    const session = await getServerSession(authOptions);
-
-    if (!session || !session.user?.email) {
-      return new Response(JSON.stringify({ message: "User not authenticated" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
-    const { searchParams } = new URL(req.url);
-    const role = searchParams.get("role");
-
-    if (!role || !["organization", "teacher"].includes(role)) {
-      return new Response(JSON.stringify({ message: "Missing or invalid role in query" }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
-    await connectToDatabase();
-    const Model = getModelByRole(role);
-    const userData = await Model.findOne({ email: session.user.email }).select(
-      "name phone role organizationName industry createdAt profileCompleted"
-    );
-
-    if (!userData) {
-      return new Response(JSON.stringify({ message: `${role} not found` }), {
-        status: 404,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
-    return new Response(JSON.stringify({ data: userData }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
-  } catch (error) {
-    console.error("Error in GET:", {
-      message: error.message,
-      stack: error.stack,
-    });
-    return new Response(JSON.stringify({ message: "Internal server error" }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
-  }
-}
-
 export async function POST(req) {
   try {
     const session = await getServerSession(authOptions);
@@ -106,14 +56,12 @@ export async function POST(req) {
       });
     }
 
-    if (role === "organization") {
-      if (!organizationName || !industry || !name) {
-        return new Response(JSON.stringify({ message: "Missing required fields: organizationName, industry, name" }), {
-          status: 400,
-          headers: { "Content-Type": "application/json" },
-        });
-      }
-    } else if (!name) {
+    if (role === "organization" && (!organizationName || !industry || !name)) {
+      return new Response(JSON.stringify({ message: "Missing required fields: organizationName, industry, name" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    } else if (role === "teacher" && !name) {
       return new Response(JSON.stringify({ message: "Missing required field: name" }), {
         status: 400,
         headers: { "Content-Type": "application/json" },
@@ -121,23 +69,38 @@ export async function POST(req) {
     }
 
     await connectToDatabase();
-
     const Model = getModelByRole(role);
-    let updateData = { role, phone, name, profileCompleted: true };
 
-    if (role === "organization") {
-      updateData = { ...updateData, organizationName, industry };
+    // Check if profile already exists and is complete
+    const existingProfile = await Model.findOne({ email, profileCompleted: true });
+    if (existingProfile) {
+      return new Response(JSON.stringify({ message: `${role} profile already exists` }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
     }
 
     // Delete any existing record in the other collection
     const otherModel = role === "organization" ? User : Organization;
     await otherModel.deleteOne({ email });
 
-    // Update or create the profile in the appropriate collection
+    // Update or create the profile
+    let updateData = { role, phone, name, profileCompleted: true };
+    if (role === "organization") {
+      updateData = { ...updateData, organizationName, industry };
+    }
+
     const result = await Model.findOneAndUpdate(
       { email },
       { $set: updateData },
       { upsert: true, new: true }
+    );
+
+    // Update User model role for consistency
+    await User.findOneAndUpdate(
+      { email },
+      { $set: { role, profileCompleted: true } },
+      { upsert: true }
     );
 
     return new Response(JSON.stringify({ message: `${role} profile saved`, data: result }), {

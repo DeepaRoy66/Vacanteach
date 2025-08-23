@@ -1,3 +1,4 @@
+// app/useUserRedirect.js
 "use client";
 import { useEffect } from "react";
 import { useSession } from "next-auth/react";
@@ -8,23 +9,59 @@ export function useUserRedirect() {
   const router = useRouter();
 
   useEffect(() => {
-    if (status !== "authenticated") {
-      return;
-    }
-
-    const role = session?.user?.role;
-    const profileCompleted = session?.user?.profileCompleted;
-
-    // Only redirect if the user's profile is incomplete and they are not on the /select-role page.
-    if (!role || !profileCompleted) {
-      if (router.pathname !== '/select-role') {
-        router.replace("/select-role");
+    async function checkRedirect() {
+      if (status !== "authenticated") {
+        console.log("useUserRedirect: Not authenticated, skipping redirect");
+        return;
       }
-    } else {
-      const redirectPath = role === "organization" ? "/organization" : "/teacher";
-      if (router.pathname !== redirectPath) {
-        router.replace(redirectPath);
+
+      const currentPath = window.location.pathname;
+      console.log("useUserRedirect: Current pathname:", currentPath, "Session:", {
+        role: session?.user?.role,
+        profileCompleted: session?.user?.profileCompleted,
+      });
+
+      // Trust session data if available
+      if (session?.user?.role && session?.user?.profileCompleted && session.user.role !== "user") {
+        const redirectPath = session.user.role === "organization" ? "/organization" : "/teacher";
+        if (currentPath !== redirectPath) {
+          console.log("useUserRedirect: Redirecting to", redirectPath);
+          router.replace(redirectPath);
+        }
+        return;
+      }
+
+      // Fallback to API check
+      try {
+        const res = await fetch("/api/user/check-role");
+        if (!res.ok) {
+          console.error("useUserRedirect: API error", { status: res.status, text: await res.text() });
+          if (currentPath !== "/select-role" && currentPath !== "/auth") {
+            console.log("useUserRedirect: Redirecting to /select-role due to API error");
+            router.replace("/select-role");
+          }
+          return;
+        }
+        const { role, profileCompleted } = await res.json();
+        console.log("useUserRedirect: API response", { role, profileCompleted });
+        if (role && profileCompleted && role !== "user") {
+          const redirectPath = role === "organization" ? "/organization" : "/teacher";
+          if (currentPath !== redirectPath) {
+            console.log("useUserRedirect: Redirecting to", redirectPath);
+            router.replace(redirectPath);
+          }
+        } else if (currentPath !== "/select-role" && currentPath !== "/auth") {
+          console.log("useUserRedirect: Redirecting to /select-role");
+          router.replace("/select-role");
+        }
+      } catch (error) {
+        console.error("useUserRedirect: Error checking role", error);
+        if (currentPath !== "/select-role" && currentPath !== "/auth") {
+          console.log("useUserRedirect: Redirecting to /select-role due to error");
+          router.replace("/select-role");
+        }
       }
     }
+    checkRedirect();
   }, [status, session, router]);
 }

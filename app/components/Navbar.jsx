@@ -1,23 +1,30 @@
+// components/Navbar.jsx
 "use client";
-
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useSession, signOut } from "next-auth/react";
+import { useUserRedirect } from "./useUserRedirect";
 
 export default function Navbar() {
   const pathname = usePathname();
   const { data: session, status } = useSession();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-
-  // Ensure component is mounted before rendering
   const [isMounted, setIsMounted] = useState(false);
-  useEffect(() => setIsMounted(true), []);
 
-  // Log hook dependencies for debugging
+  useUserRedirect(); // Keep this to handle redirects
+
   useEffect(() => {
-    console.log("Current pathname:", pathname);
-    console.log("Session status:", status, "Session data:", session);
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    console.log("Navbar: Current pathname:", pathname);
+    console.log("Navbar: Session status:", status, "Session data:", {
+      role: session?.user?.role,
+      profileCompleted: session?.user?.profileCompleted,
+      email: session?.user?.email,
+    });
   }, [pathname, status, session]);
 
   useEffect(() => {
@@ -26,13 +33,13 @@ export default function Navbar() {
     return () => window.removeEventListener("click", handleClickOutside);
   }, []);
 
-  // Check rendering condition after hooks
   const shouldRenderNavbar = !(
     pathname === "/organization" ||
     pathname === "/teacher" ||
     pathname.startsWith("/organization/postjob") ||
     pathname.startsWith("/organization/Jobpage")
   );
+
   if (!isMounted || !shouldRenderNavbar) return null;
 
   const handleToggleDropdown = (e) => {
@@ -71,7 +78,7 @@ export default function Navbar() {
           <Link href="/enterprise" className="text-green-900 font-medium text-sm hover:text-green-700 hover:scale-105 transition-all duration-300">
             Enterprise
           </Link>
-          {isWelcomePage && isAuthenticated ? (
+          {isAuthenticated ? (
             <div className="relative">
               <button
                 onClick={handleToggleDropdown}

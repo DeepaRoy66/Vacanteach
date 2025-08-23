@@ -1,6 +1,7 @@
-import NextAuth from "next-auth/next"
-import GoogleProvider from "next-auth/providers/google"
-import FacebookProvider from "next-auth/providers/facebook"
+// app/api/auth/[...nextauth]/route.js
+import NextAuth from "next-auth/next";
+import GoogleProvider from "next-auth/providers/google";
+import FacebookProvider from "next-auth/providers/facebook";
 import { connectToDatabase } from "../../../../lib/mongoose";
 import User from "../../../../lib/models/teacher";
 import Organization from "../../../../lib/models/Organization";
@@ -20,68 +21,61 @@ export const authOptions = {
   callbacks: {
     async signIn({ user, account, profile }) {
       try {
-        await connectToDatabase()
-
-        // Check if user exists in database
-        const existingUser = await User.findOne({ email: user.email })
-
+        await connectToDatabase();
+        const existingUser = await User.findOne({ email: user.email });
         if (!existingUser) {
-          // Create new user with default role
           await User.create({
             name: user.name,
             email: user.email,
             image: user.image,
             role: "user",
+            profileCompleted: false,
             provider: account.provider,
             providerId: account.providerAccountId,
-          })
-          console.log("[NextAuth] Created new user:", user.email)
+          });
+          console.log("[NextAuth] Created new user:", user.email);
         }
-
-        return true
+        return true;
       } catch (error) {
-        console.error("[NextAuth] Error in signIn callback:", error)
-        return true 
+        console.error("[NextAuth] Error in signIn callback:", error);
+        return true;
       }
     },
-    async jwt({ token, user, account, trigger }) {
+    async jwt({ token, user, account }) {
       try {
-        await connectToDatabase()
-
-        const dbUser = await User.findOne({ email: token.email })
-        let newRole = "user"
-
+        await connectToDatabase();
+        const dbUser = await User.findOne({ email: token.email });
+        let newRole = "user";
+        let profileCompleted = false;
         if (dbUser) {
-          newRole = dbUser.role || "user"
+          newRole = dbUser.role || "user";
+          profileCompleted = dbUser.profileCompleted || false;
         } else {
-        
-          const orgUser = await Organization.findOne({ email: token.email })
+          const orgUser = await Organization.findOne({ email: token.email });
           if (orgUser) {
-            newRole = orgUser.role || "organization"
+            newRole = orgUser.role || "organization";
+            profileCompleted = orgUser.profileCompleted || false;
           }
         }
-
-        // Only log if role changed or on initial sign-in
-        if (token.role !== newRole || (account && user)) {
-          console.log("[NextAuth] User role from DB:", newRole)
-        }
-
-        token.role = newRole
+        console.log("[NextAuth] JWT role:", newRole, "Profile completed:", profileCompleted);
+        token.role = newRole;
+        token.profileCompleted = profileCompleted;
+        return token;
       } catch (error) {
-        console.error("[NextAuth] Error fetching user role:", error)
-        token.role = token.role || "user" // Keep existing role on error
+        console.error("[NextAuth] Error fetching user role:", error);
+        token.role = token.role || "user";
+        token.profileCompleted = token.profileCompleted || false;
+        return token;
       }
-
-      return token
     },
     async session({ session, token }) {
-     
-      session.user.role = token.role
-      console.log("[NextAuth] Session with role:", session.user.role)
-      return session
+      session.user.role = token.role;
+      session.user.profileCompleted = token.profileCompleted;
+      console.log("[NextAuth] Session with role:", session.user.role, "Profile completed:", session.user.profileCompleted);
+      return session;
     },
   },
-}
+};
 
-export const handler = NextAuth(authOptions)
-export { handler as GET, handler as POST }
+export const handler = NextAuth(authOptions);
+export { handler as GET, handler as POST };
