@@ -6,7 +6,7 @@ import Navbar from "./Navbar";
 
 
 export const metadata = {
-  title: 'Your App Title',
+  title: 'VacanTeach',
   description: 'Your App Description',
 };
 

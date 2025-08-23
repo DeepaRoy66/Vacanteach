@@ -33,12 +33,8 @@ export default function Navbar() {
     return () => window.removeEventListener("click", handleClickOutside);
   }, []);
 
-  const shouldRenderNavbar = !(
-    pathname === "/organization" ||
-    pathname === "/teacher" ||
-    pathname.startsWith("/organization/postjob") ||
-    pathname.startsWith("/organization/Jobpage")
-  );
+  // Hide navbar on all /organization routes
+  const shouldRenderNavbar = !pathname.startsWith("/organization");
 
   if (!isMounted || !shouldRenderNavbar) return null;
 
@@ -60,22 +56,25 @@ export default function Navbar() {
     );
   }
 
-  const isWelcomePage = pathname === "/postjob";
   const isAuthenticated = status === "authenticated";
 
   return (
     <nav className="bg-gradient-to-r from-green-300 via-green-100 to-green-300 shadow-lg py-3 sticky top-0 z-30 w-full animate-pulse-bg">
       <div className="container mx-auto px-6 flex justify-between items-center">
-        <div className="text-xl font-semibold text-green-800 tracking-tight hover:scale-105 transition-transform duration-300">VacanTeach</div>
+        <div className="text-xl font-semibold text-green-800 tracking-tight hover:scale-105 transition-transform duration-300">
+          VacanTeach
+        </div>
         <div className="space-x-6 flex items-center">
           <Link
             href="/find-work"
             className="text-green-900 font-medium text-sm hover:text-green-700 hover:scale-105 transition-all duration-300"
-            onClick={() => console.log("Navigating to: /find-work")}
           >
             Find Work
           </Link>
-          <Link href="/enterprise" className="text-green-900 font-medium text-sm hover:text-green-700 hover:scale-105 transition-all duration-300">
+          <Link
+            href="/enterprise"
+            className="text-green-900 font-medium text-sm hover:text-green-700 hover:scale-105 transition-all duration-300"
+          >
             Enterprise
           </Link>
           {isAuthenticated ? (
@@ -97,7 +96,9 @@ export default function Navbar() {
                     </span>
                   </div>
                 )}
-                <span className="text-sm font-medium text-green-900 hover:text-green-700">{session?.user?.name || "User"}</span>
+                <span className="text-sm font-medium text-green-900 hover:text-green-700">
+                  {session?.user?.name || "User"}
+                </span>
               </button>
               {isProfileOpen && (
                 <div
