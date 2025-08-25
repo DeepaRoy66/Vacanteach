@@ -1,6 +1,4 @@
-
 "use client";
-
 import { useSession, signOut } from "next-auth/react";
 import { useState, useEffect } from "react";
 import NavBar from "./Navbar";
@@ -10,6 +8,7 @@ import DashboardStats from "./DashBoardStats";
 import RecentActivity from "./RecentActivity";
 import TopJobs from "./TopJobs";
 import JobListings from "./JobListings";
+
 const jobCategories = [
   "Mathematics", "Science", "English", "History", "Art", "Music", "Physical Education", "Computer Science"
 ];
@@ -74,7 +73,7 @@ export default function TeacherDashboard() {
       }
       const jobsData = await jobsResponse.json();
       console.log("Fetched jobs:", jobsData);
-      setJobs(jobsData);
+      setJobs(jobsData || []); // Ensure jobs is always an array
 
       const topJobsResponse = await fetch(`/api/Org/getjobs?sortBy=views&limit=4`, {
         method: "GET",
@@ -89,7 +88,7 @@ export default function TeacherDashboard() {
       } else {
         const topJobsData = await topJobsResponse.json();
         console.log("Fetched top jobs:", topJobsData);
-        setTopJobs(topJobsData);
+        setTopJobs(topJobsData || []);
       }
 
       const currentDate = new Date();
@@ -110,7 +109,9 @@ export default function TeacherDashboard() {
       }
     } catch (err) {
       console.error("Fetch error:", err.message);
-      setError(err.message);
+      setError(null); // Don't set error to avoid showing error page
+      setJobs([]); // Set empty array to show "No jobs available" in JobListings
+      setTopJobs([]); // Set empty array to show "No top jobs available" in TopJobs
     } finally {
       setLoading(false);
     }
@@ -142,17 +143,6 @@ export default function TeacherDashboard() {
     return (
       <div className="flex justify-center items-center min-h-screen bg-gray-100">
         <p>Loading...</p>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex flex-col justify-center items-center min-h-screen bg-gray-100">
-        <p className="text-red-600">Error: {error}</p>
-        <Button onClick={fetchJobs} className="mt-4">
-          Retry
-        </Button>
       </div>
     );
   }
