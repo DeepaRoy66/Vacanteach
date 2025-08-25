@@ -1,12 +1,24 @@
-"use client"
-import React from "react"
-import { useSession } from "next-auth/react"
-import { useRouter } from "next/navigation"
-import { Card, CardContent, CardTitle, CardDescription, CardHeader } from "../../app/components/ui/card"
-import { Button } from "../../app/components/ui/button"
-import { Select, SelectValue, SelectTrigger, SelectContent, SelectItem } from "../../app/components/ui/select"
-import { SidebarProvider, SidebarInset, SidebarTrigger } from "../../app/components/ui/sidebar"
-import { AppSidebar } from "../../app/(pages)/organization/Sidebar"
+"use client";
+import React, { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import {
+  Card,
+  CardContent,
+  CardTitle,
+  CardDescription,
+  CardHeader,
+} from "../../app/components/ui/card";
+import { Button } from "../../app/components/ui/button";
+import {
+  Select,
+  SelectValue,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+} from "../../app/components/ui/select";
+import { SidebarProvider, SidebarInset } from "../../app/components/ui/sidebar";
+import { AppSidebar } from "../../app/(pages)/organization/Sidebar";
 import {
   X,
   Users,
@@ -33,58 +45,90 @@ import {
   Award,
   BriefcaseBusiness,
   AlertCircle,
-} from "lucide-react"
-import { toast, ToastContainer } from "react-toastify"
-import "react-toastify/dist/ReactToastify.css"
+} from "lucide-react";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function OrganizationDashboard() {
   const { data: session, status } = useSession({
     required: true,
     onUnauthenticated: () => router.push("/auth"),
-  })
-  const router = useRouter()
-  const [showWelcome, setShowWelcome] = React.useState(true)
-  const [activeJobs, setActiveJobs] = React.useState([])
-  const [isLoadingJobs, setIsLoadingJobs] = React.useState(true)
-  const [selectedCategory, setSelectedCategory] = React.useState("all")
-  const [searchTerm, setSearchTerm] = React.useState("")
+  });
+  const router = useRouter();
+  const [showWelcome, setShowWelcome] = useState(true);
+  const [activeJobs, setActiveJobs] = useState([]);
+  const [jobApplications, setJobApplications] = useState([]); // New state for applications
+  const [isLoadingJobs, setIsLoadingJobs] = useState(true);
+  const [isLoadingApplications, setIsLoadingApplications] = useState(true); // New loading state
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [searchTerm, setSearchTerm] = useState("");
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (status === "authenticated" && session?.user?.role === "organization") {
-      fetchActiveJobs()
+      fetchActiveJobs();
+      fetchJobApplications(); // Fetch applications
     } else if (status === "authenticated" && session?.user?.role !== "organization") {
-      router.push("/unauthorized")
+      router.push("/unauthorized");
     }
-  }, [status, session])
+  }, [status, session]);
 
   const fetchActiveJobs = async () => {
-    setIsLoadingJobs(true)
+    setIsLoadingJobs(true);
     try {
       const response = await fetch(
         `/api/Org/listjob?active=true&postedBy=${encodeURIComponent(session?.user?.email)}`,
         {
           method: "GET",
           headers: { "Content-Type": "application/json" },
-        },
-      )
-      if (!response.ok) throw new Error("Failed to fetch jobs")
-      const jobs = await response.json()
-      setActiveJobs(jobs)
+        }
+      );
+      if (!response.ok) throw new Error("Failed to fetch jobs");
+      const jobs = await response.json();
+      setActiveJobs(jobs);
     } catch (error) {
-      console.error("Error fetching active jobs:", error)
-      toast.error("Failed to load active jobs. Please try again.")
+      console.error("Error fetching active jobs:", error);
+      toast.error("Failed to load active jobs. Please try again.");
     } finally {
-      setIsLoadingJobs(false)
+      setIsLoadingJobs(false);
     }
-  }
+  };
+
+  const fetchJobApplications = async () => {
+    setIsLoadingApplications(true);
+    try {
+      const response = await fetch(
+        `/api/Org/JobApplications?postedBy=${encodeURIComponent(session?.user?.email)}`,
+        {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+      if (!response.ok) throw new Error("Failed to fetch applications");
+      const applications = await response.json();
+      setJobApplications(applications);
+    } catch (error) {
+      console.error("Error fetching job applications:", error);
+      toast.error("Failed to load job applications. Please try again.");
+    } finally {
+      setIsLoadingApplications(false);
+    }
+  };
 
   const filteredJobs = activeJobs.filter((job) => {
-    const matchesCategory = selectedCategory === "all" || job.jobCategory === selectedCategory
+    const matchesCategory = selectedCategory === "all" || job.jobCategory === selectedCategory;
     const matchesSearch =
       job.position.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.jobLocation.toLowerCase().includes(searchTerm.toLowerCase())
-    return matchesCategory && matchesSearch
-  })
+      job.jobLocation.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesCategory && matchesSearch;
+  });
+
+  const filteredApplications = jobApplications.filter((app) => {
+    const job = app.jobId || {};
+    return (
+      job.position?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      job.jobLocation?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  });
 
   if (status === "loading") {
     return (
@@ -94,7 +138,7 @@ export default function OrganizationDashboard() {
           <p className="text-lg text-gray-700 font-medium">Loading your dashboard...</p>
         </div>
       </div>
-    )
+    );
   }
 
   if (status === "authenticated" && session?.user?.role !== "organization") {
@@ -102,25 +146,22 @@ export default function OrganizationDashboard() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-red-600 text-xl">Unauthorized: Only organizations can view this dashboard.</div>
       </div>
-    )
+    );
   }
 
-  const user = session?.user
+  const user = session?.user;
 
   return (
     <SidebarProvider>
       <ToastContainer />
       <div className="flex min-h-screen bg-gray-50">
-        {/* Sidebar */}
         <div className="fixed top-0 left-0 w-80 h-screen overflow-y-auto bg-white border-r border-gray-200 z-10">
           <AppSidebar />
         </div>
-
-        {/* Main Content */}
         <SidebarInset className="ml-80 flex-1">
           <div className="p-6">
             <div className="max-w-7xl mx-auto space-y-6">
-              {/* Header Section */}
+              {/* Existing Header and Welcome Banner */}
               <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                 <div>
                   <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
@@ -146,8 +187,6 @@ export default function OrganizationDashboard() {
                   </Button>
                 </div>
               </div>
-
-              {/* Welcome Banner */}
               {showWelcome && (
                 <Card className="bg-gradient-to-r from-green-600 to-green-600 text-white border-0 relative overflow-hidden">
                   <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-16 translate-x-16"></div>
@@ -164,17 +203,16 @@ export default function OrganizationDashboard() {
                         <Sparkles className="h-6 w-6" />
                       </div>
                       <div className="flex-1">
-                        <h1 className="text-xl font-bold mb-2">Welcome back, {user?.name || "there"}! Here's what's happening with your jobs.</h1>
-
-
+                        <h1 className="text-xl font-bold mb-2">
+                          Welcome back, {user?.name || "there"}! Here's what's happening with your jobs.
+                        </h1>
                         <p className="text-sm text-gray-600">You have {activeJobs.length} active job postings.</p>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
               )}
-
-              {/* Stats Grid */}
+              {/* Existing Stats Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <Card className="hover:shadow-md transition-shadow">
                   <CardContent className="p-6">
@@ -193,13 +231,12 @@ export default function OrganizationDashboard() {
                     </div>
                   </CardContent>
                 </Card>
-
                 <Card className="hover:shadow-md transition-shadow">
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm font-medium text-gray-600">Total Applications</p>
-                        <p className="text-3xl font-bold text-gray-900 mt-1">1,847</p>
+                        <p className="text-3xl font-bold text-gray-900 mt-1">{jobApplications.length}</p>
                         <p className="text-xs text-green-600 mt-2 flex items-center">
                           <TrendingUp className="h-3 w-3 mr-1" />
                           +8% from last month
@@ -211,7 +248,6 @@ export default function OrganizationDashboard() {
                     </div>
                   </CardContent>
                 </Card>
-
                 <Card className="hover:shadow-md transition-shadow">
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
@@ -229,7 +265,6 @@ export default function OrganizationDashboard() {
                     </div>
                   </CardContent>
                 </Card>
-
                 <Card className="hover:shadow-md transition-shadow">
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
@@ -248,8 +283,7 @@ export default function OrganizationDashboard() {
                   </CardContent>
                 </Card>
               </div>
-
-              {/* Quick Actions */}
+              {/* Existing Quick Actions */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -279,8 +313,115 @@ export default function OrganizationDashboard() {
                   </div>
                 </CardContent>
               </Card>
-
-              {/* Job Management Section */}
+              {/* Job Applications Section */}
+              <Card>
+                <CardHeader>
+                  <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                    <div>
+                      <CardTitle className="flex items-center gap-2">
+                        <FileText className="h-5 w-5" />
+                        Job Applications
+                      </CardTitle>
+                      <CardDescription>Review applications for your job postings</CardDescription>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="relative">
+                        <Search className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                        <input
+                          type="text"
+                          placeholder="Search applications..."
+                          className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {isLoadingApplications ? (
+                    <div className="flex items-center justify-center py-12">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+                      <span className="ml-3 text-gray-600">Loading applications...</span>
+                    </div>
+                  ) : filteredApplications.length === 0 ? (
+                    <div className="text-center py-12">
+                      <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">No applications found</h3>
+                      <p className="text-gray-600 mb-4">
+                        {searchTerm
+                          ? "Try adjusting your search criteria"
+                          : "No applications have been submitted for your jobs yet."}
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {filteredApplications.map((app) => (
+                        <Card key={app._id} className="hover:shadow-md transition-shadow border-l-4 border-l-blue-500">
+                          <CardContent className="p-6">
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-3 mb-3">
+                                  <h3 className="text-xl font-semibold text-gray-900">{app.fullName}</h3>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+                                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                                    <BriefcaseBusiness className="h-4 w-4" />
+                                    {app.jobId?.position || "Unknown Job"}
+                                  </div>
+                                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                                    <MapPin className="h-4 w-4" />
+                                    {app.jobId?.jobLocation || "Unknown Location"}
+                                  </div>
+                                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                                    <Clock className="h-4 w-4" />
+                                    Applied {new Date(app.createdAt).toLocaleDateString()}
+                                  </div>
+                                </div>
+                                <div className="text-sm text-gray-600 mb-2">
+                                  <span className="font-medium">Email:</span> {app.email}
+                                </div>
+                                {app.coverLetter && (
+                                  <div className="text-sm text-gray-600 mb-2">
+                                    <span className="font-medium">Cover Letter:</span>{" "}
+                                    {app.coverLetter.substring(0, 100)}...
+                                  </div>
+                                )}
+                                <div className="text-sm text-gray-600">
+                                  <span className="font-medium">CV:</span>{" "}
+                                  <a
+                                    href={app.cv}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-blue-600 hover:underline"
+                                  >
+                                    View CV
+                                  </a>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2 ml-4">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => window.open(app.cv, "_blank")}
+                                >
+                                  <Eye className="h-4 w-4 mr-1" />
+                                  View CV
+                                </Button>
+                                <Button variant="outline" size="sm">
+                                  <Edit className="h-4 w-4 mr-1" />
+                                  Respond
+                                </Button>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+              {/* Existing Job Management and Insights Sections */}
               <Card>
                 <CardHeader>
                   <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
@@ -358,7 +499,6 @@ export default function OrganizationDashboard() {
                                     {job.active ? "Active" : "Inactive"}
                                   </Badge>
                                 </div>
-
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                                   <div className="flex items-center gap-2 text-sm text-gray-600">
                                     <Building2 className="h-4 w-4" />
@@ -381,7 +521,6 @@ export default function OrganizationDashboard() {
                                         }`}
                                   </div>
                                 </div>
-
                                 <div className="flex items-center gap-4 text-sm text-gray-500">
                                   <span className="flex items-center gap-1">
                                     <Users className="h-4 w-4" />
@@ -394,7 +533,6 @@ export default function OrganizationDashboard() {
                                   <span>Posted {Math.floor(Math.random() * 30) + 1} days ago</span>
                                 </div>
                               </div>
-
                               <div className="flex items-center gap-2 ml-4">
                                 <Button
                                   variant="outline"
@@ -420,10 +558,8 @@ export default function OrganizationDashboard() {
                   )}
                 </CardContent>
               </Card>
-
-              {/* Insights Section */}
+              {/* Existing Insights Section */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Candidate Insights */}
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
@@ -441,7 +577,6 @@ export default function OrganizationDashboard() {
                         </div>
                         <UserCheck className="h-8 w-8 text-green-600" />
                       </div>
-
                       <div className="space-y-3">
                         <h4 className="font-medium text-gray-900">Experience Level Distribution</h4>
                         {[
@@ -467,8 +602,6 @@ export default function OrganizationDashboard() {
                     </div>
                   </CardContent>
                 </Card>
-
-                {/* Performance Metrics */}
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
@@ -489,7 +622,6 @@ export default function OrganizationDashboard() {
                           <p className="text-sm text-green-600">Company Rating</p>
                         </div>
                       </div>
-
                       <div className="space-y-3">
                         <h4 className="font-medium text-gray-900">Top Performing Jobs</h4>
                         <div className="space-y-2">
@@ -511,8 +643,6 @@ export default function OrganizationDashboard() {
                   </CardContent>
                 </Card>
               </div>
-
-    
               <Card className="bg-gradient-to-r from-green-600 to-green-600 text-white border-0">
                 <CardContent className="text-center py-12">
                   <div className="max-w-2xl mx-auto">
@@ -547,5 +677,5 @@ export default function OrganizationDashboard() {
         </SidebarInset>
       </div>
     </SidebarProvider>
-  )
+  );
 }
