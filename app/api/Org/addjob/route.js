@@ -1,24 +1,23 @@
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "../../auth/[...nextauth]/route"; // Adjust path if your authOptions are elsewhere
+import { authOptions } from "../../auth/[...nextauth]/route";
 import { connectToDatabase } from "../../../../lib/mongoose";
 import Job from "../../../../lib/models/Job";
+import { NextResponse } from "next/server";
 
-export async function POST(req) {
-  // Check session and authorization
-  const session = await getServerSession(authOptions);
-  if (!session || session.user.role !== "organization") {
-    return new Response(
-      JSON.stringify({ error: "Unauthorized: Only organizations can post jobs." }),
-      {
-        status: 401,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
-  }
-
+export async function POST(request) {
   try {
-    const body = await req.json();
-    console.log("Received job data:", body);
+    // Check session and authorization
+    const session = await getServerSession(authOptions);
+    console.log("Session:", session); // Debug log
+    if (!session || !session.user || session.user.role !== "organization") {
+      return NextResponse.json(
+        { error: "Unauthorized: Only organizations can post jobs" },
+        { status: 401 }
+      );
+    }
+
+    const body = await request.json();
+    console.log("Received job data:", body); // Debug log
     const {
       position,
       requiredEmployees,
@@ -39,6 +38,7 @@ export async function POST(req) {
       description,
       postedBy,
       role,
+      urgent,
     } = body;
 
     // Validation for required fields
@@ -57,64 +57,43 @@ export async function POST(req) {
       !description?.trim() ||
       !postedBy?.trim()
     ) {
-      return new Response(
-        JSON.stringify({ error: "Missing or invalid required fields." }),
-        {
-          status: 400,
-          headers: { "Content-Type": "application/json" },
-        }
+      return NextResponse.json(
+        { error: "Missing or invalid required fields" },
+        { status: 400 }
       );
     }
 
     // Description length validation
-    if (description.length < 50) {
-      return new Response(
-        JSON.stringify({ error: "Job description must be at least 50 characters." }),
-        {
-          status: 400,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-    }
-    if (description.length > 5000) {
-      return new Response(
-        JSON.stringify({ error: "Job description cannot exceed 5000 characters." }),
-        {
-          status: 400,
-          headers: { "Content-Type": "application/json" },
-        }
+    if (description.length < 50 || description.length > 5000) {
+      return NextResponse.json(
+        { error: "Description must be between 50 and 5000 characters" },
+        { status: 400 }
       );
     }
 
     // Salary validation when hideSalary is false
     if (!hideSalary) {
       if (minimum === undefined || isNaN(minimum) || minimum < 0) {
-        return new Response(
-          JSON.stringify({ error: "Minimum salary must be a non-negative number when salary is not hidden." }),
-          {
-            status: 400,
-            headers: { "Content-Type": "application/json" },
-          }
+        return NextResponse.json(
+          { error: "Minimum salary must be a non-negative number when salary is not hidden" },
+          { status: 400 }
         );
       }
       if (
         offeredSalaryType === "Range" &&
         (maximum === undefined || isNaN(maximum) || maximum < minimum)
       ) {
-        return new Response(
-          JSON.stringify({
-            error: "Maximum salary is required for range type and must be greater than minimum when salary is not hidden.",
-          }),
+        return NextResponse.json(
           {
-            status: 400,
-            headers: { "Content-Type": "application/json" },
-          }
+            error:
+              "Maximum salary is required for range type and must be greater than minimum when salary is not hidden",
+          },
+          { status: 400 }
         );
       }
     }
 
     await connectToDatabase();
-
     const newJob = await Job.create({
       position,
       requiredEmployees: Number(requiredEmployees),
@@ -122,7 +101,7 @@ export async function POST(req) {
       subCategory: subCategory || null,
       jobLevel,
       jobType,
-      experience: experience?.trim() || null, // Experience is optional
+      experience: experience?.trim() || null,
       jobLocation,
       offeredSalaryType,
       currency,
@@ -130,35 +109,25 @@ export async function POST(req) {
       maximum: hideSalary || offeredSalaryType !== "Range" ? null : Number(maximum),
       salaryType,
       hideSalary: Boolean(hideSalary),
-      negotiable: hideSalary ? false : Boolean(negotiable), // Negotiable is false if hideSalary is true
+      negotiable: hideSalary ? false : Boolean(negotiable),
       active: Boolean(active),
       description,
-      postedBy: session.user.email, // Override with session email for security
-      role: "organization", // Enforce organization role
+      postedBy: session.user.email, // Use session email
+      role: "organization",
+      urgent: Boolean(urgent || false),
       createdAt: new Date(),
     });
 
-    return new Response(
-      JSON.stringify({ message: "Job posted successfully!", job: newJob }),
-      {
-        status: 201,
-        headers: { "Content-Type": "application/json" },
-      }
+    return NextResponse.json(
+      { message: "Job posted successfully!", job: newJob },
+      { status: 201 }
     );
   } catch (error) {
     console.error("Error posting job:", error);
-    let errorMessage = "Internal Server Error";
+    let errorMessage = error.message || "Internal Server Error";
     if (error.name === "ValidationError") {
       errorMessage = Object.values(error.errors).map((e) => e.message).join(", ");
-    } else if (error.name === "MongoServerError") {
-      errorMessage = error.message;
     }
-    return new Response(
-      JSON.stringify({ error: errorMessage }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

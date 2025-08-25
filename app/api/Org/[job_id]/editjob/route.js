@@ -1,11 +1,19 @@
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "../../../auth/[...nextauth]/route";
 import { connectToDatabase } from "../../../../../lib/mongoose";
 import Job from "../../../../../lib/models/Job";
 import { NextResponse } from "next/server";
 
 export async function PUT(request, { params }) {
   try {
+    // Access params directly (App Router)
     const { job_id } = params;
+    if (!job_id || !job_id.match(/^[0-9a-fA-F]{24}$/)) {
+      return NextResponse.json({ error: "Invalid job ID format" }, { status: 400 });
+    }
+
     const body = await request.json();
+    console.log("Received payload:", body); // Debug log
     const {
       position,
       requiredEmployees,
@@ -29,61 +37,80 @@ export async function PUT(request, { params }) {
       urgent,
     } = body;
 
+    // Validate session
+    const session = await getServerSession(authOptions);
+    console.log("Session:", session); // Debug log
+    if (!session || !session.user || session.user.role !== "organization") {
+      return NextResponse.json(
+        { error: "Unauthorized: Only organizations can edit jobs" },
+        { status: 401 }
+      );
+    }
+
     // Validate required fields
     if (
-      !position ||
-      !requiredEmployees ||
-      !jobCategory ||
-      !jobLevel ||
-      !jobType ||
-      !jobLocation ||
-      !offeredSalaryType ||
-      !currency ||
-      !minimum ||
-      !salaryType ||
-      !description ||
-      !postedBy ||
-      active === undefined
+      !position?.trim() ||
+      requiredEmployees === undefined ||
+      isNaN(requiredEmployees) ||
+      requiredEmployees <= 0 ||
+      !jobCategory?.trim() ||
+      !jobLevel?.trim() ||
+      !jobType?.trim() ||
+      !jobLocation?.trim() ||
+      !offeredSalaryType?.trim() ||
+      !currency?.trim() ||
+      !salaryType?.trim() ||
+      !description?.trim() ||
+      !postedBy?.trim()
     ) {
       return NextResponse.json(
-        { error: "Missing required fields." },
+        { error: "Missing or invalid required fields" },
         { status: 400 }
       );
     }
 
-    // Validate salary range
-    if (offeredSalaryType === "Range" && !maximum) {
+    // Validate description length
+    if (description.length < 50 || description.length > 5000) {
       return NextResponse.json(
-        { error: "Maximum salary is required for range type." },
+        { error: "Description must be between 50 and 5000 characters" },
         { status: 400 }
       );
     }
 
-    // Validate job_id
-    if (!job_id || !job_id.match(/^[0-9a-fA-F]{24}$/)) {
-      return NextResponse.json({ error: "Invalid job ID" }, { status: 400 });
-    }
-
-    // Validate numeric fields
-    if (
-      Number(requiredEmployees) <= 0 ||
-      Number(minimum) <= 0 ||
-      (maximum && Number(maximum) <= 0)
-    ) {
-      return NextResponse.json(
-        { error: "Numeric fields must be positive." },
-        { status: 400 }
-      );
+    // Validate salary fields
+    if (!hideSalary) {
+      if (minimum === undefined || isNaN(minimum) || minimum < 0) {
+        return NextResponse.json(
+          { error: "Minimum salary must be a non-negative number when salary is not hidden" },
+          { status: 400 }
+        );
+      }
+      if (
+        offeredSalaryType === "Range" &&
+        (maximum === undefined || isNaN(maximum) || maximum < minimum)
+      ) {
+        return NextResponse.json(
+          {
+            error:
+              "Maximum salary is required for range type and must be greater than minimum when salary is not hidden",
+          },
+          { status: 400 }
+        );
+      }
     }
 
     // Connect to database
     await connectToDatabase();
 
-    // Authorization check (optional)
+    // Verify job exists and ownership
     const job = await Job.findById(job_id).select("postedBy");
-    if (!job || job.postedBy.toString() !== postedBy) {
+    if (!job) {
+      return NextResponse.json({ error: "Job not found" }, { status: 404 });
+    }
+    console.log("Job postedBy:", job.postedBy, "Session email:", session.user.email); // Debug log
+    if (job.postedBy !== session.user.email) {
       return NextResponse.json(
-        { error: "Unauthorized to update this job." },
+        { error: "Unauthorized: You do not have permission to edit this job" },
         { status: 403 }
       );
     }
@@ -96,19 +123,19 @@ export async function PUT(request, { params }) {
       subCategory: subCategory || null,
       jobLevel,
       jobType,
-      experience: experience || null,
+      experience: experience?.trim() || null,
       jobLocation,
       offeredSalaryType,
       currency,
-      minimum: Number(minimum),
-      maximum: maximum ? Number(maximum) : null,
+      minimum: hideSalary ? null : Number(minimum),
+      maximum: hideSalary || offeredSalaryType !== "Range" ? null : Number(maximum),
       salaryType,
       hideSalary: Boolean(hideSalary),
-      negotiable: Boolean(negotiable),
+      negotiable: hideSalary ? false : Boolean(negotiable),
       active: Boolean(active),
       description,
-      postedBy,
-      role: role || "organization",
+      postedBy: session.user.email,
+      role: "organization",
       urgent: Boolean(urgent),
       updatedAt: new Date(),
     };
@@ -123,12 +150,16 @@ export async function PUT(request, { params }) {
       return NextResponse.json({ error: "Job not found" }, { status: 404 });
     }
 
-    return NextResponse.json(updatedJob, { status: 200 });
+    return NextResponse.json(
+      { message: "Job updated successfully", job: updatedJob },
+      { status: 200 }
+    );
   } catch (error) {
     console.error("Error updating job:", error);
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 }
-    );
+    let errorMessage = error.message || "Internal Server Error";
+    if (error.name === "ValidationError") {
+      errorMessage = Object.values(error.errors).map((e) => e.message).join(", ");
+    }
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

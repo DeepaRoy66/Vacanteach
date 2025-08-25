@@ -1,5 +1,5 @@
-"use client"
-import { useEffect, useState, useMemo } from "react"
+"use client";
+import { useEffect, useState, useMemo } from "react";
 import {
   MapPin,
   Users,
@@ -10,11 +10,9 @@ import {
   MoreHorizontal,
   Plus,
   X,
-  Save,
-  Info,
-} from "lucide-react"
-import { Button } from "../../app/components/ui/button"
-import { Card, CardContent } from "../../app/components/ui/card"
+} from "lucide-react";
+import { Button } from "../../app/components/ui/button";
+import { Card, CardContent } from "../../app/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -22,73 +20,70 @@ import {
   DialogFooter,
   DialogTitle,
   DialogClose,
-} from "../../app/components/ui/dialog"
-import { Input } from "../../app/components/ui/input"
-import { Label } from "../../app/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../app/components/ui/select"
-import { Textarea } from "../../app/components/ui/textarea"
-import { Switch } from "../../app/components/ui/switch"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../app/components/ui/tooltip"
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@radix-ui/react-accordion"
-import { Sidebar, SidebarProvider, SidebarInset, SidebarTrigger } from "../../app/components/ui/sidebar"
-import { AppSidebar } from "../../app/(pages)/organization/Sidebar"
-import { cn } from "../../lib/utilis"
-import DeleteJob from "./DeleteJob"
-import EditJobModal from "./Editjob"
+} from "../../app/components/ui/dialog";
+import { Input } from "../../app/components/ui/input";
+import { cn } from "../../lib/utilis";
+import { Sidebar, SidebarProvider, SidebarInset, SidebarTrigger } from "../../app/components/ui/sidebar";
+import { AppSidebar } from "../../app/(pages)/organization/Sidebar";
+import DeleteJob from "./DeleteJob";
+import EditJobModal from "./Editjob";
+import { useSession } from "next-auth/react"; // Add next-auth client hook
 
 export default function JobListPage() {
-  const [jobs, setJobs] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-  const [searchTerm, setSearchTerm] = useState("")
-  const [filterCategory, setFilterCategory] = useState("all")
-  const [filterLocation, setFilterLocation] = useState("all")
-  const [selectedJob, setSelectedJob] = useState(null)
-  const [isViewModalOpen, setIsViewModalOpen] = useState(false)
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
-  const [editFormData, setEditFormData] = useState({})
+  const { data: session, status } = useSession(); // Get session data
+  const [jobs, setJobs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterCategory, setFilterCategory] = useState("all");
+  const [filterLocation, setFilterLocation] = useState("all");
+  const [selectedJob, setSelectedJob] = useState(null);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editFormData, setEditFormData] = useState({});
 
   useEffect(() => {
+    console.log("Session:", session); // Debug session
     async function fetchJobs() {
       try {
-        setLoading(true)
-        const response = await fetch('/api/Org/listjob')
-        const data = await response.json()
+        setLoading(true);
+        const response = await fetch("/api/Org/listjob");
+        const data = await response.json();
         if (!response.ok) {
-          throw new Error(data.error || 'Failed to fetch jobs')
+          throw new Error(data.error || "Failed to fetch jobs");
         }
-        setJobs(data)
-        setLoading(false)
+        setJobs(data);
+        setLoading(false);
       } catch (err) {
-        setError(err.message)
-        setLoading(false)
+        setError(err.message);
+        setLoading(false);
       }
     }
-    fetchJobs()
-  }, [])
+    fetchJobs();
+  }, []);
 
   const filteredJobs = useMemo(() => {
     return jobs.filter((job) => {
       const matchesSearch =
         job.position.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        job.jobCategory.toLowerCase().includes(searchTerm.toLowerCase())
-      const matchesCategory = filterCategory === "all" || job.jobCategory === filterCategory
-      const matchesLocation = filterLocation === "all" || job.jobLocation === filterLocation
-      return matchesSearch && matchesCategory && matchesLocation
-    })
-  }, [jobs, searchTerm, filterCategory, filterLocation])
+        job.jobCategory.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesCategory = filterCategory === "all" || job.jobCategory === filterCategory;
+      const matchesLocation = filterLocation === "all" || job.jobLocation === filterLocation;
+      return matchesSearch && matchesCategory && matchesLocation;
+    });
+  }, [jobs, searchTerm, filterCategory, filterLocation]);
 
-  const categories = [...new Set(jobs.map((job) => job.jobCategory))]
-  const locations = [...new Set(jobs.map((job) => job.jobLocation))]
+  const categories = [...new Set(jobs.map((job) => job.jobCategory))];
+  const locations = [...new Set(jobs.map((job) => job.jobLocation))];
 
   const handleViewClick = (job) => {
-    setSelectedJob(job)
-    setIsViewModalOpen(true)
-  }
+    setSelectedJob(job);
+    setIsViewModalOpen(true);
+  };
 
   const handleEditClick = (job) => {
-    console.log("handleEditClick: selectedJob:", job)
-    setSelectedJob(job)
+    console.log("handleEditClick: selectedJob:", job, "session:", session);
+    setSelectedJob(job);
     setEditFormData({
       position: job.position || "",
       requiredEmployees: job.requiredEmployees?.toString() || "",
@@ -107,67 +102,147 @@ export default function JobListPage() {
       negotiable: job.negotiable || false,
       active: job.active !== undefined ? job.active : true,
       description: job.description || "",
-      postedBy: job.postedBy || "",
+      postedBy: session?.user?.email || job.postedBy || "", // Use session email
       urgent: job.urgent || false,
-    })
-    setIsEditModalOpen(true)
-  }
+    });
+    setIsEditModalOpen(true);
+  };
 
-  const handleEditSubmit = async (e) => {
-    e.preventDefault()
-    const job_id = selectedJob?._id
-    console.log("handleEditSubmit: selectedJob:", selectedJob, "job_id:", job_id)
-    if (!job_id || !job_id.match(/^[0-9a-fA-F]{24}$/)) {
-      return
-    }
+  const handleEditSubmit = async (jobData, job_id) => {
     try {
-      console.log("handleEditSubmit: editFormData:", editFormData)
-      const payload = {
-        ...editFormData,
-        requiredEmployees: Number(editFormData.requiredEmployees),
-        minimum: Number(editFormData.minimum),
-        maximum: editFormData.offeredSalaryType === "Range" ? Number(editFormData.maximum) : null,
-        subCategory: editFormData.subCategory === "none" ? "" : editFormData.subCategory,
+      console.log("handleEditSubmit: jobData:", jobData, "job_id:", job_id, "session:", session);
+      if (!job_id || !job_id.match(/^[0-9a-fA-F]{24}$/)) {
+        throw new Error("Invalid job ID format");
       }
-      console.log("handleEditSubmit: payload:", payload)
-      console.log("handleEditSubmit: before fetch")
+
+      const payload = {
+        ...jobData,
+        requiredEmployees: Number(jobData.requiredEmployees),
+        minimum: jobData.hideSalary ? null : Number(jobData.minimum),
+        maximum: jobData.hideSalary || jobData.offeredSalaryType !== "Range" ? null : Number(jobData.maximum),
+        subCategory: jobData.subCategory === "none" ? null : jobData.subCategory,
+        urgent: Boolean(jobData.urgent),
+        postedBy: session?.user?.email || jobData.postedBy, // Ensure session email
+      };
+
+      console.log("handleEditSubmit: payload:", payload);
       const response = await fetch(`/api/Org/${job_id}/editjob`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(payload),
-      })
-      console.log("handleEditSubmit: response status:", response.status)
-      const data = await response.json()
-      console.log("handleEditSubmit: response data:", data)
-      if (!response.ok) {
-        throw new Error(data.error || `Failed to update job (status: ${response.status})`)
+      });
+
+      console.log("handleEditSubmit: response status:", response.status, "headers:", Object.fromEntries(response.headers.entries()));
+      let data;
+      try {
+        data = await response.json();
+        console.log("handleEditSubmit: response data:", data);
+      } catch (jsonError) {
+        console.error("handleEditSubmit: JSON parsing error:", jsonError);
+        throw new Error(`Failed to parse server response: ${jsonError.message}`);
       }
-      const updatedJob = data
-      setJobs((prevJobs) => {
-        const newJobs = [...prevJobs]
-        const index = newJobs.findIndex((job) => job._id === updatedJob._id)
-        if (index !== -1) {
-          newJobs[index] = { ...updatedJob }
+
+      if (!response.ok) {
+        if (response.status === 403) {
+          throw new Error("Unauthorized: You do not have permission to edit this job");
         }
-        return newJobs
-      })
-      setIsEditModalOpen(false)
-      setSelectedJob(null)
-      alert(`Job ${job_id} updated successfully!`)
+        if (response.status === 404) {
+          throw new Error("Job not found or endpoint unavailable");
+        }
+        if (response.status === 500) {
+          throw new Error(data.error || "Server error: Failed to update job");
+        }
+        throw new Error(data.error || `Failed to update job (status: ${response.status})`);
+      }
+
+      setJobs((prevJobs) => {
+        const newJobs = [...prevJobs];
+        const index = newJobs.findIndex((job) => job._id === data.job._id);
+        if (index !== -1) {
+          newJobs[index] = { ...data.job };
+        }
+        return newJobs;
+      });
+
+      setIsEditModalOpen(false);
+      setSelectedJob(null);
+      alert(`Job ${job_id} updated successfully!`);
     } catch (error) {
-      console.error("Edit job error:", error)
-      throw new Error(error.message || "Failed to update job. Please try again.")
+      console.error("Edit job error:", error);
+      throw error; // Let EditJobModal handle the error
     }
-  }
+  };
 
   const handleDeleteSuccess = (jobId) => {
-    setJobs((prevJobs) => prevJobs.filter((job) => job._id !== jobId))
+    setJobs((prevJobs) => prevJobs.filter((job) => job._id !== jobId));
     if (selectedJob?._id === jobId) {
-      setIsViewModalOpen(false)
-      setSelectedJob(null)
+      setIsViewModalOpen(false);
+      setSelectedJob(null);
     }
+  };
+
+  if (status === "loading") {
+    return (
+      <SidebarProvider>
+        <div className="flex min-h-screen">
+          <AppSidebar className="w-80 fixed top-16 left-0 h-[calc(100vh-4rem)] z-10" />
+          <SidebarInset>
+            <div className="flex-1 bg-gray-100 min-h-[calc(100vh-4rem)] ml-80">
+              <header className="flex h-12 items-center gap-2 px-4 bg-white border-b border-gray-200">
+                <SidebarTrigger className="-ml-1 text-emerald-700 hover:bg-emerald-100" />
+                <div className="flex items-center space-x-2 ml-auto">
+                  <span className="text-gray-600 font-medium text-sm">Manage Jobs</span>
+                  <span className="text-emerald-700 font-semibold text-sm">All Jobs</span>
+                </div>
+              </header>
+              <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 md:h-16 md:w-16 border-b-2 border-emerald-600 mx-auto mb-4"></div>
+                  <p className="text-base md:text-lg text-emerald-700 font-semibold">Loading job listings...</p>
+                  <p className="text-sm md:text-base text-emerald-600 mt-2">Please wait while we fetch your data</p>
+                </div>
+              </div>
+            </div>
+          </SidebarInset>
+        </div>
+      </SidebarProvider>
+    );
+  }
+
+  if (!session || session.user.role !== "organization") {
+    return (
+      <SidebarProvider>
+        <div className="flex min-h-screen">
+          <AppSidebar className="w-80 fixed top-16 left-0 h-[calc(100vh-4rem)] z-10" />
+          <SidebarInset>
+            <div className="flex-1 bg-gray-100 min-h-[calc(100vh-4rem)] ml-80">
+              <header className="flex h-12 items-center gap-2 px-4 bg-white border-b border-gray-200">
+                <SidebarTrigger className="-ml-1 text-emerald-700 hover:bg-emerald-100" />
+                <div className="flex items-center space-x-2 ml-auto">
+                  <span className="text-gray-600 font-medium text-sm">Manage Jobs</span>
+                  <span className="text-emerald-700 font-semibold text-sm">All Jobs</span>
+                </div>
+              </header>
+              <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4">
+                <Card className="bg-white border border-emerald-100 rounded-lg shadow-md p-4 md:p-6 text-center w-full max-w-md">
+                  <p className="text-red-600 font-semibold text-sm md:text-base">
+                    Unauthorized: Please log in as an organization user
+                  </p>
+                  <Button
+                    className="mt-4 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded text-sm md:text-base"
+                    onClick={() => window.location.href = "/auth/signin"}
+                  >
+                    Sign In
+                  </Button>
+                </Card>
+              </div>
+            </div>
+          </SidebarInset>
+        </div>
+      </SidebarProvider>
+    );
   }
 
   if (loading) {
@@ -195,7 +270,7 @@ export default function JobListPage() {
           </SidebarInset>
         </div>
       </SidebarProvider>
-    )
+    );
   }
 
   if (error) {
@@ -227,7 +302,7 @@ export default function JobListPage() {
           </SidebarInset>
         </div>
       </SidebarProvider>
-    )
+    );
   }
 
   return (
@@ -243,7 +318,7 @@ export default function JobListPage() {
                 <span className="text-emerald-700 font-semibold text-sm">All Jobs</span>
               </div>
             </header>
-            <main className=" px-4">
+            <main className="px-4">
               <div className="mb-4 flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-4">
                 <select
                   value={filterCategory}
@@ -528,7 +603,11 @@ export default function JobListPage() {
                         <div>
                           <div className="text-gray-600 font-medium">Salary</div>
                           <div className="bg-emerald-50 text-emerald-800 p-2 rounded-md text-xs font-medium">
-                            {selectedJob.hideSalary ? "Salary Non Disclosed" : `${selectedJob.currency} ${selectedJob.minimum}${selectedJob.offeredSalaryType === "Range" ? ` - ${selectedJob.maximum}` : ""}`}
+                            {selectedJob.hideSalary
+                              ? "Salary Non Disclosed"
+                              : `${selectedJob.currency} ${selectedJob.minimum}${
+                                  selectedJob.offeredSalaryType === "Range" ? ` - ${selectedJob.maximum}` : ""
+                                }`}
                             <span className="block text-xs text-emerald-600">{selectedJob.salaryType}</span>
                           </div>
                         </div>
@@ -538,7 +617,9 @@ export default function JobListPage() {
                             <span
                               className={cn(
                                 "inline-flex items-center px-2 py-1 rounded-full text-xs font-medium",
-                                selectedJob.active !== undefined && selectedJob.active ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+                                selectedJob.active !== undefined && selectedJob.active
+                                  ? "bg-green-100 text-green-800"
+                                  : "bg-red-100 text-red-800"
                               )}
                             >
                               {selectedJob.active !== undefined && selectedJob.active ? "Active" : "Inactive"}
@@ -576,5 +657,5 @@ export default function JobListPage() {
         </SidebarInset>
       </div>
     </SidebarProvider>
-  )
+  );
 }
