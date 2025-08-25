@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useSession, signOut } from 'next-auth/react';
 import { useEffect, useState, useRef } from 'react';
+import { Menu, X } from 'lucide-react';
 
 export default function Navbar() {
   const { data: session, status } = useSession();
@@ -10,6 +11,7 @@ export default function Navbar() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const dropdownRef = useRef();
 
   useEffect(() => {
@@ -41,7 +43,6 @@ export default function Navbar() {
     fetchOrganization();
   }, [session, status]);
 
-  // Close dropdown if clicked outside
   useEffect(() => {
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -53,20 +54,20 @@ export default function Navbar() {
   }, []);
 
   return (
-    <nav className="sticky top-0 bg-white shadow-md p-4 z-50">
-      <div className="container mx-auto flex justify-between items-center">
-        {/* Left: Logo */}
+    <nav className="sticky top-0 bg-white shadow-md z-50">
+      <div className="container mx-auto px-4 py-3 flex items-center justify-between">
+        {/* Logo */}
         <div className="flex items-center space-x-2">
           <img
             src="https://i.ibb.co/tcwbH6R/vacanteach-logo.png"
             alt="VacanTeach Logo"
-            className="h-12 w-12 object-contain"
+            className="h-10 w-10 object-contain"
           />
           <span className="text-2xl font-bold text-green-800">VacanTeach</span>
         </div>
 
-        {/* Right: PostJob + Profile */}
-        <div className="flex items-center space-x-4">
+        {/* Desktop menu */}
+        <div className="hidden md:flex items-center space-x-4">
           <Link
             href="/organization/postjob"
             className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition-colors"
@@ -75,7 +76,7 @@ export default function Navbar() {
           </Link>
 
           {status === 'loading' || loading ? (
-            <span>Loading session...</span>
+            <span>Loading...</span>
           ) : status === 'unauthenticated' ? (
             <span className="text-red-500">Not signed in</span>
           ) : error ? (
@@ -101,7 +102,7 @@ export default function Navbar() {
               </button>
 
               {dropdownOpen && (
-                <div className="absolute right-0 mt-2 w-40 bg-white border rounded-md shadow-lg py-2 z-50">
+                <div className="absolute right-0 mt-2 w-44 bg-white border rounded-md shadow-lg py-2 z-50">
                   <button
                     onClick={() => signOut({ callbackUrl: '/' })}
                     className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-gray-100"
@@ -113,7 +114,57 @@ export default function Navbar() {
             </div>
           )}
         </div>
+
+        {/* Mobile menu button */}
+        <div className="md:hidden flex items-center">
+          <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="focus:outline-none">
+            {mobileMenuOpen ? <X className="h-6 w-6 text-gray-700" /> : <Menu className="h-6 w-6 text-gray-700" />}
+          </button>
+        </div>
       </div>
+
+      {/* Mobile menu */}
+      {mobileMenuOpen && (
+        <div className="md:hidden bg-white border-t border-gray-200 shadow-lg">
+          <div className="flex flex-col space-y-4 px-4 py-4">
+            {/* Profile Section */}
+            {status === 'authenticated' && (
+              <div className="flex flex-col items-center space-y-2 bg-gray-50 p-4 rounded-md">
+                {session.user.image ? (
+                  <img
+                    src={session.user.image}
+                    alt="Profile"
+                    className="w-12 h-12 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center text-xl font-bold">
+                    {session.user.email?.charAt(0).toUpperCase() || '?'}
+                  </div>
+                )}
+                <span className="font-medium text-gray-800">{user?.organizationName || session.user.email}</span>
+              </div>
+            )}
+
+            {/* PostJob Button */}
+            <Link
+              href="/organization/postjob"
+              className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition-colors text-center"
+            >
+              PostJob
+            </Link>
+
+            {/* Sign Out Button */}
+            {status === 'authenticated' && (
+              <button
+                onClick={() => signOut({ callbackUrl: '/' })}
+                className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition-colors"
+              >
+                Sign Out
+              </button>
+            )}
+          </div>
+        </div>
+      )}
     </nav>
   );
 }
