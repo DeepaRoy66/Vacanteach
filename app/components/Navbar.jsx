@@ -34,7 +34,7 @@ export default function Navbar() {
   }, []);
 
   // Hide navbar on all /organization routes
-  const shouldRenderNavbar = !pathname.startsWith("/organization");
+  const shouldRenderNavbar = !pathname.startsWith("/organization")&& !pathname.startsWith("/teacher");
 
   if (!isMounted || !shouldRenderNavbar) return null;
 
