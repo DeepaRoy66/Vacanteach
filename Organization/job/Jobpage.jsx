@@ -243,7 +243,7 @@ export default function JobListPage() {
                 <span className="text-emerald-700 font-semibold text-sm">All Jobs</span>
               </div>
             </header>
-            <main className="max-w-full px-4">
+            <main className=" px-4">
               <div className="mb-4 flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-4">
                 <select
                   value={filterCategory}

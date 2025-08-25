@@ -118,13 +118,13 @@ export default function OrganizationDashboard() {
   return (
     <SidebarProvider>
       <ToastContainer />
-      <div className="flex min-h-screen bg-gray-50">
+      <div className="flex-1 bg-gray-50">
         <div className="fixed top-0 left-0 w-80 h-screen overflow-y-auto bg-white border-r border-gray-200 z-10">
           <AppSidebar />
         </div>
         <SidebarInset className="ml-80 flex-1">
           <div className="p-6">
-            <div className="max-w-7xl mx-auto space-y-6">
+            <div >
               <Header user={session?.user} router={router} />
               {showWelcome && <WelcomeBanner user={session?.user} setShowWelcome={setShowWelcome} activeJobs={activeJobs} />}
               <StatsGrid activeJobs={activeJobs} jobApplications={jobApplications} />

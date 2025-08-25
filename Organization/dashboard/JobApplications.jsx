@@ -1,11 +1,11 @@
 import React from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "../../app/components/ui/card";
 import { Button } from "../../app/components/ui/button";
-import { FileText, Search, BriefcaseBusiness, MapPin, Clock, Eye, Edit, Send } from "lucide-react";
+import { FileText, Search, BriefcaseBusiness, MapPin, Clock, Eye, Send } from "lucide-react";
 
 export default function JobApplications({ isLoadingApplications, filteredApplications, searchTerm, setSearchTerm }) {
   return (
-    <Card className="bg-white shadow-xl rounded-xl border border-gray-100">
+    <Card className="bg-white shadow-lg rounded-xl border border-gray-100">
       <CardHeader className="p-6">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
           <div>
@@ -17,7 +17,7 @@ export default function JobApplications({ isLoadingApplications, filteredApplica
           </div>
           <div className="flex items-center gap-4">
             <div className="relative w-full max-w-sm">
-              <Search className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <Search className="h-5 w-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
                 placeholder="Search applications..."
@@ -31,9 +31,9 @@ export default function JobApplications({ isLoadingApplications, filteredApplica
       </CardHeader>
       <CardContent className="p-6">
         {isLoadingApplications ? (
-          <div className="flex items-center justify-center py-16">
+          <div className="flex flex-col items-center justify-center py-16">
             <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-blue-600"></div>
-            <span className="ml-4 text-gray-600 text-lg">Loading applications...</span>
+            <span className="mt-4 text-gray-600 text-lg">Loading applications...</span>
           </div>
         ) : filteredApplications.length === 0 ? (
           <div className="text-center py-16">
@@ -48,76 +48,53 @@ export default function JobApplications({ isLoadingApplications, filteredApplica
             {filteredApplications.map((app) => (
               <Card
                 key={app._id}
-                className="bg-white border-l-4 border-l-blue-600 hover:shadow-lg transition-all duration-200 rounded-lg"
+                className="bg-gray-50 border border-gray-200 border-l-4 border-l-blue-600 hover:shadow-md transition-all duration-200 rounded-lg"
               >
                 <CardContent className="p-6">
-                  <div className="flex items-start justify-between">
+                  <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                    {/* Applicant & Job Info */}
                     <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-4">
+                      <div className="flex items-center gap-3 mb-2">
                         <h3 className="text-xl font-bold text-gray-900">{app.fullName}</h3>
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                           {app.status || "Pending"}
                         </span>
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                          <BriefcaseBusiness className="h-5 w-5 text-gray-500" />
-                          {app.jobId?.position || "Unknown Job"}
+                      <div className="text-sm text-gray-600 space-y-1">
+                        <div className="flex items-center gap-2">
+                          <BriefcaseBusiness className="h-4 w-4 text-gray-500" />
+                          <span>{app.jobId?.position || "Unknown Job"}</span>
                         </div>
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                          <MapPin className="h-5 w-5 text-gray-500" />
-                          {app.jobId?.jobLocation || "Unknown Location"}
+                        <div className="flex items-center gap-2">
+                          <MapPin className="h-4 w-4 text-gray-500" />
+                          <span>{app.jobId?.jobLocation || "Unknown Location"}</span>
                         </div>
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                          <Clock className="h-5 w-5 text-gray-500" />
-                          Applied {new Date(app.createdAt).toLocaleDateString()}
+                        <div className="flex items-center gap-2">
+                          <Clock className="h-4 w-4 text-gray-500" />
+                          <span>Applied {new Date(app.createdAt).toLocaleDateString()}</span>
                         </div>
-                      </div>
-                      <div className="text-sm text-gray-600 mb-3">
-                        <span className="font-semibold">Email:</span> {app.email}
-                      </div>
-                      {app.coverLetter && (
-                        <div className="text-sm text-gray-600 mb-3">
-                          <span className="font-semibold">Cover Letter:</span>{" "}
-                          {app.coverLetter.substring(0, 100)}...
-                        </div>
-                      )}
-                      <div className="text-sm text-gray-600">
-                        <span className="font-semibold">CV:</span>{" "}
-                        <a
-                          href={app.cv}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-600 hover:underline font-medium"
-                        >
-                          View CV
-                        </a>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3 ml-6">
+                    
+                    {/* Actions */}
+                    <div className="flex items-center gap-3">
+                      {app.cv && (
+                        <Button
+                          variant="outline"
+                          className="gap-2 text-gray-600 border-gray-300 hover:bg-gray-100 hover:text-gray-800"
+                          onClick={() => window.open(app.cv, "_blank")}
+                        >
+                          <Eye className="h-4 w-4" />
+                          View CV
+                        </Button>
+                      )}
                       <Button
-                        variant="outline"
-                        size="sm"
-                        className="border-gray-300 hover:bg-gray-50"
-                        onClick={() => window.open(app.cv, "_blank")}
+                        variant="ghost"
+                        className="gap-2 text-blue-600 hover:bg-blue-50"
+                        // Add onClick handler for responding/replying
                       >
-                        <Eye className="h-4 w-4 mr-1" />
-                        View CV
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="border-gray-300 hover:bg-gray-50"
-                      >
-                        <Edit className="h-4 w-4 mr-1" />
-                        Respond
-                      </Button>
-                      <Button
-                        size="sm"
-                        className="bg-blue-600 text-white hover:bg-blue-700"
-                      >
-                        <Send className="h-4 w-4 mr-1" />
-                        Reply Now
+                        <Send className="h-4 w-4" />
+                        Reply
                       </Button>
                     </div>
                   </div>
