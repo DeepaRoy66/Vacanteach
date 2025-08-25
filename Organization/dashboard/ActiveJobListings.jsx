@@ -22,6 +22,7 @@ import {
   Edit,
   MoreVertical,
   AlertCircle,
+  Plus,
 } from "lucide-react";
 
 export default function ActiveJobListings({
