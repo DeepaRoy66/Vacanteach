@@ -21,6 +21,7 @@ export default function OrganizationDashboard() {
     onUnauthenticated: () => router.push("/auth"),
   });
   const router = useRouter();
+
   const [showWelcome, setShowWelcome] = useState(true);
   const [activeJobs, setActiveJobs] = useState([]);
   const [jobApplications, setJobApplications] = useState([]);
@@ -43,10 +44,7 @@ export default function OrganizationDashboard() {
     try {
       const response = await fetch(
         `/api/Org/listjob?active=true&postedBy=${encodeURIComponent(session?.user?.email)}`,
-        {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-        }
+        { method: "GET", headers: { "Content-Type": "application/json" } }
       );
       if (!response.ok) throw new Error("Failed to fetch jobs");
       const jobs = await response.json();
@@ -64,10 +62,7 @@ export default function OrganizationDashboard() {
     try {
       const response = await fetch(
         `/api/Org/JobApplications?postedBy=${encodeURIComponent(session?.user?.email)}`,
-        {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-        }
+        { method: "GET", headers: { "Content-Type": "application/json" } }
       );
       if (!response.ok) throw new Error("Failed to fetch applications");
       const applications = await response.json();
@@ -98,10 +93,12 @@ export default function OrganizationDashboard() {
 
   if (status === "loading") {
     return (
-      <div className="flex justify-center items-center min-h-screen bg-gray-50">
+      <div className="flex justify-center items-center min-h-screen bg-gray-50 px-4">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
-          <p className="text-lg text-gray-700 font-medium">Loading your dashboard...</p>
+          <p className="text-base sm:text-lg text-gray-700 font-medium">
+            Loading your dashboard...
+          </p>
         </div>
       </div>
     );
@@ -109,8 +106,10 @@ export default function OrganizationDashboard() {
 
   if (status === "authenticated" && session?.user?.role !== "organization") {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-red-600 text-xl">Unauthorized: Only organizations can view this dashboard.</div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+        <div className="text-red-600 text-lg sm:text-xl text-center">
+          Unauthorized: Only organizations can view this dashboard.
+        </div>
       </div>
     );
   }
@@ -118,23 +117,40 @@ export default function OrganizationDashboard() {
   return (
     <SidebarProvider>
       <ToastContainer />
-      <div className="flex-1 bg-gray-50">
-        <div className="fixed top-0 left-0 w-80 h-screen overflow-y-auto bg-white border-r border-gray-200 z-10">
+      <div className="flex-1 bg-gray-50 flex">
+        {/* Sidebar */}
+        <div className="hidden md:block fixed top-0 left-0 w-64 h-screen overflow-y-auto bg-white border-r border-gray-200 z-10">
           <AppSidebar />
         </div>
-        <SidebarInset className="ml-80 flex-1">
-          <div className="p-6">
-            <div >
-              <Header user={session?.user} router={router} />
-              {showWelcome && <WelcomeBanner user={session?.user} setShowWelcome={setShowWelcome} activeJobs={activeJobs} />}
+
+        {/* Content */}
+        <SidebarInset className="md:ml-64 flex-1">
+          <div className="p-4 sm:p-6 max-w-7xl mx-auto">
+            <Header user={session?.user} router={router} />
+            {showWelcome && (
+              <div className="mt-4">
+                <WelcomeBanner
+                  user={session?.user}
+                  setShowWelcome={setShowWelcome}
+                  activeJobs={activeJobs}
+                />
+              </div>
+            )}
+            <div className="mt-6">
               <StatsGrid activeJobs={activeJobs} jobApplications={jobApplications} />
+            </div>
+            <div className="mt-6">
               <QuickActions router={router} />
+            </div>
+            <div className="mt-8">
               <JobApplications
                 isLoadingApplications={isLoadingApplications}
                 filteredApplications={filteredApplications}
                 searchTerm={searchTerm}
                 setSearchTerm={setSearchTerm}
               />
+            </div>
+            <div className="mt-8">
               <ActiveJobListings
                 isLoadingJobs={isLoadingJobs}
                 filteredJobs={filteredJobs}
@@ -144,7 +160,11 @@ export default function OrganizationDashboard() {
                 setSelectedCategory={setSelectedCategory}
                 router={router}
               />
+            </div>
+            <div className="mt-8">
               <Insights filteredJobs={filteredJobs} />
+            </div>
+            <div className="mt-8">
               <CallToAction router={router} />
             </div>
           </div>
