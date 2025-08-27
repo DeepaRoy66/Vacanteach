@@ -94,16 +94,14 @@ export default function SidebarLayout({ onMobileMenuChange }) {
   }, [session, status])
 
   useEffect(() => {
-    if (onMobileMenuChange) {
-      onMobileMenuChange(isSidebarOpen)
-    }
+    if (onMobileMenuChange) onMobileMenuChange(isSidebarOpen)
   }, [isSidebarOpen, onMobileMenuChange])
 
-  const handleNavigation = (url) => {
+  const handleNavigation = (url, closeDropdown = false) => {
     router.push(url)
     setActiveUrl(url)
     setIsSidebarOpen(false)
-    setOpenDropdown(null)
+    if (closeDropdown) setOpenDropdown(null)
   }
 
   const toggleDropdown = (title) => {
@@ -112,9 +110,7 @@ export default function SidebarLayout({ onMobileMenuChange }) {
 
   const isActive = (item) => {
     if (item.url === activeUrl) return true
-    if (item.items && item.items.some((subItem) => subItem.url === activeUrl)) {
-      return true
-    }
+    if (item.items && item.items.some((subItem) => subItem.url === activeUrl)) return true
     return false
   }
 
@@ -144,7 +140,7 @@ export default function SidebarLayout({ onMobileMenuChange }) {
         <NavButton
           key={subItem.title}
           item={subItem}
-          onClick={() => handleNavigation(subItem.url)}
+          onClick={() => handleNavigation(subItem.url)} // dropdown stays open
           isActive={activeUrl === subItem.url}
           isSubItem={true}
         />
@@ -163,6 +159,7 @@ export default function SidebarLayout({ onMobileMenuChange }) {
           {isSidebarOpen ? <X className="size-6" /> : <Menu className="size-6" />}
         </button>
       </div>
+
       {/* Mobile overlay */}
       {isSidebarOpen && (
         <div
@@ -170,6 +167,7 @@ export default function SidebarLayout({ onMobileMenuChange }) {
           onClick={() => setIsSidebarOpen(false)}
         ></div>
       )}
+
       {/* Sidebar */}
       <aside
         className={`fixed top-0 left-0 h-screen w-70 bg-white shadow-xl z-50 transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:flex-shrink-0 lg:z-10 ${
@@ -196,6 +194,7 @@ export default function SidebarLayout({ onMobileMenuChange }) {
             </div>
           </div>
         </header>
+
         {/* Navigation */}
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
           <style>{`
@@ -205,6 +204,7 @@ export default function SidebarLayout({ onMobileMenuChange }) {
             .overflow-y-auto::-webkit-scrollbar-thumb:hover { background: #6ee7b7; }
             .overflow-y-auto::-webkit-scrollbar-button { display: none; }
           `}</style>
+
           {/* Mobile profile */}
           <div className="lg:hidden bg-emerald-50 rounded-xl p-4 border border-emerald-200">
             {status === "authenticated" && (
@@ -250,6 +250,7 @@ export default function SidebarLayout({ onMobileMenuChange }) {
               </button>
             )}
           </div>
+
           {/* Main navigation */}
           <div className="space-y-4">
             <h4 className="text-emerald-700 font-semibold text-xs uppercase tracking-wider">
@@ -258,7 +259,7 @@ export default function SidebarLayout({ onMobileMenuChange }) {
             <ul className="space-y-1">
               {data.navMain.map((item) => (
                 <li key={item.title}>
-                  {item.title === "Manage Jobs" || item.title === "Candidates" ? (
+                  {item.items ? (
                     <>
                       <NavButton
                         item={item}
@@ -269,19 +270,17 @@ export default function SidebarLayout({ onMobileMenuChange }) {
                       <Submenu items={item.items} parentTitle={item.title} />
                     </>
                   ) : (
-                    <>
-                      <NavButton
-                        item={item}
-                        onClick={() => handleNavigation(item.url)}
-                        isActive={isActive(item)}
-                      />
-                      {item.items && <Submenu items={item.items} parentTitle={item.title} />}
-                    </>
+                    <NavButton
+                      item={item}
+                      onClick={() => handleNavigation(item.url, true)}
+                      isActive={isActive(item)}
+                    />
                   )}
                 </li>
               ))}
             </ul>
           </div>
+
           {/* Secondary navigation */}
           <div className="space-y-4">
             <h4 className="text-emerald-700 font-semibold text-xs uppercase tracking-wider">
@@ -292,7 +291,7 @@ export default function SidebarLayout({ onMobileMenuChange }) {
                 <li key={item.title}>
                   <NavButton
                     item={item}
-                    onClick={() => handleNavigation(item.url)}
+                    onClick={() => handleNavigation(item.url, true)}
                     isActive={activeUrl === item.url}
                   />
                 </li>
