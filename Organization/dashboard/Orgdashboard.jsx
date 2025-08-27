@@ -14,11 +14,11 @@ import Insights from "./Insights"
 import CallToAction from "./CallToActions"
 
 export default function OrganizationDashboard() {
+  const router = useRouter()
   const { data: session, status } = useSession({
     required: true,
     onUnauthenticated: () => router.push("/auth"),
   })
-  const router = useRouter()
 
   const [showWelcome, setShowWelcome] = useState(true)
   const [activeJobs, setActiveJobs] = useState([])
@@ -58,10 +58,10 @@ export default function OrganizationDashboard() {
   const fetchJobApplications = async () => {
     setIsLoadingApplications(true)
     try {
-      const response = await fetch(`/api/Org/JobApplications?postedBy=${encodeURIComponent(session?.user?.email)}`, {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-      })
+      const response = await fetch(
+        `/api/Org/JobApplications?postedBy=${encodeURIComponent(session?.user?.email)}`,
+        { method: "GET", headers: { "Content-Type": "application/json" } },
+      )
       if (!response.ok) throw new Error("Failed to fetch applications")
       const applications = await response.json()
       setJobApplications(applications)
@@ -91,7 +91,7 @@ export default function OrganizationDashboard() {
 
   if (status === "loading") {
     return (
-      <div className="flex justify-center items-center min-h-screen bg-gray-50 px-4">
+      <div className="flex justify-center items-center min-h-screen bg-white px-4">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
           <p className="text-base sm:text-lg text-gray-700 font-medium">Loading your dashboard...</p>
@@ -102,7 +102,7 @@ export default function OrganizationDashboard() {
 
   if (status === "authenticated" && session?.user?.role !== "organization") {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-white flex items-center justify-center px-4">
         <div className="text-red-600 text-lg sm:text-xl text-center">
           Unauthorized: Only organizations can view this dashboard.
         </div>
@@ -113,7 +113,7 @@ export default function OrganizationDashboard() {
   return (
     <>
       <ToastContainer />
-      <div className="p-4 sm:p-6 max-w-7xl mx-auto">
+      <div className="p-4 sm:p-6 max-w-7xl mx-auto bg-white">
         <Header user={session?.user} router={router} />
         {showWelcome && (
           <div className="mt-4">
