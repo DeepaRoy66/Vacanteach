@@ -196,7 +196,7 @@ export default function SidebarLayout({ onMobileMenuChange }) {
         </header>
 
         {/* Navigation */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+        <div className="flex-1 overflow-y-auto max-h-screen p-6 space-y-6">
           <style>{`
             .overflow-y-auto::-webkit-scrollbar { width: 8px; }
             .overflow-y-auto::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
