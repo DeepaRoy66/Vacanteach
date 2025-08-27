@@ -1,6 +1,6 @@
 import Footer from './components/Footer';
 import './globals.css';
-import ClientLayout from './components/ClientLayout'; // Import your client layout
+import ClientLayout from './(pages)/organization/ClientLayout';
 import Navbar from './components/Navbar';
 
 export const metadata = {

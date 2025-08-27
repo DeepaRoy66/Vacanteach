@@ -1,27 +1,14 @@
-"use client";
-import { useState } from "react";
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import { SidebarProvider, SidebarInset } from "../../app/components/ui/sidebar";
-import { AppSidebar } from "../../app/(pages)/organization/Sidebar";
-import { Button } from "../../app/components/ui/button";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@radix-ui/react-accordion";
-import { Input } from "../../app/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectTrigger,
-  SelectItem,
-  SelectValue,
-} from "../../app/components/ui/select";
-import { Switch } from "../../app/components/ui/switch";
-import { Label } from "../../app/components/ui/label";
-import { Textarea } from "../../app/components/ui/textarea";
+"use client"
+import { useState } from "react"
+import { useSession } from "next-auth/react"
+import { useRouter } from "next/navigation"
+import { Button } from "../../app/components/ui/button"
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@radix-ui/react-accordion"
+import { Input } from "../../app/components/ui/input"
+import { Select, SelectContent, SelectTrigger, SelectItem, SelectValue } from "../../app/components/ui/select"
+import { Switch } from "../../app/components/ui/switch"
+import { Label } from "../../app/components/ui/label"
+import { Textarea } from "../../app/components/ui/textarea"
 import {
   BarChart2,
   Eye,
@@ -47,14 +34,9 @@ import {
   Settings,
   ChevronDown,
   Search,
-} from "lucide-react";
-import { cn } from "../../lib/utilis";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "../../app/components/ui/tooltip";
+} from "lucide-react"
+import { cn } from "../../lib/utilis"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../app/components/ui/tooltip"
 
 const initialFormData = {
   position: "",
@@ -74,7 +56,7 @@ const initialFormData = {
   negotiable: false,
   active: true,
   description: "",
-};
+}
 
 const dropdownOptions = {
   jobCategory: [
@@ -194,7 +176,7 @@ const dropdownOptions = {
     { value: "Daily", label: "Daily", icon: Clock },
     { value: "Weekly", label: "Weekly", icon: Clock },
   ],
-};
+}
 
 // Reusable Form Field
 const FormField = ({ label, name, value, onChange, error, type = "text", placeholder, required = false, hint }) => (
@@ -214,7 +196,7 @@ const FormField = ({ label, name, value, onChange, error, type = "text", placeho
     {hint && <p className="text-sm text-gray-500 mt-1">{hint}</p>}
     {error && <p className="text-sm text-red-500 mt-1">{error}</p>}
   </div>
-);
+)
 
 // Enhanced Select Field
 const EnhancedSelectField = ({
@@ -227,12 +209,12 @@ const EnhancedSelectField = ({
   required = false,
   searchable = false,
 }) => {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [isOpen, setIsOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("")
+  const [isOpen, setIsOpen] = useState(false)
   const filteredOptions = searchable
     ? options.filter((opt) => opt.label.toLowerCase().includes(searchTerm.toLowerCase()))
-    : options;
-  const selectedOption = options.find((opt) => opt.value === value);
+    : options
+  const selectedOption = options.find((opt) => opt.value === value)
   return (
     <div className="flex-1">
       <Label htmlFor={name} className="block text-sm font-medium text-gray-700 mb-2">
@@ -245,7 +227,7 @@ const EnhancedSelectField = ({
             "bg-white hover:bg-gray-50 focus:bg-white",
             "border-gray-200 hover:border-blue-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100",
             "shadow-sm hover:shadow-md focus:shadow-lg",
-            error && "border-red-300 focus:border-red-500 focus:ring-red-100"
+            error && "border-red-300 focus:border-red-500 focus:ring-red-100",
           )}
         >
           <div className="flex items-center gap-3 flex-1">
@@ -254,7 +236,7 @@ const EnhancedSelectField = ({
                 className={cn(
                   "h-5 w-5 transition-colors duration-200",
                   selectedOption.color || "text-gray-500",
-                  isOpen && "text-blue-600"
+                  isOpen && "text-blue-600",
                 )}
               />
             )}
@@ -270,7 +252,7 @@ const EnhancedSelectField = ({
         <SelectContent
           className={cn(
             "w-[var(--radix-popper-anchor-width)] bg-white shadow-xl rounded-xl border-2 border-gray-100",
-            "max-h-80 overflow-hidden p-2"
+            "max-h-80 overflow-hidden p-2",
           )}
         >
           {searchable && options.length > 5 && (
@@ -292,7 +274,7 @@ const EnhancedSelectField = ({
               </div>
             ) : (
               filteredOptions.map((opt) => {
-                const IconComponent = opt.icon;
+                const IconComponent = opt.icon
                 return (
                   <SelectItem
                     key={opt.value}
@@ -301,7 +283,7 @@ const EnhancedSelectField = ({
                       "flex items-center gap-3 px-3 py-3 rounded-lg cursor-pointer transition-all duration-150",
                       "hover:bg-blue-50 focus:bg-blue-50 data-[highlighted]:bg-blue-50",
                       "border border-transparent hover:border-blue-200",
-                      "group"
+                      "group",
                     )}
                   >
                     <div className="flex items-center gap-3 flex-1">
@@ -310,14 +292,14 @@ const EnhancedSelectField = ({
                           className={cn(
                             "h-4 w-4 transition-colors duration-150",
                             opt.color || "text-gray-500",
-                            "group-hover:scale-110"
+                            "group-hover:scale-110",
                           )}
                         />
                       )}
                       <span className="font-medium text-gray-700 group-hover:text-gray-900">{opt.label}</span>
                     </div>
                   </SelectItem>
-                );
+                )
               })
             )}
           </div>
@@ -330,8 +312,8 @@ const EnhancedSelectField = ({
         </p>
       )}
     </div>
-  );
-};
+  )
+}
 
 // Job Detail Section
 const JobDetailSection = ({ formData, errors, handleChange, handleSelectChange }) => (
@@ -415,7 +397,7 @@ const JobDetailSection = ({ formData, errors, handleChange, handleSelectChange }
       </AccordionContent>
     </AccordionItem>
   </Accordion>
-);
+)
 
 // Job Location Section
 const JobLocationSection = ({ formData, errors, handleChange }) => (
@@ -443,7 +425,7 @@ const JobLocationSection = ({ formData, errors, handleChange }) => (
       </AccordionContent>
     </AccordionItem>
   </Accordion>
-);
+)
 
 // Salary & Description Section
 const SalaryDescriptionSection = ({
@@ -456,10 +438,10 @@ const SalaryDescriptionSection = ({
   setErrors,
 }) => {
   const handleRadioChange = (e) => {
-    const value = e.target.value;
-    setFormData((prev) => ({ ...prev, offeredSalaryType: value }));
-    setErrors((prev) => ({ ...prev, offeredSalaryType: "" }));
-  };
+    const value = e.target.value
+    setFormData((prev) => ({ ...prev, offeredSalaryType: value }))
+    setErrors((prev) => ({ ...prev, offeredSalaryType: "" }))
+  }
 
   return (
     <Accordion type="single" collapsible defaultValue="item-1">
@@ -565,14 +547,14 @@ const SalaryDescriptionSection = ({
                   id="hideSalary"
                   checked={formData.hideSalary}
                   onCheckedChange={(checked) => {
-                    handleSwitchChange("hideSalary", checked);
+                    handleSwitchChange("hideSalary", checked)
                     if (checked) {
-                      handleSwitchChange("negotiable", false); // Disable negotiable when hideSalary is true
+                      handleSwitchChange("negotiable", false) // Disable negotiable when hideSalary is true
                     }
                   }}
                   className={cn(
                     "data-[state=unchecked]:bg-gray-300",
-                    formData.hideSalary ? "bg-green-500" : "bg-green-200"
+                    formData.hideSalary ? "bg-green-500" : "bg-green-200",
                   )}
                 />
                 <Label htmlFor="hideSalary" className="text-sm font-medium text-gray-700 flex items-center gap-1">
@@ -595,21 +577,21 @@ const SalaryDescriptionSection = ({
                   checked={formData.negotiable}
                   onCheckedChange={(checked) => {
                     if (!formData.hideSalary) {
-                      handleSwitchChange("negotiable", checked);
+                      handleSwitchChange("negotiable", checked)
                     }
                   }}
                   disabled={formData.hideSalary}
                   className={cn(
                     "data-[state=unchecked]:bg-gray-300",
                     formData.negotiable ? "bg-green-500" : "bg-green-200",
-                    formData.hideSalary && "opacity-50 cursor-not-allowed"
+                    formData.hideSalary && "opacity-50 cursor-not-allowed",
                   )}
                 />
                 <Label
                   htmlFor="negotiable"
                   className={cn(
                     "text-sm font-medium text-gray-700 flex items-center gap-1",
-                    formData.hideSalary && "text-gray-400"
+                    formData.hideSalary && "text-gray-400",
                   )}
                 >
                   Negotiable
@@ -619,12 +601,14 @@ const SalaryDescriptionSection = ({
                         <Info
                           className={cn(
                             "h-4 w-4 cursor-pointer",
-                            formData.hideSalary ? "text-gray-400" : "text-gray-500"
+                            formData.hideSalary ? "text-gray-400" : "text-gray-500",
                           )}
                         />
                       </TooltipTrigger>
                       <TooltipContent className="max-w-xs text-center">
-                        {"Choose this option to indicate that the salary is negotiable. Disabled when salary is hidden."}
+                        {
+                          "Choose this option to indicate that the salary is negotiable. Disabled when salary is hidden."
+                        }
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
@@ -637,7 +621,7 @@ const SalaryDescriptionSection = ({
                   onCheckedChange={(checked) => handleSwitchChange("active", checked)}
                   className={cn(
                     "data-[state=unchecked]:bg-gray-300",
-                    formData.active ? "bg-green-500" : "bg-green-200"
+                    formData.active ? "bg-green-500" : "bg-green-200",
                   )}
                 />
                 <Label htmlFor="active" className="text-sm font-medium text-gray-700 flex items-center gap-1">
@@ -669,9 +653,7 @@ const SalaryDescriptionSection = ({
               placeholder="Enter detailed job description (50-5000 characters)..."
               maxLength={5000}
             />
-            <p className="text-sm text-gray-500 mt-1">
-              {formData.description.length}/5000 characters
-            </p>
+            <p className="text-sm text-gray-500 mt-1">{formData.description.length}/5000 characters</p>
             {errors.description && (
               <p className="text-sm text-red-500 mt-1 flex items-center gap-1">
                 <Info className="h-4 w-4" />
@@ -682,55 +664,55 @@ const SalaryDescriptionSection = ({
         </AccordionContent>
       </AccordionItem>
     </Accordion>
-  );
-};
+  )
+}
 
 // Main Component
 export default function PostJobPage() {
   const { data: session, status } = useSession({
     required: true,
     onUnauthenticated: () => router.push("/auth"),
-  });
-  const router = useRouter();
-  const [formData, setFormData] = useState(initialFormData);
-  const [errors, setErrors] = useState({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  })
+  const router = useRouter()
+  const [formData, setFormData] = useState(initialFormData)
+  const [errors, setErrors] = useState({})
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    setErrors((prev) => ({ ...prev, [name]: "" }));
-  };
+    const { name, value } = e.target
+    setFormData((prev) => ({ ...prev, [name]: value }))
+    setErrors((prev) => ({ ...prev, [name]: "" }))
+  }
 
   const handleSelectChange = (name, value) => {
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    setErrors((prev) => ({ ...prev, [name]: "" }));
-  };
+    setFormData((prev) => ({ ...prev, [name]: value }))
+    setErrors((prev) => ({ ...prev, [name]: "" }))
+  }
 
   const handleSwitchChange = (name, value) => {
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
+    setFormData((prev) => ({ ...prev, [name]: value }))
+  }
 
   const validateForm = () => {
-    const newErrors = {};
-    if (!formData.position.trim()) newErrors.position = "Job position is required";
+    const newErrors = {}
+    if (!formData.position.trim()) newErrors.position = "Job position is required"
     if (
       !formData.requiredEmployees.toString().trim() ||
       isNaN(formData.requiredEmployees) ||
       Number(formData.requiredEmployees) <= 0
     ) {
-      newErrors.requiredEmployees = "Number of employees must be a positive number";
+      newErrors.requiredEmployees = "Number of employees must be a positive number"
     }
-    if (!formData.jobCategory.trim()) newErrors.jobCategory = "Job category is required";
-    if (!formData.jobLevel.trim()) newErrors.jobLevel = "Job level is required";
-    if (!formData.jobType.trim()) newErrors.jobType = "Job type is required";
-    if (!formData.jobLocation.trim()) newErrors.jobLocation = "Job location is required";
-    if (!formData.currency.trim()) newErrors.currency = "Currency is required";
+    if (!formData.jobCategory.trim()) newErrors.jobCategory = "Job category is required"
+    if (!formData.jobLevel.trim()) newErrors.jobLevel = "Job level is required"
+    if (!formData.jobType.trim()) newErrors.jobType = "Job type is required"
+    if (!formData.jobLocation.trim()) newErrors.jobLocation = "Job location is required"
+    if (!formData.currency.trim()) newErrors.currency = "Currency is required"
     if (
       !formData.hideSalary &&
       (!formData.minimum.toString().trim() || isNaN(formData.minimum) || Number(formData.minimum) < 0)
     ) {
-      newErrors.minimum = "Minimum salary must be a non-negative number";
+      newErrors.minimum = "Minimum salary must be a non-negative number"
     }
     if (
       !formData.hideSalary &&
@@ -739,29 +721,29 @@ export default function PostJobPage() {
         isNaN(formData.maximum) ||
         Number(formData.maximum) < Number(formData.minimum))
     ) {
-      newErrors.maximum = "Maximum salary is required for range and must be greater than minimum";
+      newErrors.maximum = "Maximum salary is required for range and must be greater than minimum"
     }
-    if (!formData.offeredSalaryType.trim()) newErrors.offeredSalaryType = "Offered salary type is required";
-    if (!formData.salaryType.trim()) newErrors.salaryType = "Salary type is required";
+    if (!formData.offeredSalaryType.trim()) newErrors.offeredSalaryType = "Offered salary type is required"
+    if (!formData.salaryType.trim()) newErrors.salaryType = "Salary type is required"
     if (!formData.description.trim()) {
-      newErrors.description = "Job description is required";
+      newErrors.description = "Job description is required"
     } else if (formData.description.length < 50) {
-      newErrors.description = "Job description must be at least 50 characters";
+      newErrors.description = "Job description must be at least 50 characters"
     } else if (formData.description.length > 5000) {
-      newErrors.description = "Job description cannot exceed 5000 characters";
+      newErrors.description = "Job description cannot exceed 5000 characters"
     }
-    return newErrors;
-  };
+    return newErrors
+  }
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    const validationErrors = validateForm();
+    e.preventDefault()
+    const validationErrors = validateForm()
     if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
-      setIsSubmitting(false);
-      return;
+      setErrors(validationErrors)
+      setIsSubmitting(false)
+      return
     }
-    setIsSubmitting(true);
+    setIsSubmitting(true)
     try {
       const jobData = {
         ...formData,
@@ -770,139 +752,125 @@ export default function PostJobPage() {
         maximum: formData.hideSalary || formData.offeredSalaryType !== "Range" ? null : Number(formData.maximum),
         postedBy: session?.user?.email,
         role: session?.user?.role || "organization",
-      };
-      console.log("Submitting job:", jobData);
+      }
+      console.log("Submitting job:", jobData)
       const response = await fetch("/api/Org/addjob", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(jobData),
-      });
+      })
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to post job");
+        const errorData = await response.json()
+        throw new Error(errorData.error || "Failed to post job")
       }
-      alert("Job posted successfully!");
-      setFormData(initialFormData);
-      router.push("/organization/Jobpage");
+      alert("Job posted successfully!")
+      setFormData(initialFormData)
+      router.push("/organization/Jobpage")
     } catch (error) {
-      console.error("Error posting job:", error);
-      alert(`Failed to post job: ${error.message}`);
+      console.error("Error posting job:", error)
+      alert(`Failed to post job: ${error.message}`)
     } finally {
-      setIsSubmitting(false);
+      setIsSubmitting(false)
     }
-  };
+  }
 
   if (status === "loading") {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <div className="animate-pulse text-blue-600 text-xl">Loading...</div>
       </div>
-    );
+    )
   }
 
   if (session?.user?.role !== "organization") {
-    router.push("/unauthorized");
+    router.push("/unauthorized")
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <div className="text-red-600 text-xl">Unauthorized: Only organizations can post jobs.</div>
       </div>
-    );
+    )
   }
 
   return (
-    <SidebarProvider>
-      <div className="flex-1">
-        <div className="flex flex-1">
-          <div className="w-80 bg-white border-r border-gray-200 sticky top-16 h-[calc(100vh-64px)] overflow-y-auto">
-            <AppSidebar />
+    <div className="flex-1 bg-gray-100 py-10 flex justify-center">
+      <div className="container mx-auto max-w-5xl bg-white rounded-xl shadow-lg p-8 space-y-8">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+          <div>
+            <h1 className="text-3xl font-extrabold text-gray-900">Job Post</h1>
+            <p className="text-gray-500 text-sm mt-1">
+              Enter relevant information about the job position to set up your listing effectively.
+            </p>
           </div>
-          <SidebarInset>
-            <div className="flex-1 bg-gray-100 py-10 flex justify-center">
-              <div className="container mx-auto max-w-5xl bg-white rounded-xl shadow-lg p-8 space-y-8">
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-                  <div>
-                    <h1 className="text-3xl font-extrabold text-gray-900">Job Post</h1>
-                    <p className="text-gray-500 text-sm mt-1">
-                      Enter relevant information about the job position to set up your listing effectively.
-                    </p>
-                  </div>
-                  <div className="flex flex-wrap gap-3">
-                    <Button
-                      variant="outline"
-                      className="flex items-center gap-2 text-gray-700 bg-transparent border-gray-300 hover:bg-gray-100"
-                    >
-                      <BarChart2 className="h-4 w-4" /> Load Balance
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="flex items-center gap-2 text-gray-700 bg-transparent border-gray-300 hover:bg-gray-100"
-                    >
-                      <Eye className="h-4 w-4" /> Preview Job
-                    </Button>
-                  </div>
-                </div>
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  <JobDetailSection
-                    formData={formData}
-                    errors={errors}
-                    handleChange={handleChange}
-                    handleSelectChange={handleSelectChange}
-                  />
-                  <JobLocationSection formData={formData} errors={errors} handleChange={handleChange} />
-                  <SalaryDescriptionSection
-                    formData={formData}
-                    errors={errors}
-                    handleChange={handleChange}
-                    handleSelectChange={handleSelectChange}
-                    handleSwitchChange={handleSwitchChange}
-                    setFormData={setFormData}
-                    setErrors={setErrors}
-                  />
-                  <div className="flex items-center justify-between mt-6 py-2 px-4 bg-gray-50 rounded-lg border border-gray-200">
-                    <div className="flex items-center space-x-3">
-                      <Switch id="customizeJobDetail" />
-                      <Label
-                        htmlFor="customizeJobDetail"
-                        className="text-sm font-medium text-gray-700 flex items-center gap-1"
-                      >
-                        Customize Job Detail
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Info className="h-4 w-4 text-gray-500 cursor-pointer" />
-                            </TooltipTrigger>
-                            <TooltipContent className="max-w-xs text-center">
-                              {"Choose this option to add your custom content to the job detail page."}
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      </Label>
-                    </div>
-                  </div>
-                  <div className="flex justify-end items-center pt-6">
-                    <Button
-                      type="submit"
-                      disabled={isSubmitting}
-                      className={cn(
-                        "px-8 py-3 rounded-lg font-semibold text-white transition-all duration-200",
-                        isSubmitting ? "bg-blue-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700 shadow-md"
-                      )}
-                    >
-                      {isSubmitting ? (
-                        <>
-                          <Sparkles className="h-4 w-4 animate-spin mr-2" /> Saving...
-                        </>
-                      ) : (
-                        "Save & Submit"
-                      )}
-                    </Button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </SidebarInset>
+          <div className="flex flex-wrap gap-3">
+            <Button
+              variant="outline"
+              className="flex items-center gap-2 text-gray-700 bg-transparent border-gray-300 hover:bg-gray-100"
+            >
+              <BarChart2 className="h-4 w-4" /> Load Balance
+            </Button>
+            <Button
+              variant="outline"
+              className="flex items-center gap-2 text-gray-700 bg-transparent border-gray-300 hover:bg-gray-100"
+            >
+              <Eye className="h-4 w-4" /> Preview Job
+            </Button>
+          </div>
         </div>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <JobDetailSection
+            formData={formData}
+            errors={errors}
+            handleChange={handleChange}
+            handleSelectChange={handleSelectChange}
+          />
+          <JobLocationSection formData={formData} errors={errors} handleChange={handleChange} />
+          <SalaryDescriptionSection
+            formData={formData}
+            errors={errors}
+            handleChange={handleChange}
+            handleSelectChange={handleSelectChange}
+            handleSwitchChange={handleSwitchChange}
+            setFormData={setFormData}
+            setErrors={setErrors}
+          />
+          <div className="flex items-center justify-between mt-6 py-2 px-4 bg-gray-50 rounded-lg border border-gray-200">
+            <div className="flex items-center space-x-3">
+              <Switch id="customizeJobDetail" />
+              <Label htmlFor="customizeJobDetail" className="text-sm font-medium text-gray-700 flex items-center gap-1">
+                Customize Job Detail
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="h-4 w-4 text-gray-500 cursor-pointer" />
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs text-center">
+                      {"Choose this option to add your custom content to the job detail page."}
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </Label>
+            </div>
+          </div>
+          <div className="flex justify-end items-center pt-6">
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              className={cn(
+                "px-8 py-3 rounded-lg font-semibold text-white transition-all duration-200",
+                isSubmitting ? "bg-blue-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700 shadow-md",
+              )}
+            >
+              {isSubmitting ? (
+                <>
+                  <Sparkles className="h-4 w-4 animate-spin mr-2" /> Saving...
+                </>
+              ) : (
+                "Save & Submit"
+              )}
+            </Button>
+          </div>
+        </form>
       </div>
-    </SidebarProvider>
-  );
+    </div>
+  )
 }
