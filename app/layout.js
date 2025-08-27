@@ -1,7 +1,8 @@
 import Footer from './components/Footer';
 import './globals.css';
-import ClientLayout from './(pages)/organization/ClientLayout';
+
 import Navbar from './components/Navbar';
+import ClientLayout from './components/ClientLayout';
 
 export const metadata = {
   title: 'Upwork Clone',
