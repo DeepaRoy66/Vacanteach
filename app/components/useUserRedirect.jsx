@@ -55,7 +55,7 @@ export function useUserRedirect() {
           router.replace("/select-role");
         }
       } catch (error) {
-        console.error("useUserRedirect: Error checking role", error);
+      
         if (currentPath !== "/select-role" && currentPath !== "/auth") {
           console.log("useUserRedirect: Redirecting to /select-role due to error");
           router.replace("/select-role");
