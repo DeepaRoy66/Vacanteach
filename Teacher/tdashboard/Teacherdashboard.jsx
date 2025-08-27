@@ -13,30 +13,6 @@ const jobCategories = [
   "Mathematics", "Science", "English", "History", "Art", "Music", "Physical Education", "Computer Science"
 ];
 
-const performanceData = [
-  { month: "Jan", applications: 45, interviews: 32, hired: 18, success: 40 },
-  { month: "Feb", applications: 52, interviews: 38, hired: 22, success: 58 },
-  { month: "Mar", applications: 48, interviews: 35, hired: 20, success: 57 },
-  { month: "Apr", applications: 61, interviews: 45, hired: 28, success: 62 },
-  { month: "May", applications: 55, interviews: 42, hired: 25, success: 60 },
-  { month: "Jun", applications: 67, interviews: 50, hired: 32, success: 64 }
-];
-
-const skillsData = [
-  { skill: "Mathematics", proficiency: 95, demand: 88 },
-  { skill: "Science", proficiency: 87, demand: 92 },
-  { skill: "English", proficiency: 92, demand: 85 },
-  { skill: "Technology", proficiency: 78, demand: 95 },
-  { skill: "Leadership", proficiency: 85, demand: 80 }
-];
-
-const categoryData = [
-  { name: "Elementary", value: 35, color: "#8884d8" },
-  { name: "Middle School", value: 28, color: "#82ca9d" },
-  { name: "High School", value: 25, color: "#ffc658" },
-  { name: "Special Ed", value: 12, color: "#ff7c7c" }
-];
-
 const recentActivity = [
   { id: 1, type: "application", title: "Applied to Lincoln High School", time: "2 hours ago", status: "pending" },
   { id: 2, type: "interview", title: "Interview scheduled with Sunshine Elementary", time: "1 day ago", status: "scheduled" },
@@ -51,55 +27,46 @@ export default function TeacherDashboard() {
   const [jobs, setJobs] = useState([]);
   const [topJobs, setTopJobs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [previousMonthJobs, setPreviousMonthJobs] = useState(0);
 
   const fetchJobs = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
-      console.log("Fetching jobs from /api/Org/getjob");
+      // Build query params
       const query = new URLSearchParams({ search: searchQuery, location: searchLocation }).toString();
-      const jobsResponse = await fetch(`/api/Org/getjob?${query}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json",
-        },
-      });
-      console.log("Jobs response status:", jobsResponse.status);
-      if (!jobsResponse.ok) {
+
+      // Fetch all jobs
+      const jobsResponse = await fetch(`/api/Org/getjob?${query}`);
+      if (jobsResponse.status === 404) {
+        console.warn("No jobs found");
+        setJobs([]);
+      } else if (!jobsResponse.ok) {
         const text = await jobsResponse.text();
         throw new Error(`HTTP error! status: ${jobsResponse.status}, content: ${text.substring(0, 100)}...`);
+      } else {
+        const jobsData = await jobsResponse.json();
+        setJobs(jobsData || []);
       }
-      const jobsData = await jobsResponse.json();
-      console.log("Fetched jobs:", jobsData);
-      setJobs(jobsData || []); // Ensure jobs is always an array
 
-      const topJobsResponse = await fetch(`/api/Org/getjobs?sortBy=views&limit=4`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json",
-        },
-      });
-      if (!topJobsResponse.ok) {
+      // Fetch top jobs
+      const topJobsResponse = await fetch(`/api/Org/getjobs?sortBy=views&limit=4`);
+      if (topJobsResponse.status === 404) {
+        console.warn("No top jobs found");
+        setTopJobs([]);
+      } else if (!topJobsResponse.ok) {
         console.warn("Failed to fetch top jobs:", await topJobsResponse.text());
         setTopJobs([]);
       } else {
         const topJobsData = await topJobsResponse.json();
-        console.log("Fetched top jobs:", topJobsData);
         setTopJobs(topJobsData || []);
       }
 
+      // Fetch previous month job stats
       const currentDate = new Date();
-      const previousMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1).toISOString().slice(0, 7);
-      const statsResponse = await fetch(`/api/Org/jobstats?month=${previousMonth}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json",
-        },
-      });
+      const previousMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1)
+        .toISOString()
+        .slice(0, 7);
+      const statsResponse = await fetch(`/api/Org/jobstats?month=${previousMonth}`);
       if (!statsResponse.ok) {
         console.warn("No job stats available for previous month");
         setPreviousMonthJobs(0);
@@ -107,11 +74,13 @@ export default function TeacherDashboard() {
         const statsData = await statsResponse.json();
         setPreviousMonthJobs(statsData.jobCount || 0);
       }
+
     } catch (err) {
-      console.error("Fetch error:", err.message);
-      setError(null); // Don't set error to avoid showing error page
-      setJobs([]); // Set empty array to show "No jobs available" in JobListings
-      setTopJobs([]); // Set empty array to show "No top jobs available" in TopJobs
+      console.error("Fetch error:", err);
+      // Fallback in case of network/server error
+      setJobs([]);
+      setTopJobs([]);
+      setPreviousMonthJobs(0);
     } finally {
       setLoading(false);
     }
@@ -121,17 +90,12 @@ export default function TeacherDashboard() {
     try {
       const response = await fetch(`/api/Org/incrementView`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ jobId }),
       });
-      if (!response.ok) {
-        console.warn("Failed to increment job view");
-      }
+      if (!response.ok) console.warn("Failed to increment job view");
     } catch (err) {
-      console.error("Error incrementing job view:", err.message);
+      console.error("Error incrementing job view:", err);
     }
   };
 
