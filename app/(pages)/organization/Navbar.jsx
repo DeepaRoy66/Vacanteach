@@ -52,17 +52,11 @@ export default function Navbar({ onMobileMenuToggle, isMobileMenuOpen }) {
   }, [])
 
   return (
-    <nav className="sticky top-0 bg-white shadow-md z-40 lg:z-10">
-      <div className="container mx-auto px-4 lg:px-6 py-3 flex items-center justify-center lg:justify-between">
+    <nav className="sticky top-0 bg-green-600 shadow-md z-40 lg:z-10">
+      <div className="container mx-auto px-4 lg:px-6 py-2 flex items-center justify-center lg:justify-between">
         <div
           className={`flex items-center space-x-2 transition-opacity duration-300 ${isMobileMenuOpen ? "lg:flex opacity-0 lg:opacity-100" : "flex opacity-100"}`}
         >
-          <img
-            src="https://i.ibb.co/tcwbH6R/vacanteach-logo.png"
-            alt="VacanTeach Logo"
-            className="h-10 w-10 object-contain"
-          />
-          <span className="text-2xl font-bold text-green-800">VacanTeach</span>
         </div>
 
         {/* Desktop menu */}
