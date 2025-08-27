@@ -16,7 +16,7 @@ function LayoutContent({ children }) {
         <Navbar isMobileMenuOpen={isMobileMenuOpen} />
 
         {/* Page content with proper scroll */}
-        <main className="flex-1 overflow-y-auto bg-gray-50">
+        <main className="flex-1 overflow-y-auto bg-white">
           <div className="p-4 lg:p-6">{children}</div>
         </main>
       </div>

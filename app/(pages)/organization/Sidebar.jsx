@@ -121,7 +121,7 @@ export default function SidebarLayout({ onMobileMenuChange }) {
   const NavButton = ({ item, onClick, isActive, isSubItem = false, hasDropdown = false }) => {
     const commonClasses = `flex items-center justify-between p-3 rounded-lg w-full text-left font-medium transition-colors duration-200
       ${isSubItem ? "pl-9 text-sm" : ""}
-      ${isActive ? "bg-emerald-100 text-emerald-900 shadow-sm" : "text-emerald-800 hover:bg-emerald-50 hover:text-emerald-900"}`
+      ${isActive ? "bg-emerald-100 text-emerald-900" : "text-emerald-800 hover:bg-emerald-50 hover:text-emerald-900"}`
 
     return (
       <button className={commonClasses} onClick={onClick}>
@@ -185,7 +185,7 @@ export default function SidebarLayout({ onMobileMenuChange }) {
             <X className="size-5 text-white" />
           </button>
           <div className="flex items-center gap-3">
-            <div className="flex aspect-square size-12 items-center justify-center rounded-xl bg-white/20 backdrop-blur-sm text-white shadow-lg">
+            <div className="flex aspect-square size-12 items-center justify-center rounded-xl bg-white/20 backdrop-blur-sm text-white ">
               <Building2 className="size-6" />
             </div>
             <div className="grid flex-1 text-left text-sm leading-tight">

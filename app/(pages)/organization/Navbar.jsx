@@ -52,7 +52,7 @@ export default function Navbar({ onMobileMenuToggle, isMobileMenuOpen }) {
   }, [])
 
   return (
-    <nav className="sticky top-0 bg-green-600 shadow-md z-40 lg:z-10">
+    <nav className="sticky top-0 bg-green-600 z-40 lg:z-10">
       <div className="container mx-auto px-4 lg:px-6 py-2 flex items-center justify-center lg:justify-between">
         <div
           className={`flex items-center space-x-2 transition-opacity duration-300 ${isMobileMenuOpen ? "lg:flex opacity-0 lg:opacity-100" : "flex opacity-100"}`}
