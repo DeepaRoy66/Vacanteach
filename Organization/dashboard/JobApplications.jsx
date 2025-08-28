@@ -17,8 +17,6 @@ import {
   Eye,
   Send,
 } from "lucide-react";
-
-// ShadCN Dialog (modal)
 import {
   Dialog,
   DialogContent,
@@ -38,21 +36,53 @@ export default function JobApplications({
   const [isReplyOpen, setIsReplyOpen] = useState(false);
   const [currentApplicant, setCurrentApplicant] = useState(null);
   const [replyMessage, setReplyMessage] = useState("");
+  const [isSending, setIsSending] = useState(false);
 
   const handleReply = (app) => {
     setCurrentApplicant(app);
+    setReplyMessage(""); // reset previous message
     setIsReplyOpen(true);
   };
 
-  const sendReply = () => {
-    if (!replyMessage.trim()) return alert("Message cannot be empty!");
+  const sendReply = async () => {
+    if (!replyMessage.trim()) {
+      alert("Message cannot be empty!");
+      return;
+    }
 
-    // 🚀 Later: call your backend API (e.g. /api/sendEmail)
-    console.log("Replying to:", currentApplicant.email);
-    console.log("Message:", replyMessage);
+    setIsSending(true);
+    try {
+      const res = await fetch("/api/reply", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          applicationId: currentApplicant?._id,
+          applicantEmail: currentApplicant?.email,
+          applicantName: currentApplicant?.fullName,
+          message: replyMessage,
+        }),
+      });
 
-    setIsReplyOpen(false);
-    setReplyMessage("");
+      let data = {};
+      try {
+        data = await res.json(); // parse JSON safely
+      } catch {
+        data = { error: "Invalid server response" };
+      }
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to send reply");
+      }
+
+      alert("Reply sent successfully!");
+      setIsReplyOpen(false);
+      setReplyMessage("");
+    } catch (error) {
+      console.error("Error sending reply:", error);
+      alert(error.message || "Failed to send reply. Please try again.");
+    } finally {
+      setIsSending(false);
+    }
   };
 
   return (
@@ -69,6 +99,7 @@ export default function JobApplications({
                 Manage and review applications for your job postings
               </CardDescription>
             </div>
+
             <div className="flex items-center gap-4">
               <div className="relative w-full max-w-sm">
                 <Search className="h-5 w-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -83,6 +114,7 @@ export default function JobApplications({
             </div>
           </div>
         </CardHeader>
+
         <CardContent className="p-6">
           {isLoadingApplications ? (
             <div className="flex flex-col items-center justify-center py-16">
@@ -91,7 +123,7 @@ export default function JobApplications({
                 Loading applications...
               </span>
             </div>
-          ) : filteredApplications.length === 0 ? (
+          ) : filteredApplications?.length === 0 ? (
             <div className="text-center py-16">
               <FileText className="h-16 w-16 text-gray-300 mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-gray-800 mb-2">
@@ -99,8 +131,8 @@ export default function JobApplications({
               </h3>
               <p className="text-gray-500 max-w-md mx-auto">
                 {searchTerm
-                  ? "Try adjusting your search criteria"
-                  : "No applications have been submitted for your jobs yet."}
+                  ? "Try adjusting your search criteria."
+                  : "No applications have been submitted yet."}
               </p>
             </div>
           ) : (
@@ -129,15 +161,12 @@ export default function JobApplications({
                           </div>
                           <div className="flex items-center gap-2">
                             <MapPin className="h-4 w-4 text-gray-500" />
-                            <span>
-                              {app.jobId?.jobLocation || "Unknown Location"}
-                            </span>
+                            <span>{app.jobId?.jobLocation || "Unknown Location"}</span>
                           </div>
                           <div className="flex items-center gap-2">
                             <Clock className="h-4 w-4 text-gray-500" />
                             <span>
-                              Applied{" "}
-                              {new Date(app.createdAt).toLocaleDateString()}
+                              Applied {new Date(app.createdAt).toLocaleDateString()}
                             </span>
                           </div>
                         </div>
@@ -180,12 +209,8 @@ export default function JobApplications({
             <DialogTitle>Reply to Applicant</DialogTitle>
             <DialogDescription>
               Send a message to{" "}
-              <span className="font-semibold">
-                {currentApplicant?.fullName}
-              </span>
-              {currentApplicant?.email ? (
-                <> ({currentApplicant.email})</>
-              ) : null}
+              <span className="font-semibold">{currentApplicant?.fullName}</span>
+              {currentApplicant?.email && <> ({currentApplicant.email})</>}
             </DialogDescription>
           </DialogHeader>
 
@@ -194,6 +219,7 @@ export default function JobApplications({
             value={replyMessage}
             onChange={(e) => setReplyMessage(e.target.value)}
             className="min-h-[120px] mt-4"
+            disabled={isSending}
           />
 
           <DialogFooter className="mt-4">
@@ -201,11 +227,16 @@ export default function JobApplications({
               variant="outline"
               onClick={() => setIsReplyOpen(false)}
               className="mr-2"
+              disabled={isSending}
             >
               Cancel
             </Button>
-            <Button onClick={sendReply} className="bg-blue-600 text-white">
-              Send Reply
+            <Button
+              onClick={sendReply}
+              className="bg-blue-600 text-white"
+              disabled={isSending || !replyMessage.trim()}
+            >
+              {isSending ? "Sending..." : "Send Reply"}
             </Button>
           </DialogFooter>
         </DialogContent>
