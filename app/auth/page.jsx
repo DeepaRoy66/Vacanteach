@@ -5,8 +5,8 @@ import LoginMain from "../components/Login/LoginMain";
 
 
 export const metadata = {
-  title: "Vacanteach - Login to your account",
-  description: "Login to your account to get started with Vacanteach.",
+  title: "SikshakRojgar - Login to your account",
+  description: "Login to your account to get started with SikshakRojgar.",
 };
 
 function page() {

@@ -47,7 +47,7 @@ export default function Navbar() {
     return (
       <nav className="bg-gradient-to-r from-green-300 via-green-100 to-green-300 shadow-lg py-3 sticky top-0 z-30 animate-pulse-bg">
         <div className="container mx-auto px-6 flex justify-between items-center">
-          <div className="text-xl font-semibold text-green-800 tracking-tight">VacanTeach</div>
+          <div className="text-xl font-semibold text-green-800 tracking-tight">SikshakRojgar</div>
           <div className="space-x-4 flex items-center">
             <span className="text-green-900 text-sm font-medium">Loading...</span>
           </div>
@@ -62,7 +62,7 @@ export default function Navbar() {
     <nav className="bg-gradient-to-r from-green-300 via-green-100 to-green-300 shadow-lg py-3 sticky top-0 z-30 w-full animate-pulse-bg">
       <div className="container mx-auto px-6 flex justify-between items-center">
         <div className="text-xl font-semibold text-green-800 tracking-tight hover:scale-105 transition-transform duration-300">
-          VacanTeach
+          SikshakRojgar
         </div>
         <div className="space-x-6 flex items-center">
           <Link

@@ -187,7 +187,7 @@ export default function SidebarLayout({ onMobileMenuChange }) {
               <Building2 className="size-6" />
             </div>
             <div className="grid flex-1 text-left text-sm leading-tight">
-              <span className="truncate font-bold text-xl">VacanTeach</span>
+              <span className="truncate font-bold text-xl">SikshakRojgar</span>
               <span className="truncate text-sm text-emerald-100">
                 Recruitment Platform
               </span>

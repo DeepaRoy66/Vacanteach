@@ -36,7 +36,7 @@ function LoginMain() {
       <Toaster />
       <div className="w-full max-w-md p-6 rounded-2xl shadow-xl bg-white/20 backdrop-blur-lg border border-white/30 text-white">
         <h2 className="mb-3 text-3xl font-semibold text-center">Login to your account</h2>
-        <p className="text-sm text-center text-gray-100">Login to your account to get started with Vacanteach.</p>
+        <p className="text-sm text-center text-gray-100">Login to your account to get started with SikshakRojgar.</p>
         <div className="my-6 space-y-4">
           <button
             onClick={() => login("google")}

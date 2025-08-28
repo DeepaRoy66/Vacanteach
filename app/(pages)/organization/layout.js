@@ -1,7 +1,7 @@
 import ClientLayout from "./ClientLayout"
 
 export const metadata = {
-  title: "VacanTeach",
+  title: "SikshakRojgar",
   description: "Your App Description",
 }
 

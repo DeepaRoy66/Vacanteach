@@ -32,7 +32,7 @@ export default function NavBar({
                   <BookOpen className="h-5 w-5 text-white" />
                 </div>
                 <h1 className="text-2xl font-bold text-white">
-                  VacanTeach
+                  SikshakRojgar
                 </h1>
               </div>
             </div>
