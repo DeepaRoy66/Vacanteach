@@ -11,7 +11,6 @@ export async function PUT(request, { params }) {
     if (!job_id || !job_id.match(/^[0-9a-fA-F]{24}$/)) {
       return NextResponse.json({ error: "Invalid job ID format" }, { status: 400 });
     }
-
     const body = await request.json();
     console.log("Received payload:", body); // Debug log
     const {
@@ -35,6 +34,7 @@ export async function PUT(request, { params }) {
       postedBy,
       role,
       urgent,
+      org_id,
     } = body;
 
     // Validate session
@@ -61,7 +61,8 @@ export async function PUT(request, { params }) {
       !currency?.trim() ||
       !salaryType?.trim() ||
       !description?.trim() ||
-      !postedBy?.trim()
+      !postedBy?.trim() ||
+      !org_id?.trim()
     ) {
       return NextResponse.json(
         { error: "Missing or invalid required fields" },
@@ -103,12 +104,12 @@ export async function PUT(request, { params }) {
     await connectToDatabase();
 
     // Verify job exists and ownership
-    const job = await Job.findById(job_id).select("postedBy");
+    const job = await Job.findById(job_id).select("org_id");
     if (!job) {
       return NextResponse.json({ error: "Job not found" }, { status: 404 });
     }
-    console.log("Job postedBy:", job.postedBy, "Session email:", session.user.email); // Debug log
-    if (job.postedBy !== session.user.email) {
+    console.log("Job org_id:", job.org_id, "Session org_id:", session.user.org_id); // Debug log
+    if (job.org_id !== session.user.org_id) {
       return NextResponse.json(
         { error: "Unauthorized: You do not have permission to edit this job" },
         { status: 403 }
@@ -137,6 +138,7 @@ export async function PUT(request, { params }) {
       postedBy: session.user.email,
       role: "organization",
       urgent: Boolean(urgent),
+      org_id: session.user.org_id, // Ensure org_id is updated to match session
       updatedAt: new Date(),
     };
 
@@ -145,7 +147,6 @@ export async function PUT(request, { params }) {
       { $set: updateFields },
       { new: true, runValidators: true, lean: true }
     );
-
     if (!updatedJob) {
       return NextResponse.json({ error: "Job not found" }, { status: 404 });
     }
