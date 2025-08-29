@@ -94,6 +94,9 @@ export async function POST(request) {
     }
 
     await connectToDatabase();
+    // Retrieve org_id from session or user data (example assumption)
+    const orgId = session.user.org_id || "68b12047abaf927e211fb75c"; // Replace with actual logic to get org_id
+
     const newJob = await Job.create({
       position,
       requiredEmployees: Number(requiredEmployees),
@@ -113,6 +116,7 @@ export async function POST(request) {
       active: Boolean(active),
       description,
       postedBy: session.user.email, // Use session email
+      org_id: orgId, // Add org_id here
       role: "organization",
       urgent: Boolean(urgent || false),
       createdAt: new Date(),

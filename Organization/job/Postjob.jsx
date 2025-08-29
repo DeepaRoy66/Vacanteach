@@ -37,7 +37,6 @@ import {
 } from "lucide-react"
 import { cn } from "../../lib/utilis"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../app/components/ui/tooltip"
-
 const initialFormData = {
   position: "",
   requiredEmployees: "",
@@ -442,7 +441,6 @@ const SalaryDescriptionSection = ({
     setFormData((prev) => ({ ...prev, offeredSalaryType: value }))
     setErrors((prev) => ({ ...prev, offeredSalaryType: "" }))
   }
-
   return (
     <Accordion type="single" collapsible defaultValue="item-1">
       <AccordionItem
@@ -752,6 +750,7 @@ export default function PostJobPage() {
         maximum: formData.hideSalary || formData.offeredSalaryType !== "Range" ? null : Number(formData.maximum),
         postedBy: session?.user?.email,
         role: session?.user?.role || "organization",
+        org_id: session?.user?.org_id || "68b12047abaf927e211fb75c", // Add org_id from session
       }
       console.log("Submitting job:", jobData)
       const response = await fetch("/api/Org/addjob", {
@@ -781,7 +780,6 @@ export default function PostJobPage() {
       </div>
     )
   }
-
   if (session?.user?.role !== "organization") {
     router.push("/unauthorized")
     return (
