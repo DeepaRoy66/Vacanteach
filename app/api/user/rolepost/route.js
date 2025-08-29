@@ -97,11 +97,12 @@ export async function POST(req) {
     );
 
     // Update User model role for consistency
-    await User.findOneAndUpdate(
-      { email },
-      { $set: { role, profileCompleted: true } },
-      { upsert: true }
-    );
+   // Update the correct model for consistency
+await Model.findOneAndUpdate(
+  { email },
+  { $set: { role, profileCompleted: true } },
+  { upsert: true }
+);
 
     return new Response(JSON.stringify({ message: `${role} profile saved`, data: result }), {
       status: 200,
