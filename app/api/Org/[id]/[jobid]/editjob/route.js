@@ -1,23 +1,19 @@
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "../../auth/[...nextauth]/route";
-import { connectToDatabase } from "../../../../lib/mongoose";
-import Job from "../../../../lib/models/Job";
+import { authOptions } from "../../../../auth/[...nextauth]/route";
+import { connectToDatabase } from "../../../../../../lib/mongoose";
+import Job from "../../../../../../lib/models/Job";
 import { NextResponse } from "next/server";
 
-export async function POST(request) {
+export async function PUT(request, { params }) {
   try {
-    // Check session and authorization
-    const session = await getServerSession(authOptions);
-    if (!session || !session.user || session.user.role !== "organization") {
-      return NextResponse.json(
-        { error: "Unauthorized: Only organizations can post jobs" },
-        { status: 401 }
-      );
+    // Access params directly (App Router)
+    const { job_id } = params;
+    if (!job_id || !job_id.match(/^[0-9a-fA-F]{24}$/)) {
+      return NextResponse.json({ error: "Invalid job ID format" }, { status: 400 });
     }
-
     const body = await request.json();
+    console.log("Received payload:", body); // Debug log
     const {
-      orgId, // <-- get orgId from request body
       position,
       requiredEmployees,
       jobCategory,
@@ -35,17 +31,23 @@ export async function POST(request) {
       negotiable,
       active,
       description,
+      postedBy,
+      role,
       urgent,
+      org_id,
     } = body;
 
-    if (!orgId?.trim()) {
+    // Validate session
+    const session = await getServerSession(authOptions);
+    console.log("Session:", session); // Debug log
+    if (!session || !session.user || session.user.role !== "organization") {
       return NextResponse.json(
-        { error: "Organization ID is required" },
-        { status: 400 }
+        { error: "Unauthorized: Only organizations can edit jobs" },
+        { status: 401 }
       );
     }
 
-    // Validation for required fields
+    // Validate required fields
     if (
       !position?.trim() ||
       requiredEmployees === undefined ||
@@ -58,7 +60,9 @@ export async function POST(request) {
       !offeredSalaryType?.trim() ||
       !currency?.trim() ||
       !salaryType?.trim() ||
-      !description?.trim()
+      !description?.trim() ||
+      !postedBy?.trim() ||
+      !org_id?.trim()
     ) {
       return NextResponse.json(
         { error: "Missing or invalid required fields" },
@@ -66,6 +70,7 @@ export async function POST(request) {
       );
     }
 
+    // Validate description length
     if (description.length < 50 || description.length > 5000) {
       return NextResponse.json(
         { error: "Description must be between 50 and 5000 characters" },
@@ -73,6 +78,7 @@ export async function POST(request) {
       );
     }
 
+    // Validate salary fields
     if (!hideSalary) {
       if (minimum === undefined || isNaN(minimum) || minimum < 0) {
         return NextResponse.json(
@@ -80,18 +86,38 @@ export async function POST(request) {
           { status: 400 }
         );
       }
-      if (offeredSalaryType === "Range" && (maximum === undefined || isNaN(maximum) || maximum < minimum)) {
+      if (
+        offeredSalaryType === "Range" &&
+        (maximum === undefined || isNaN(maximum) || maximum < minimum)
+      ) {
         return NextResponse.json(
-          { error: "Maximum salary is required for range type and must be greater than minimum when salary is not hidden" },
+          {
+            error:
+              "Maximum salary is required for range type and must be greater than minimum when salary is not hidden",
+          },
           { status: 400 }
         );
       }
     }
 
+    // Connect to database
     await connectToDatabase();
 
-    const newJob = await Job.create({
-      org_id: orgId,
+    // Verify job exists and ownership
+    const job = await Job.findById(job_id).select("org_id");
+    if (!job) {
+      return NextResponse.json({ error: "Job not found" }, { status: 404 });
+    }
+    console.log("Job org_id:", job.org_id, "Session org_id:", session.user.org_id); // Debug log
+    if (job.org_id !== session.user.org_id) {
+      return NextResponse.json(
+        { error: "Unauthorized: You do not have permission to edit this job" },
+        { status: 403 }
+      );
+    }
+
+    // Update job
+    const updateFields = {
       position,
       requiredEmployees: Number(requiredEmployees),
       jobCategory,
@@ -111,13 +137,26 @@ export async function POST(request) {
       description,
       postedBy: session.user.email,
       role: "organization",
-      urgent: Boolean(urgent || false),
-      createdAt: new Date(),
-    });
+      urgent: Boolean(urgent),
+      org_id: session.user.org_id, // Ensure org_id is updated to match session
+      updatedAt: new Date(),
+    };
 
-    return NextResponse.json({ message: "Job posted successfully!", job: newJob }, { status: 201 });
+    const updatedJob = await Job.findByIdAndUpdate(
+      job_id,
+      { $set: updateFields },
+      { new: true, runValidators: true, lean: true }
+    );
+    if (!updatedJob) {
+      return NextResponse.json({ error: "Job not found" }, { status: 404 });
+    }
+
+    return NextResponse.json(
+      { message: "Job updated successfully", job: updatedJob },
+      { status: 200 }
+    );
   } catch (error) {
-    console.error("Error posting job:", error);
+    console.error("Error updating job:", error);
     let errorMessage = error.message || "Internal Server Error";
     if (error.name === "ValidationError") {
       errorMessage = Object.values(error.errors).map((e) => e.message).join(", ");

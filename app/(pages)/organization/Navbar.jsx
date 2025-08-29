@@ -8,12 +8,14 @@ import { Menu, X } from "lucide-react"
 export default function Navbar() {
   const { data: session, status } = useSession()
   const [user, setUser] = useState(null)
-  const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [dropdownOpen, setDropdownOpen] = useState(false)
+  const [mobileDropdownOpen, setMobileDropdownOpen] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const dropdownRef = useRef()
+  const mobileDropdownRef = useRef()
 
+  // Fetch organization data
   useEffect(() => {
     async function fetchOrganization() {
       if (status === "authenticated" && session?.user?.email) {
@@ -35,42 +37,46 @@ export default function Navbar() {
           setError("Error fetching organization data")
           setUser(null)
           console.error(err)
-        } finally {
-          setLoading(false)
         }
       }
     }
     fetchOrganization()
   }, [session, status])
 
+  // Close dropdown if clicked outside (desktop)
   useEffect(() => {
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setDropdownOpen(false)
+      }
+      if (mobileDropdownRef.current && !mobileDropdownRef.current.contains(event.target)) {
+        setMobileDropdownOpen(false)
       }
     }
     document.addEventListener("mousedown", handleClickOutside)
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
 
+  const orgId = user?.org_id || "68b12047abaf927e211fb75c" // fallback orgId
+
   return (
     <nav className="sticky top-0 bg-green-600 z-50">
       <div className="container mx-auto px-4 lg:px-6 py-2 flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="text-white font-bold text-xl">
-          
+          SikshakRojgar
         </Link>
 
         {/* Desktop menu */}
         <div className="hidden lg:flex items-center space-x-4">
           <Link
-            href="/organization/postjob"
+            href={`/organization/${orgId}/postjob`}
             className="bg-white text-green-600 px-4 py-2 rounded-md hover:bg-green-100 hover:text-green-700 font-medium transition-colors"
           >
             PostJob
           </Link>
 
-          {status === "loading" || loading ? (
+          {status === "loading" ? (
             <span className="text-white">Loading...</span>
           ) : status === "unauthenticated" ? (
             <span className="text-red-200">Not signed in</span>
@@ -128,29 +134,29 @@ export default function Navbar() {
         <div className="lg:hidden bg-green-600 text-white w-full shadow-md">
           <div className="flex flex-col px-4 py-3 space-y-2">
             <Link
-              href="/organization/postjob"
+              href={`/organization/${orgId}/postjob`}
               className="bg-white text-green-600 px-4 py-2 rounded-md hover:bg-green-100 hover:text-green-700 font-medium transition-colors"
               onClick={() => setMobileMenuOpen(false)}
             >
               PostJob
             </Link>
 
-            {status === "loading" || loading ? (
+            {status === "loading" ? (
               <span>Loading...</span>
             ) : status === "unauthenticated" ? (
               <span>Not signed in</span>
             ) : error ? (
               <span>{error}</span>
             ) : (
-              <div className="relative" ref={dropdownRef}>
+              <div className="relative" ref={mobileDropdownRef}>
                 <button
-                  onClick={() => setDropdownOpen(!dropdownOpen)}
+                  onClick={() => setMobileDropdownOpen(!mobileDropdownOpen)}
                   className="flex items-center justify-between w-full focus:outline-none hover:bg-green-700 p-2 rounded-lg transition-colors"
                 >
                   <span>{user?.organizationName || session.user.email}</span>
-                  <span className="text-xl">{dropdownOpen ? "▲" : "▼"}</span>
+                  <span className="text-xl">{mobileDropdownOpen ? "▲" : "▼"}</span>
                 </button>
-                {dropdownOpen && (
+                {mobileDropdownOpen && (
                   <div className="flex flex-col mt-1 bg-white text-green-600 rounded-md overflow-hidden">
                     <button
                       onClick={() => {

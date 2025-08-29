@@ -5,7 +5,6 @@ import { authOptions } from "../../auth/[...nextauth]/route";
 
 export async function GET(req) {
   try {
-    // Get session using NextAuth's getServerSession
     const session = await getServerSession(authOptions);
 
     if (!session || !session.user?.email) {
@@ -18,7 +17,7 @@ export async function GET(req) {
 
     await connectToDatabase();
 
-    const organization = await Organization.findOne({ email: session.user.email });
+    const organization = await Organization.findOne({ email: session.user.email }).lean();
 
     if (!organization) {
       console.warn("Organization not found for email:", session.user.email);
@@ -28,7 +27,18 @@ export async function GET(req) {
       });
     }
 
-    return new Response(JSON.stringify({ organization }), {
+    // Explicitly return the _id
+    const responseData = {
+      id: organization._id, // <--- this is key for your redirect
+      email: organization.email,
+      organizationName: organization.organizationName,
+      industry: organization.industry,
+      phone: organization.phone,
+      role: organization.role,
+      profileCompleted: organization.profileCompleted || true,
+    };
+
+    return new Response(JSON.stringify(responseData), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
@@ -50,7 +60,6 @@ export async function POST(req) {
     console.log("Request body:", body); 
     const { email, organizationName, industry, phone, role } = body;
 
-   
     if (
       !email ||
       !organizationName ||
@@ -69,21 +78,32 @@ export async function POST(req) {
 
     await connectToDatabase();
 
-  
     const updateData = {
       organizationName,
       industry,
       phone,
       role,
+      profileCompleted: true,
     };
 
     const org = await Organization.findOneAndUpdate(
       { email },
       { $set: updateData },
       { upsert: true, new: true }
-    );
+    ).lean();
 
-    return new Response(JSON.stringify({ message: "Organization profile saved", organization: org }), {
+    return new Response(JSON.stringify({
+      message: "Organization profile saved",
+      organization: {
+        id: org._id, 
+        email: org.email,
+        organizationName: org.organizationName,
+        industry: org.industry,
+        phone: org.phone,
+        role: org.role,
+        profileCompleted: org.profileCompleted,
+      }
+    }), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });

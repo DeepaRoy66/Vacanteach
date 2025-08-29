@@ -1,3 +1,4 @@
+// app/api/auth/[...nextauth]/route.js
 import NextAuth from "next-auth/next";
 import GoogleProvider from "next-auth/providers/google";
 import FacebookProvider from "next-auth/providers/facebook";
@@ -46,8 +47,6 @@ export const authOptions = {
         const dbUser = await User.findOne({ email: token.email });
         let newRole = "user";
         let profileCompleted = false;
-        let orgId = null;
-
         if (dbUser) {
           newRole = dbUser.role || "user";
           profileCompleted = dbUser.profileCompleted || false;
@@ -56,13 +55,11 @@ export const authOptions = {
           if (orgUser) {
             newRole = orgUser.role || "organization";
             profileCompleted = orgUser.profileCompleted || false;
-            orgId = orgUser._id ? orgUser._id.toString() : null; // Fetch org_id from Organization model
           }
         }
-        console.log("[NextAuth] JWT role:", newRole, "Profile completed:", profileCompleted, "orgId:", orgId);
+        console.log("[NextAuth] JWT role:", newRole, "Profile completed:", profileCompleted);
         token.role = newRole;
         token.profileCompleted = profileCompleted;
-        if (orgId) token.org_id = orgId; // Add org_id to token if it exists
         return token;
       } catch (error) {
         console.error("[NextAuth] Error fetching user role:", error);
@@ -74,8 +71,7 @@ export const authOptions = {
     async session({ session, token }) {
       session.user.role = token.role;
       session.user.profileCompleted = token.profileCompleted;
-      if (token.org_id) session.user.org_id = token.org_id; // Add org_id to session if it exists
-      console.log("[NextAuth] Session with role:", session.user.role, "Profile completed:", session.user.profileCompleted, "orgId:", session.user.org_id);
+      console.log("[NextAuth] Session with role:", session.user.role, "Profile completed:", session.user.profileCompleted);
       return session;
     },
   },

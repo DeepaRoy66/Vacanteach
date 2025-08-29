@@ -13,7 +13,7 @@ import ActiveJobListings from "./ActiveJobListings"
 import Insights from "./Insights"
 import CallToAction from "./CallToActions"
 
-export default function OrganizationDashboard() {
+export default function OrganizationDashboard({ orgId }) {   // ✅ orgId comes from URL
   const router = useRouter()
   const { data: session, status } = useSession({
     required: true,
@@ -35,13 +35,13 @@ export default function OrganizationDashboard() {
     } else if (status === "authenticated" && session?.user?.role !== "organization") {
       router.push("/unauthorized")
     }
-  }, [status, session])
+  }, [status, session, orgId])
 
   const fetchActiveJobs = async () => {
     setIsLoadingJobs(true)
     try {
       const response = await fetch(
-        `/api/Org/listjob?active=true&postedBy=${encodeURIComponent(session?.user?.email)}`,
+        `/api/Org/listjob?active=true&orgId=${encodeURIComponent(orgId)}`,  // ✅ using orgId
         { method: "GET", headers: { "Content-Type": "application/json" } },
       )
       if (!response.ok) throw new Error("Failed to fetch jobs")
@@ -59,7 +59,7 @@ export default function OrganizationDashboard() {
     setIsLoadingApplications(true)
     try {
       const response = await fetch(
-        `/api/Org/JobApplications?postedBy=${encodeURIComponent(session?.user?.email)}`,
+        `/api/Org/JobApplications?orgId=${encodeURIComponent(orgId)}`,  // ✅ using orgId
         { method: "GET", headers: { "Content-Type": "application/json" } },
       )
       if (!response.ok) throw new Error("Failed to fetch applications")
