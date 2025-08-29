@@ -142,7 +142,7 @@ export default function Navbar() {
           ) : (
             <Link href="/auth">
               <button className="bg-green-500 text-white font-medium text-sm px-6 py-1.5 rounded-md shadow-md hover:bg-green-600 hover:scale-105 hover:shadow-lg active:scale-95 transition-all duration-300 ease-in-out">
-                Login
+                Sign Up
               </button>
             </Link>
           )}

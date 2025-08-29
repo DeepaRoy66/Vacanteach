@@ -28,7 +28,7 @@ export default function Footer() {
           <ul>
             <li>Find Talent</li>
             <li>Project Catalog</li>
-            <li>Why Upwork</li>
+            <li>Why SikshakRojgar</li>
             <li>Enterprise</li>
           </ul>
         </div>
@@ -36,22 +36,22 @@ export default function Footer() {
           <h3>For Talent</h3>
           <ul>
             <li>Find Freelance Jobs</li>
-            <li>Why Upwork</li>
-            <li>Careers with Upwork</li>
+            <li>Why SikshakRojgar</li>
+            <li>Careers with SikshakRojgar</li>
           </ul>
         </div>
         <div>
           <h3>Resources</h3>
           <ul>
             <li>Help & Support</li>
-            <li>Upwork Reviews</li>
+            <li>SikshakRojgar Reviews</li>
             <li>Affiliate Program</li>
             <li>Free Business Tools</li>
           </ul>
         </div>
       </div>
       <div className="mt-4 text-center text-gray-400">
-        © 2025 Upwork. Terms of Service | Privacy Policy | CA Notice of Collection | Cookie Settings | Accessibility
+        © 2025 SikshakRojgar. Terms of Service | Privacy Policy | CA Notice of Collection | Cookie Settings | Accessibility
       </div>
     </footer>
   );

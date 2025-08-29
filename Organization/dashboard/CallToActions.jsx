@@ -16,7 +16,7 @@ export default function CallToAction({ router }) {
           {/* Subheading */}
           <p className="text-green-100 text-lg mb-8 leading-relaxed">
             Join thousands of companies using our platform to connect with top talent. 
-            Post your job today and start receiving applications from qualified candidates.
+            Post your job today and start receiving applications from qualified Applicants.
           </p>
 
           {/* Buttons */}
@@ -36,7 +36,7 @@ export default function CallToAction({ router }) {
               size="lg"
               variant="outline"
               className="border-white/40 text-white hover:bg-white/10 rounded-xl px-6 py-3"
-              onClick={() => router.push("/organization/candidates")}
+              onClick={() => router.push("/organization/Applicants")}
             >
               <Users className="h-5 w-5 mr-2" />
               Browse Talent Pool

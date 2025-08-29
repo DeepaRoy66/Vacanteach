@@ -41,11 +41,11 @@ const data = {
       ],
     },
     {
-      title: "Candidates",
+      title: "Applicants",
       url: "#",
       icon: Users,
       items: [
-        { title: "All Candidates", url: "#" },
+        { title: "All Applicants", url: "#" },
         { title: "Shortlisted", url: "#" },
         { title: "Interviewed", url: "#" },
         { title: "Hired", url: "#" },

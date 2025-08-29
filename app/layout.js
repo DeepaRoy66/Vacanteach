@@ -5,7 +5,7 @@ import Navbar from './components/Navbar';
 import ClientLayout from './components/ClientLayout';
 
 export const metadata = {
-  title: 'Upwork Clone',
+  title: 'SikshakRojgar Clone',
   description: 'Freelance services marketplace',
 };
 
