@@ -1,6 +1,8 @@
 "use client"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
+import { usePathname } from "next/navigation"
+import { useParams } from "next/navigation"
 import { useSession, signOut } from "next-auth/react"
 import Link from "next/link"
 import {
@@ -19,56 +21,26 @@ import {
   ChevronDown,
 } from "lucide-react"
 
-const data = {
-  navMain: [
-    {
-      title: "Dashboard",
-      url: "/organization",
-      icon: LayoutDashboard,
-      items: [{ title: "Organization Dashboard", url: "/organization" }],
-    },
-    {
-      title: "Manage Jobs",
-      url: "#",
-      icon: BriefcaseBusiness,
-      items: [
-        { title: "All Jobs", url: "/organization/Jobpage" },
-        { title: "Active Jobs", url: "/organization/Activejob" },
-        { title: "Pending Jobs", url: "/organization/Pendingpage" },
-        { title: "Denied Jobs", url: "#" },
-        { title: "Draft Jobs", url: "#" },
-        { title: "Expired Jobs", url: "#" },
-      ],
-    },
-    {
-      title: "Applicants",
-      url: "#",
-      icon: Users,
-      items: [
-        { title: "All Applicants", url: "#" },
-        { title: "Shortlisted", url: "#" },
-        { title: "Interviewed", url: "#" },
-        { title: "Hired", url: "#" },
-      ],
-    },
-    { title: "Analytics", url: "#", icon: BarChart3 },
-    { title: "Calendar", url: "#", icon: Calendar },
-    { title: "Reports", url: "#", icon: FileText },
-  ],
-  navSecondary: [
-    { title: "Settings", url: "#", icon: Settings },
-    { title: "Help & Support", url: "#", icon: HelpCircle },
-  ],
-}
-
-export default function SidebarLayout({ onMobileMenuChange }) {
+export default function SidebarLayout({ onMobileMenuChange, children }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
-  const [activeUrl, setActiveUrl] = useState("/dashboard")
+  const [activeUrl, setActiveUrl] = useState("")
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [openDropdown, setOpenDropdown] = useState(null)
+  
   const router = useRouter()
+  const pathname = usePathname()
+  const params = useParams()
   const { data: session, status } = useSession()
+  
+  // Get orgId from URL params
+  const orgId = params?.id
+  
+  console.log("Sidebar orgId:", orgId) // Debug log
+
+  useEffect(() => {
+    setActiveUrl(pathname)
+  }, [pathname])
 
   useEffect(() => {
     async function fetchOrganization() {
@@ -98,8 +70,29 @@ export default function SidebarLayout({ onMobileMenuChange }) {
   }, [isSidebarOpen, onMobileMenuChange])
 
   const handleNavigation = (url, closeDropdown = false) => {
-    router.push(url)
-    setActiveUrl(url)
+    let finalUrl = url
+    
+    // Inject orgId dynamically for organization routes
+    if (orgId && url.includes("/organization/")) {
+      if (url === "/organization") {
+        finalUrl = `/organization/${orgId}`
+      } else if (url === "/organization/Jobpage") {
+        finalUrl = `/organization/${orgId}/Jobpage`
+      } else if (url === "/organization/Activejob") {
+        finalUrl = `/organization/${orgId}/Activejob`
+      } else if (url === "/organization/Pendingpage") {
+        finalUrl = `/organization/${orgId}/Pendingpage`
+      } else if (url === "/organization/postjob") {
+        finalUrl = `/organization/${orgId}/postjob`
+      } else {
+        // Handle other organization routes
+        finalUrl = url.replace("/organization", `/organization/${orgId}`)
+      }
+    }
+    
+    console.log("Navigating from:", url, "to:", finalUrl) // Debug log
+    router.push(finalUrl)
+    setActiveUrl(finalUrl)
     setIsSidebarOpen(false)
     if (closeDropdown) setOpenDropdown(null)
   }
@@ -109,16 +102,66 @@ export default function SidebarLayout({ onMobileMenuChange }) {
   }
 
   const isActive = (item) => {
-    if (item.url === activeUrl) return true
-    if (item.items && item.items.some((subItem) => subItem.url === activeUrl)) return true
+    // Check if current pathname matches the item's intended path
+    const expectedPath = orgId && item.url.includes("/organization/") 
+      ? item.url.replace("/organization", `/organization/${orgId}`) 
+      : item.url
+    
+    if (expectedPath === activeUrl) return true
+    if (item.items && item.items.some((subItem) => {
+      const subExpectedPath = orgId && subItem.url.includes("/organization/")
+        ? subItem.url.replace("/organization", `/organization/${orgId}`)
+        : subItem.url
+      return subExpectedPath === activeUrl
+    })) return true
     return false
+  }
+
+  const data = {
+    navMain: [
+      {
+        title: "Dashboard",
+        url: "/organization",
+        icon: LayoutDashboard,
+      },
+      {
+        title: "Manage Jobs",
+        url: "#",
+        icon: BriefcaseBusiness,
+        items: [
+          { title: "All Jobs", url: "/organization/Jobpage" },
+          { title: "Active Jobs", url: "/organization/Activejob" },
+          { title: "Pending Jobs", url: "/organization/Pendingpage" },
+          { title: "Denied Jobs", url: "#" },
+          { title: "Draft Jobs", url: "#" },
+          { title: "Expired Jobs", url: "#" },
+        ],
+      },
+      {
+        title: "Applicants",
+        url: "#",
+        icon: Users,
+        items: [
+          { title: "All Applicants", url: "#" },
+          { title: "Shortlisted", url: "#" },
+          { title: "Interviewed", url: "#" },
+          { title: "Hired", url: "#" },
+        ],
+      },
+      { title: "Analytics", url: "#", icon: BarChart3 },
+      { title: "Calendar", url: "#", icon: Calendar },
+      { title: "Reports", url: "#", icon: FileText },
+    ],
+    navSecondary: [
+      { title: "Settings", url: "#", icon: Settings },
+      { title: "Help & Support", url: "#", icon: HelpCircle },
+    ],
   }
 
   const NavButton = ({ item, onClick, isActive, isSubItem = false, hasDropdown = false }) => {
     const commonClasses = `flex items-center justify-between p-3 rounded-lg w-full text-left font-medium transition-colors duration-200
       ${isSubItem ? "pl-9 text-sm" : ""}
       ${isActive ? "bg-emerald-100 text-emerald-900" : "text-emerald-800 hover:bg-emerald-50 hover:text-emerald-900"}`
-
     return (
       <button className={commonClasses} onClick={onClick}>
         <div className="flex items-center">
@@ -136,20 +179,26 @@ export default function SidebarLayout({ onMobileMenuChange }) {
 
   const Submenu = ({ items, parentTitle }) => (
     <div className={`ml-6 mt-1 space-y-1 ${openDropdown === parentTitle ? "block" : "hidden"}`}>
-      {items.map((subItem) => (
-        <NavButton
-          key={subItem.title}
-          item={subItem}
-          onClick={() => handleNavigation(subItem.url)} // dropdown stays open
-          isActive={activeUrl === subItem.url}
-          isSubItem={true}
-        />
-      ))}
+      {items.map((subItem) => {
+        const subExpectedPath = orgId && subItem.url.includes("/organization/")
+          ? subItem.url.replace("/organization", `/organization/${orgId}`)
+          : subItem.url
+        
+        return (
+          <NavButton
+            key={subItem.title}
+            item={subItem}
+            onClick={() => handleNavigation(subItem.url)}
+            isActive={activeUrl === subExpectedPath}
+            isSubItem={true}
+          />
+        )
+      })}
     </div>
   )
 
   return (
-    <>
+    <div className="flex h-screen">
       {/* Mobile menu button */}
       <div className="lg:hidden fixed top-4 left-4 z-50">
         <button
@@ -159,7 +208,7 @@ export default function SidebarLayout({ onMobileMenuChange }) {
           {isSidebarOpen ? <X className="size-6" /> : <Menu className="size-6" />}
         </button>
       </div>
-
+      
       {/* Mobile overlay */}
       {isSidebarOpen && (
         <div
@@ -167,7 +216,7 @@ export default function SidebarLayout({ onMobileMenuChange }) {
           onClick={() => setIsSidebarOpen(false)}
         ></div>
       )}
-
+      
       {/* Sidebar */}
       <aside
         className={`fixed top-0 left-0 h-screen w-70 bg-white shadow-xl z-50 transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:flex-shrink-0 lg:z-10 ${
@@ -194,7 +243,7 @@ export default function SidebarLayout({ onMobileMenuChange }) {
             </div>
           </div>
         </header>
-
+        
         {/* Navigation */}
         <div className="flex-1 overflow-y-auto max-h-screen p-6 space-y-6">
           <style>{`
@@ -204,7 +253,7 @@ export default function SidebarLayout({ onMobileMenuChange }) {
             .overflow-y-auto::-webkit-scrollbar-thumb:hover { background: #6ee7b7; }
             .overflow-y-auto::-webkit-scrollbar-button { display: none; }
           `}</style>
-
+          
           {/* Mobile profile */}
           <div className="lg:hidden bg-emerald-50 rounded-xl p-4 border border-emerald-200">
             {status === "authenticated" && (
@@ -230,13 +279,12 @@ export default function SidebarLayout({ onMobileMenuChange }) {
                 </div>
               </div>
             )}
-            <Link
-              href="/organization/postjob"
+            <button
+              onClick={() => handleNavigation("/organization/postjob")}
               className="block w-full bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-white hover:text-green-500 focus:ring-2 focus:ring-green-400 transition-colors text-center font-medium mb-3"
-              onClick={() => setIsSidebarOpen(false)}
             >
-              PostJob
-            </Link>
+              Post Job
+            </button>
             {status === "authenticated" && (
               <button
                 onClick={() => {
@@ -250,7 +298,7 @@ export default function SidebarLayout({ onMobileMenuChange }) {
               </button>
             )}
           </div>
-
+          
           {/* Main navigation */}
           <div className="space-y-4">
             <h4 className="text-emerald-700 font-semibold text-xs uppercase tracking-wider">
@@ -280,7 +328,7 @@ export default function SidebarLayout({ onMobileMenuChange }) {
               ))}
             </ul>
           </div>
-
+          
           {/* Secondary navigation */}
           <div className="space-y-4">
             <h4 className="text-emerald-700 font-semibold text-xs uppercase tracking-wider">
@@ -300,6 +348,11 @@ export default function SidebarLayout({ onMobileMenuChange }) {
           </div>
         </div>
       </aside>
-    </>
+      
+      {/* Main content */}
+      <main className="flex-1 overflow-y-auto lg:ml-0">
+        {children}
+      </main>
+    </div>
   )
 }
