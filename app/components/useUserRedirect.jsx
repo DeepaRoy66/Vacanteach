@@ -8,90 +8,71 @@ export function useUserRedirect() {
   const router = useRouter();
 
   useEffect(() => {
-    async function checkRedirect() {
-      if (status !== "authenticated") {
-        console.log("useUserRedirect: Not authenticated, skipping redirect");
+    if (status !== "authenticated") {
+      console.log("useUserRedirect: Waiting for authentication…");
+      return;
+    }
+
+    const currentPath = window.location.pathname;
+    const role = session?.user?.role;
+    const profileCompleted = session?.user?.profileCompleted;
+
+    console.log("useUserRedirect: Current pathname:", currentPath, "Session:", {
+      role,
+      profileCompleted,
+    });
+
+    async function handleRedirect() {
+      if (!role || !profileCompleted || role === "user") {
+        if (currentPath !== "/select-role" && currentPath !== "/auth") {
+          router.replace("/select-role");
+        }
         return;
       }
 
-      const currentPath = window.location.pathname;
-      console.log("useUserRedirect: Current pathname:", currentPath, "Session:", {
-        role: session?.user?.role,
-        profileCompleted: session?.user?.profileCompleted,
-      });
-
-      // If session has role and profile completed, redirect accordingly
-      if (session?.user?.role && session?.user?.profileCompleted && session.user.role !== "user") {
-        if (session.user.role === "organization") {
+      // ✅ ORG flow
+      if (role === "organization") {
+        let orgId = session?.user?.id; // add this in next-auth callback
+        if (!orgId) {
           try {
-            // Fetch org ID from API
             const res = await fetch("/api/user/organizationdata");
             if (res.ok) {
-              const orgData = await res.json();
-              const orgId = orgData.id;
-              const redirectPath = `/organization/${orgId}`;
-              if (currentPath !== redirectPath) {
-                console.log("useUserRedirect: Redirecting to organization with id", orgId);
-                router.replace(redirectPath);
-              }
-              return;
-            } else {
-              console.error("useUserRedirect: Failed to fetch org data", res.status);
+              const data = await res.json();
+              orgId = data.id;
             }
           } catch (err) {
-            console.error("useUserRedirect: Error fetching org data", err);
+            console.error("useUserRedirect: Failed to fetch org data", err);
           }
-        } else if (session.user.role === "teacher") {
-          const redirectPath = "/teacher";
-          if (currentPath !== redirectPath) {
-            router.replace(redirectPath);
-          }
-          return;
+        }
+        const redirectPath = orgId ? `/organization/${orgId}` : "/organization";
+        if (currentPath !== redirectPath) {
+          console.log("Redirecting to org:", redirectPath);
+          router.replace(redirectPath);
         }
       }
 
-      // Fallback to API check if session data is missing
-      try {
-        const res = await fetch("/api/user/check-role");
-        if (!res.ok) {
-          if (currentPath !== "/select-role" && currentPath !== "/auth") {
-            router.replace("/select-role");
-          }
-          return;
-        }
-
-        const { role, profileCompleted } = await res.json();
-        console.log("useUserRedirect: API response", { role, profileCompleted });
-
-        if (role && profileCompleted && role !== "user") {
-          if (role === "organization") {
-            const orgRes = await fetch("/api/organizationdata");
-            if (orgRes.ok) {
-              const orgData = await orgRes.json();
-              const orgId = orgData.id;
-              const redirectPath = `/organization/${orgId}`;
-              if (currentPath !== redirectPath) {
-                router.replace(redirectPath);
-              }
-              return;
+      // ✅ TEACHER flow
+      if (role === "teacher") {
+        let teacherId = session?.user?.id;
+        if (!teacherId) {
+          try {
+            const res = await fetch("/api/user/teacherdata");
+            if (res.ok) {
+              const data = await res.json();
+              teacherId = data.user?._id;
             }
-          } else if (role === "teacher") {
-            const redirectPath = "/teacher";
-            if (currentPath !== redirectPath) {
-              router.replace(redirectPath);
-            }
+          } catch (err) {
+            console.error("useUserRedirect: Failed to fetch teacher data", err);
           }
-        } else if (currentPath !== "/select-role" && currentPath !== "/auth") {
-          router.replace("/select-role");
         }
-      } catch (error) {
-        console.error("useUserRedirect: Error during API check", error);
-        if (currentPath !== "/select-role" && currentPath !== "/auth") {
-          router.replace("/select-role");
+        const redirectPath = teacherId ? `/teacher/${teacherId}` : "/teacher";
+        if (currentPath !== redirectPath) {
+          console.log("Redirecting to teacher:", redirectPath);
+          router.replace(redirectPath);
         }
       }
     }
 
-    checkRedirect();
+    handleRedirect();
   }, [status, session, router]);
 }

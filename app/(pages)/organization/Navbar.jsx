@@ -43,7 +43,7 @@ export default function Navbar() {
     fetchOrganization()
   }, [session, status])
 
-  // Close dropdown if clicked outside (desktop)
+  // Close dropdowns if clicked outside
   useEffect(() => {
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -57,7 +57,8 @@ export default function Navbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
 
-  const orgId = user?.org_id || "68b12047abaf927e211fb75c" // fallback orgId
+  // Only use orgId if fetched
+  const orgId = user?._id
 
   return (
     <nav className="sticky top-0 bg-green-600 z-50">
@@ -69,12 +70,14 @@ export default function Navbar() {
 
         {/* Desktop menu */}
         <div className="hidden lg:flex items-center space-x-4">
-          <Link
-            href={`/organization/${orgId}/postjob`}
-            className="bg-white text-green-600 px-4 py-2 rounded-md hover:bg-green-100 hover:text-green-700 font-medium transition-colors"
-          >
-            PostJob
-          </Link>
+          {orgId && (
+            <Link
+              href={`/organization/${orgId}/postjob`}
+              className="bg-white text-green-600 px-4 py-2 rounded-md hover:bg-green-100 hover:text-green-700 font-medium transition-colors"
+            >
+              PostJob
+            </Link>
+          )}
 
           {status === "loading" ? (
             <span className="text-white">Loading...</span>
@@ -133,13 +136,15 @@ export default function Navbar() {
       {mobileMenuOpen && (
         <div className="lg:hidden bg-green-600 text-white w-full shadow-md">
           <div className="flex flex-col px-4 py-3 space-y-2">
-            <Link
-              href={`/organization/${orgId}/postjob`}
-              className="bg-white text-green-600 px-4 py-2 rounded-md hover:bg-green-100 hover:text-green-700 font-medium transition-colors"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              PostJob
-            </Link>
+            {orgId && (
+              <Link
+                href={`/organization/${orgId}/postjob`}
+                className="bg-white text-green-600 px-4 py-2 rounded-md hover:bg-green-100 hover:text-green-700 font-medium transition-colors"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                PostJob
+              </Link>
+            )}
 
             {status === "loading" ? (
               <span>Loading...</span>

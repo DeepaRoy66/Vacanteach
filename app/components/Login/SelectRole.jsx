@@ -1,12 +1,11 @@
-// app/(pages)/select-role/page.js
 "use client";
 import { useState, useEffect } from "react";
-import { useSession, getSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import toast, { Toaster } from "react-hot-toast";
 
 export default function SelectRole() {
-  const { data: session, status } = useSession();
+  const { data: session, status, update } = useSession();
   const router = useRouter();
   const [selectedRole, setSelectedRole] = useState(null);
   const [isFormVisible, setIsFormVisible] = useState(false);
@@ -20,53 +19,36 @@ export default function SelectRole() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    async function checkProfile() {
-      if (status !== "authenticated" || !session?.user?.email) {
-        console.log("SelectRole: Not authenticated or no email");
-        return;
+    if (status !== "authenticated" || !session?.user?.email) return;
+
+    console.log("SelectRole: Session data", {
+      role: session.user.role,
+      profileCompleted: session.user.profileCompleted,
+      organizationId: session.user.organizationId,
+      teacherId: session.user.teacherId,
+    });
+
+    // Pre-fill form data
+    setFormData((prev) => ({
+      ...prev,
+      email: session.user.email,
+      name: session.user.name || "",
+    }));
+
+    // If profile is already completed → redirect
+    const { role, profileCompleted, organizationId, teacherId } = session.user;
+    if (role && profileCompleted && role !== "user") {
+      let redirectPath;
+      if (role === "organization") {
+        redirectPath = organizationId
+          ? `/organization/${organizationId}`
+          : "/organization";
+      } else {
+        redirectPath = teacherId ? `/teacher/${teacherId}` : "/teacher";
       }
-
-      console.log("SelectRole: Session data", {
-        role: session.user.role,
-        profileCompleted: session.user.profileCompleted,
-      });
-
-      // Set form data from session
-      setFormData((prev) => ({
-        ...prev,
-        email: session.user.email,
-        name: session.user.name || "",
-      }));
-
-      // Trust session data if available
-      if (session.user.role && session.user.profileCompleted && session.user.role !== "user") {
-        const redirectPath = session.user.role === "organization" ? "/organization" : "/teacher";
-        console.log("SelectRole: Redirecting to", redirectPath);
-        router.push(redirectPath);
-        return;
-      }
-
-      // Fallback to API check
-      try {
-        const res = await fetch("/api/user/check-role");
-        if (!res.ok) {
-          console.error("SelectRole: API error", { status: res.status, text: await res.text() });
-          toast.error("Error checking profile. Please try again.");
-          return;
-        }
-        const { role, profileCompleted } = await res.json();
-        console.log("SelectRole: API response", { role, profileCompleted });
-        if (role && profileCompleted && role !== "user") {
-          const redirectPath = role === "organization" ? "/organization" : "/teacher";
-          console.log("SelectRole: Redirecting to", redirectPath);
-          router.push(redirectPath);
-        }
-      } catch (error) {
-        console.error("SelectRole: Error checking role", error);
-        toast.error("Error checking profile. Please try again.");
-      }
+      console.log("SelectRole: Redirecting to", redirectPath);
+      router.push(redirectPath);
     }
-    checkProfile();
   }, [status, session, router]);
 
   if (status === "loading") {
@@ -97,6 +79,8 @@ export default function SelectRole() {
       toast.error("Please select a role.");
       return;
     }
+
+    // Validation
     if (selectedRole === "organization") {
       if (
         !formData.organizationName ||
@@ -109,17 +93,9 @@ export default function SelectRole() {
         );
         return;
       }
-      if (!/^\d{10}$/.test(formData.phone)) {
-        toast.error("Phone number must be exactly 10 digits.");
-        return;
-      }
     } else {
       if (!formData.name || !formData.email || !formData.phone) {
         toast.error("Please fill all fields: Full Name, Email, Phone Number.");
-        return;
-      }
-      if (!/^\d{10}$/.test(formData.phone)) {
-        toast.error("Phone number must be exactly 10 digits.");
         return;
       }
       if (formData.email !== session.user.email) {
@@ -127,6 +103,12 @@ export default function SelectRole() {
         return;
       }
     }
+
+    if (!/^\d{10}$/.test(formData.phone)) {
+      toast.error("Phone number must be exactly 10 digits.");
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       console.log("SelectRole: Submitting form", formData);
@@ -138,15 +120,36 @@ export default function SelectRole() {
           name: formData.name,
           email: formData.email,
           phone: formData.phone,
-          organizationName: selectedRole === "organization" ? formData.organizationName : undefined,
-          industry: selectedRole === "organization" ? formData.industry : undefined,
+          organizationName:
+            selectedRole === "organization" ? formData.organizationName : undefined,
+          industry:
+            selectedRole === "organization" ? formData.industry : undefined,
         }),
       });
+
       const result = await res.json();
       if (res.ok) {
         toast.success(result.message || "Profile created successfully!");
-        await getSession();
-        const redirectPath = selectedRole === "organization" ? "/organization" : "/teacher";
+
+        // Refresh session to get updated role + IDs
+        await update();
+
+        // Construct redirect path using API response (fallback if session not updated instantly)
+        let redirectPath;
+        if (selectedRole === "organization") {
+          const orgId =
+            result.organizationId ||
+            result.user?.organizationId ||
+            session.user.organizationId;
+          redirectPath = orgId ? `/organization/${orgId}` : "/organization";
+        } else {
+          const teacherId =
+            result.teacherId ||
+            result.user?.teacherId ||
+            session.user.teacherId;
+          redirectPath = teacherId ? `/teacher/${teacherId}` : "/teacher";
+        }
+
         console.log("SelectRole: Redirecting to", redirectPath);
         router.push(redirectPath);
       } else {
@@ -181,7 +184,9 @@ export default function SelectRole() {
                 onChange={() => setSelectedRole("organization")}
                 className="mr-3 text-blue-600"
               />
-              <span className="text-gray-700">I'm an organization, providing jobs</span>
+              <span className="text-gray-700">
+                I'm an organization, providing jobs
+              </span>
             </label>
             <label className="flex items-center p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
               <input
@@ -192,7 +197,9 @@ export default function SelectRole() {
                 onChange={() => setSelectedRole("teacher")}
                 className="mr-3 text-blue-600"
               />
-              <span className="text-gray-700">I'm a teacher, looking for work</span>
+              <span className="text-gray-700">
+                I'm a teacher, looking for work
+              </span>
             </label>
             <button
               onClick={handleRoleSelection}
@@ -202,7 +209,10 @@ export default function SelectRole() {
               Create Account
             </button>
             <p className="text-center text-sm text-green-600 mt-4">
-              Already have an account? <a href="/login" className="underline">Log In</a>
+              Already have an account?{" "}
+              <a href="/login" className="underline">
+                Log In
+              </a>
             </p>
           </div>
         ) : (
@@ -216,31 +226,44 @@ export default function SelectRole() {
                   type="text"
                   placeholder="Full Name"
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
                   className="w-full p-3 border border-gray-300 rounded-lg mb-4"
                 />
                 <input
                   type="text"
                   placeholder="Organization Name"
                   value={formData.organizationName}
-                  onChange={(e) => setFormData({ ...formData, organizationName: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      organizationName: e.target.value,
+                    })
+                  }
                   className="w-full p-3 border border-gray-300 rounded-lg mb-4"
                 />
                 <input
                   type="text"
                   placeholder="Phone Number"
                   value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, phone: e.target.value })
+                  }
                   className="w-full p-3 border border-gray-300 rounded-lg mb-4"
                 />
                 <select
                   value={formData.industry}
-                  onChange={(e) => setFormData({ ...formData, industry: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, industry: e.target.value })
+                  }
                   className="w-full p-3 border border-gray-300 rounded-lg mb-4"
                 >
                   <option value="">Select Industry</option>
                   {industries.map((industry) => (
-                    <option key={industry} value={industry}>{industry}</option>
+                    <option key={industry} value={industry}>
+                      {industry}
+                    </option>
                   ))}
                 </select>
                 <button
@@ -252,7 +275,10 @@ export default function SelectRole() {
                 </button>
                 <p className="text-center text-sm text-gray-600 mt-4">
                   Want to change your role?{" "}
-                  <span onClick={() => setIsFormVisible(false)} className="underline cursor-pointer">
+                  <span
+                    onClick={() => setIsFormVisible(false)}
+                    className="underline cursor-pointer"
+                  >
                     Go back
                   </span>
                 </p>
@@ -266,7 +292,9 @@ export default function SelectRole() {
                   type="text"
                   placeholder="Full Name"
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
                   className="w-full p-3 border border-gray-300 rounded-lg"
                 />
                 <input
@@ -280,7 +308,9 @@ export default function SelectRole() {
                   type="text"
                   placeholder="Phone Number"
                   value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, phone: e.target.value })
+                  }
                   className="w-full p-3 border border-gray-300 rounded-lg"
                 />
                 <button
@@ -292,7 +322,10 @@ export default function SelectRole() {
                 </button>
                 <p className="text-center text-sm text-gray-600 mt-4">
                   Want to change your role?{" "}
-                  <span onClick={() => setIsFormVisible(false)} className="underline cursor-pointer">
+                  <span
+                    onClick={() => setIsFormVisible(false)}
+                    className="underline cursor-pointer"
+                  >
                     Go back
                   </span>
                 </p>

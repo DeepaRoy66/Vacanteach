@@ -74,7 +74,13 @@ export async function POST(req) {
     // Check if profile already exists and is complete
     const existingProfile = await Model.findOne({ email, profileCompleted: true });
     if (existingProfile) {
-      return new Response(JSON.stringify({ message: `${role} profile already exists` }), {
+      // Return existing profile with ID for redirect
+      return new Response(JSON.stringify({ 
+        message: `${role} profile already exists`,
+        data: existingProfile,
+        organizationId: role === "organization" ? existingProfile._id : null,
+        teacherId: role === "teacher" ? existingProfile._id : null,
+      }), {
         status: 200,
         headers: { "Content-Type": "application/json" },
       });
@@ -96,15 +102,13 @@ export async function POST(req) {
       { upsert: true, new: true }
     );
 
-    // Update User model role for consistency
-   // Update the correct model for consistency
-await Model.findOneAndUpdate(
-  { email },
-  { $set: { role, profileCompleted: true } },
-  { upsert: true }
-);
-
-    return new Response(JSON.stringify({ message: `${role} profile saved`, data: result }), {
+    // Return the created/updated profile with the ID
+    return new Response(JSON.stringify({ 
+      message: `${role} profile saved`, 
+      data: result,
+      organizationId: role === "organization" ? result._id : null,
+      teacherId: role === "teacher" ? result._id : null,
+    }), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });

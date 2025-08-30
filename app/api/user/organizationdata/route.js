@@ -6,7 +6,6 @@ import { authOptions } from "../../auth/[...nextauth]/route";
 export async function GET(req) {
   try {
     const session = await getServerSession(authOptions);
-
     if (!session || !session.user?.email) {
       console.error("Authentication failed in organizationdata GET:", { session });
       return new Response(JSON.stringify({ message: "User not authenticated" }), {
@@ -14,11 +13,10 @@ export async function GET(req) {
         headers: { "Content-Type": "application/json" },
       });
     }
-
+    
     await connectToDatabase();
-
     const organization = await Organization.findOne({ email: session.user.email }).lean();
-
+    
     if (!organization) {
       console.warn("Organization not found for email:", session.user.email);
       return new Response(JSON.stringify({ message: "Organization not found" }), {
@@ -27,17 +25,25 @@ export async function GET(req) {
       });
     }
 
-    // Explicitly return the _id
+    // FIXED: Convert ObjectId to string and provide both field names for compatibility
+    const orgIdString = organization._id.toString();
+    
     const responseData = {
-      id: organization._id, // <--- this is key for your redirect
+      _id: orgIdString,          // For dashboard component compatibility
+      id: orgIdString,           // For backward compatibility
       email: organization.email,
       organizationName: organization.organizationName,
       industry: organization.industry,
       phone: organization.phone,
       role: organization.role,
       profileCompleted: organization.profileCompleted || true,
+      createdAt: organization.createdAt,
+      __v: organization.__v
     };
 
+    console.log("OrganizationData API GET - Returning data for:", session.user.email);
+    console.log("OrganizationData API GET - Organization ID:", orgIdString);
+    
     return new Response(JSON.stringify(responseData), {
       status: 200,
       headers: { "Content-Type": "application/json" },
@@ -57,9 +63,10 @@ export async function GET(req) {
 export async function POST(req) {
   try {
     const body = await req.json();
-    console.log("Request body:", body); 
+    console.log("OrganizationData POST - Request body:", body);
+    
     const { email, organizationName, industry, phone, role } = body;
-
+    
     if (
       !email ||
       !organizationName ||
@@ -75,9 +82,9 @@ export async function POST(req) {
         headers: { "Content-Type": "application/json" },
       });
     }
-
+    
     await connectToDatabase();
-
+    
     const updateData = {
       organizationName,
       industry,
@@ -86,16 +93,25 @@ export async function POST(req) {
       profileCompleted: true,
     };
 
+    console.log("OrganizationData POST - Updating organization with:", updateData);
+    
     const org = await Organization.findOneAndUpdate(
       { email },
       { $set: updateData },
       { upsert: true, new: true }
     ).lean();
 
+    console.log("OrganizationData POST - Organization saved:", org);
+
+    // FIXED: Return organizationId as string for SelectRole component
+    const orgIdString = org._id.toString();
+    
     return new Response(JSON.stringify({
-      message: "Organization profile saved",
+      message: "Organization profile saved successfully",
+      organizationId: orgIdString,  // For SelectRole redirect
       organization: {
-        id: org._id, 
+        _id: orgIdString,           // For consistency
+        id: orgIdString,            // For backward compatibility
         email: org.email,
         organizationName: org.organizationName,
         industry: org.industry,
