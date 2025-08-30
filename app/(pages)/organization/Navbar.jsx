@@ -1,8 +1,7 @@
 "use client"
-
 import Link from "next/link"
 import { useSession, signOut } from "next-auth/react"
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { Menu, X } from "lucide-react"
 import { useParams } from "next/navigation"
 
@@ -12,7 +11,23 @@ export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const dropdownRef = useRef()
   const params = useParams()
-  const orgId = params?.orgId // get orgId from URL
+  const orgId = params?.id // Use 'id' to match /organization/[id] route
+
+  // Debug orgId
+  useEffect(() => {
+    console.log("Navbar params:", params, "orgId:", orgId)
+  }, [params, orgId])
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdownOpen(false)
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
 
   return (
     <nav className="sticky top-0 bg-green-600 z-50">
@@ -21,7 +36,6 @@ export default function Navbar() {
         <Link href="/" className="text-white font-bold text-xl">
           SikshakRojgar
         </Link>
-
         {/* Desktop menu */}
         <div className="hidden lg:flex items-center space-x-4">
           {orgId && (
@@ -32,11 +46,12 @@ export default function Navbar() {
               PostJob
             </Link>
           )}
-
           {status === "loading" ? (
             <span className="text-white">Loading...</span>
           ) : status === "unauthenticated" ? (
-            <span className="text-red-200">Not signed in</span>
+            <Link href="/auth" className="text-white hover:text-green-200">
+              Sign In
+            </Link>
           ) : (
             <div className="relative" ref={dropdownRef}>
               <button
@@ -48,6 +63,9 @@ export default function Navbar() {
                     src={session.user.image}
                     alt="Profile"
                     className="w-8 h-8 rounded-full object-cover border-2 border-white"
+                    onError={(e) => {
+                      e.target.src = "/default-profile.png" // Fallback image
+                    }}
                   />
                 ) : (
                   <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-green-600 font-bold">
@@ -58,7 +76,6 @@ export default function Navbar() {
                   {session?.user?.email}
                 </span>
               </button>
-
               {dropdownOpen && (
                 <div className="absolute right-0 mt-2 w-48 bg-white border rounded-md shadow-lg py-2 z-50">
                   <button
@@ -72,7 +89,6 @@ export default function Navbar() {
             </div>
           )}
         </div>
-
         {/* Mobile menu button */}
         <div className="lg:hidden flex items-center">
           <button
@@ -83,10 +99,9 @@ export default function Navbar() {
           </button>
         </div>
       </div>
-
       {/* Mobile menu */}
       {mobileMenuOpen && (
-        <div className="lg:hidden bg-green-600 text-white w-full shadow-md">
+        <div className="lg:hidden bg-green-600 text-white w-full shadow-md transition-all duration-300 ease-in-out">
           <div className="flex flex-col px-4 py-3 space-y-2">
             {orgId && (
               <Link
@@ -97,11 +112,12 @@ export default function Navbar() {
                 PostJob
               </Link>
             )}
-
             {status === "loading" ? (
               <span>Loading...</span>
             ) : status === "unauthenticated" ? (
-              <span>Not signed in</span>
+              <Link href="/auth" className="text-white hover:text-green-200">
+                Sign In
+              </Link>
             ) : (
               <div className="relative" ref={dropdownRef}>
                 <button

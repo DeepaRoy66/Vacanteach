@@ -443,7 +443,6 @@ const SalaryDescriptionSection = ({
     setFormData((prev) => ({ ...prev, offeredSalaryType: value }))
     setErrors((prev) => ({ ...prev, offeredSalaryType: "" }))
   }
-
   return (
     <Accordion type="single" collapsible defaultValue="item-1">
       <AccordionItem
@@ -674,7 +673,6 @@ export default function PostJobPage() {
   const router = useRouter()
   const params = useParams()
   const orgId = params.id // <-- Option 1: get orgId from URL
-
   const [formData, setFormData] = useState(initialFormData)
   const [errors, setErrors] = useState({})
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -732,18 +730,15 @@ export default function PostJobPage() {
         role: session?.user?.role || "organization",
         orgId, // <-- include orgId from URL
       }
-
       const response = await fetch("/api/Org/addjob", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(jobData),
       })
-
       if (!response.ok) {
         const errorData = await response.json()
         throw new Error(errorData.error || "Failed to post job")
       }
-
       alert("Job posted successfully!")
       setFormData(initialFormData)
       router.push(`/organization/${orgId}/Jobpage`) // <-- redirect using orgId
@@ -777,15 +772,39 @@ export default function PostJobPage() {
       <h1 className="text-2xl font-bold mb-6">Post a New Job</h1>
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Job Details */}
-        <JobDetailSection formData={formData} handleChange={handleChange} handleSelectChange={handleSelectChange} errors={errors} dropdownOptions={dropdownOptions}/>
-
+        <JobDetailSection 
+          formData={formData} 
+          handleChange={handleChange} 
+          handleSelectChange={handleSelectChange} 
+          errors={errors} 
+          dropdownOptions={dropdownOptions}
+        />
         {/* Job Location */}
-        <JobLocationSection formData={formData} handleChange={handleChange} errors={errors}/>
-
+        <JobLocationSection 
+          formData={formData} 
+          handleChange={handleChange} 
+          errors={errors}
+        />
         {/* Salary & Description */}
-        <SalaryDescriptionSection formData={formData} handleChange={handleChange} handleSwitchChange={handleSwitchChange} errors={errors}/>
-
-        <Button type="submit" disabled={isSubmitting} className="w-full py-3 text-lg">
+        <SalaryDescriptionSection 
+          formData={formData} 
+          handleChange={handleChange} 
+          handleSelectChange={handleSelectChange}
+          handleSwitchChange={handleSwitchChange} 
+          errors={errors}
+          setFormData={setFormData}
+          setErrors={setErrors}
+        />
+       <Button 
+          type="submit" 
+          disabled={isSubmitting} 
+          className={cn(
+            "w-full py-3 px-6 text-lg font-semibold rounded-l shadow-md",
+            "bg-green-600 text-white hover:bg-green-700 focus:ring-4 focus:ring-green-200",
+            "transition-all duration-300",
+            isSubmitting && "bg-green-400 cursor-not-allowed"
+          )}
+        >
           {isSubmitting ? "Posting..." : "Post Job"}
         </Button>
       </form>
