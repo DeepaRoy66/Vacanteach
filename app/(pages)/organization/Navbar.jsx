@@ -2,63 +2,17 @@
 
 import Link from "next/link"
 import { useSession, signOut } from "next-auth/react"
-import { useEffect, useState, useRef } from "react"
+import { useState, useRef } from "react"
 import { Menu, X } from "lucide-react"
+import { useParams } from "next/navigation"
 
 export default function Navbar() {
   const { data: session, status } = useSession()
-  const [user, setUser] = useState(null)
-  const [error, setError] = useState(null)
   const [dropdownOpen, setDropdownOpen] = useState(false)
-  const [mobileDropdownOpen, setMobileDropdownOpen] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const dropdownRef = useRef()
-  const mobileDropdownRef = useRef()
-
-  // Fetch organization data
-  useEffect(() => {
-    async function fetchOrganization() {
-      if (status === "authenticated" && session?.user?.email) {
-        try {
-          const response = await fetch("/api/user/organizationdata", {
-            method: "GET",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
-          })
-          const data = await response.json()
-          if (response.ok) {
-            setUser(data.user)
-            setError(null)
-          } else {
-            setError(data.message || "Failed to fetch organization data")
-            setUser(null)
-          }
-        } catch (err) {
-          setError("Error fetching organization data")
-          setUser(null)
-          console.error(err)
-        }
-      }
-    }
-    fetchOrganization()
-  }, [session, status])
-
-  // Close dropdowns if clicked outside
-  useEffect(() => {
-    function handleClickOutside(event) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setDropdownOpen(false)
-      }
-      if (mobileDropdownRef.current && !mobileDropdownRef.current.contains(event.target)) {
-        setMobileDropdownOpen(false)
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside)
-    return () => document.removeEventListener("mousedown", handleClickOutside)
-  }, [])
-
-  // Only use orgId if fetched
-  const orgId = user?._id
+  const params = useParams()
+  const orgId = params?.orgId // get orgId from URL
 
   return (
     <nav className="sticky top-0 bg-green-600 z-50">
@@ -83,27 +37,25 @@ export default function Navbar() {
             <span className="text-white">Loading...</span>
           ) : status === "unauthenticated" ? (
             <span className="text-red-200">Not signed in</span>
-          ) : error ? (
-            <span className="text-red-200">{error}</span>
           ) : (
             <div className="relative" ref={dropdownRef}>
               <button
                 onClick={() => setDropdownOpen(!dropdownOpen)}
                 className="flex items-center space-x-2 focus:outline-none hover:bg-green-700 p-2 rounded-lg transition-colors"
               >
-                {session.user.image ? (
+                {session?.user?.image ? (
                   <img
-                    src={session.user.image || "/placeholder.svg"}
+                    src={session.user.image}
                     alt="Profile"
                     className="w-8 h-8 rounded-full object-cover border-2 border-white"
                   />
                 ) : (
                   <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-green-600 font-bold">
-                    {session.user.email?.charAt(0).toUpperCase() || "?"}
+                    {session?.user?.email?.charAt(0).toUpperCase() || "?"}
                   </div>
                 )}
                 <span className="text-white font-medium">
-                  {user?.organizationName || session.user.email}
+                  {session?.user?.email}
                 </span>
               </button>
 
@@ -150,18 +102,16 @@ export default function Navbar() {
               <span>Loading...</span>
             ) : status === "unauthenticated" ? (
               <span>Not signed in</span>
-            ) : error ? (
-              <span>{error}</span>
             ) : (
-              <div className="relative" ref={mobileDropdownRef}>
+              <div className="relative" ref={dropdownRef}>
                 <button
-                  onClick={() => setMobileDropdownOpen(!mobileDropdownOpen)}
+                  onClick={() => setDropdownOpen(!dropdownOpen)}
                   className="flex items-center justify-between w-full focus:outline-none hover:bg-green-700 p-2 rounded-lg transition-colors"
                 >
-                  <span>{user?.organizationName || session.user.email}</span>
-                  <span className="text-xl">{mobileDropdownOpen ? "▲" : "▼"}</span>
+                  <span>{session?.user?.email}</span>
+                  <span className="text-xl">{dropdownOpen ? "▲" : "▼"}</span>
                 </button>
-                {mobileDropdownOpen && (
+                {dropdownOpen && (
                   <div className="flex flex-col mt-1 bg-white text-green-600 rounded-md overflow-hidden">
                     <button
                       onClick={() => {
