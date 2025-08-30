@@ -1,553 +1,224 @@
 "use client"
-import { useEffect, useState, useMemo } from "react"
-import { MapPin, Users, Building2, Clock, Eye, Edit, MoreHorizontal, Plus, X } from "lucide-react"
+import { useState, useEffect } from "react"
+import { useSession } from "next-auth/react"
+import { useRouter } from "next/navigation"
 import { Button } from "../../app/components/ui/button"
-import { Card, CardContent } from "../../app/components/ui/card"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "../../app/components/ui/dialog"
+import { Card,CardContent,CardHeader,CardTitle } from "../../app/components/ui/card"
+import { Badge } from "../../app/components/ui/badge"
+import {
+  Briefcase,
+  Clock,
+  MapPin,
+  DollarSign,
+  Users,
+  Edit3,
+  Trash2,
+  Zap,
+} from "lucide-react"
 import { cn } from "../../lib/utilis"
-import DeleteJob from "./DeleteJob"
-import EditJobModal from "./Editjob"
-import { useSession } from "next-auth/react" // Add next-auth client hook
 
-export default function JobListPage() {
-  const { data: session, status } = useSession() // Get session data
+const JobCard = ({ job, onEdit, onDelete }) => (
+  <Card className="w-full border-2 border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden">
+    <CardHeader className="pb-3">
+      <div className="flex items-start justify-between">
+        <div className="flex-1">
+          <CardTitle className="text-xl font-bold text-gray-800 mb-1">{job.position}</CardTitle>
+          <div className="flex items-center gap-4 text-sm text-gray-600 mb-2">
+            <div className="flex items-center gap-1">
+              <Users className="h-4 w-4" />
+              <span>{job.requiredEmployees} positions</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Clock className="h-4 w-4" />
+              <span>{job.jobType}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <MapPin className="h-4 w-4" />
+              <span>{job.jobLocation}</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary" className="bg-blue-100 text-blue-800">{job.jobCategory}</Badge>
+            {job.subCategory && <Badge variant="outline">{job.subCategory}</Badge>}
+            <Badge variant="outline">{job.jobLevel}</Badge>
+          </div>
+        </div>
+        <div className="flex gap-2 ml-4">
+          <Button variant="ghost" size="sm" onClick={() => onEdit(job)} className="h-8 w-8 p-0">
+            <Edit3 className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onDelete(job._id)}
+            className="h-8 w-8 p-0 text-red-600 hover:text-red-800"
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+    </CardHeader>
+    <CardContent className="pt-0">
+      <div className="text-sm text-gray-600 mb-3">
+        <p className="mb-1">Experience: {job.experience || "Not specified"}</p>
+        <p className="mb-1">Description: {job.description.substring(0, 150)}...</p>
+      </div>
+      <div className="flex items-center justify-between text-sm text-gray-500">
+        <div className="flex items-center gap-4">
+          {!job.hideSalary && (
+            <span className="flex items-center gap-1">
+              <DollarSign className="h-4 w-4" />
+              {job.offeredSalaryType === "Range"
+                ? `${job.currency} ${job.minimum} - ${job.maximum} ${job.salaryType}`
+                : `${job.currency} ${job.minimum} ${job.salaryType}`}
+              {job.negotiable && <span>(Negotiable)</span>}
+            </span>
+          )}
+          {job.hideSalary && <span>Salary: Non Disclosed</span>}
+          <span className="flex items-center gap-1">
+            <Zap className="h-4 w-4" />
+            {job.active ? "Active" : "Inactive"}
+          </span>
+        </div>
+        <Badge className={cn("text-xs", job.active ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800")}>
+          {job.active ? "Live" : "Draft"}
+        </Badge>
+      </div>
+    </CardContent>
+  </Card>
+)
+
+export default function JobListPage({ orgId }) {
+  const { data: session, status } = useSession({ required: true })
+  const router = useRouter()
   const [jobs, setJobs] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [searchTerm, setSearchTerm] = useState("")
-  const [filterCategory, setFilterCategory] = useState("all")
-  const [filterLocation, setFilterLocation] = useState("all")
-  const [selectedJob, setSelectedJob] = useState(null)
-  const [isViewModalOpen, setIsViewModalOpen] = useState(false)
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
-  const [editFormData, setEditFormData] = useState({})
 
   useEffect(() => {
-    console.log("Session:", session) // Debug session
-    async function fetchJobs() {
-      try {
-        setLoading(true)
-        const response = await fetch("/api/Org/listjob")
-        const data = await response.json()
-        if (!response.ok) {
-          throw new Error(data.error || "Failed to fetch jobs")
-        }
-        setJobs(data)
-        setLoading(false)
-      } catch (err) {
-        setError(err.message)
-        setLoading(false)
-      }
+    if (status === "authenticated") {
+      fetchJobs()
     }
-    fetchJobs()
-  }, [])
+  }, [status, orgId])
 
-  const filteredJobs = useMemo(() => {
-    return jobs.filter((job) => {
-      const matchesSearch =
-        job.position.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        job.jobCategory.toLowerCase().includes(searchTerm.toLowerCase())
-      const matchesCategory = filterCategory === "all" || job.jobCategory === filterCategory
-      const matchesLocation = filterLocation === "all" || job.jobLocation === filterLocation
-      return matchesSearch && matchesCategory && matchesLocation
-    })
-  }, [jobs, searchTerm, filterCategory, filterLocation])
-
-  const categories = [...new Set(jobs.map((job) => job.jobCategory))]
-  const locations = [...new Set(jobs.map((job) => job.jobLocation))]
-
-  const handleViewClick = (job) => {
-    setSelectedJob(job)
-    setIsViewModalOpen(true)
-  }
-
-  const handleEditClick = (job) => {
-    console.log("handleEditClick: selectedJob:", job, "session:", session)
-    setSelectedJob(job)
-    setEditFormData({
-      position: job.position || "",
-      requiredEmployees: job.requiredEmployees?.toString() || "",
-      jobCategory: job.jobCategory || "",
-      subCategory: job.subCategory || "none",
-      jobLevel: job.jobLevel || "",
-      jobType: job.jobType || "",
-      experience: job.experience || "",
-      jobLocation: job.jobLocation || "",
-      offeredSalaryType: job.offeredSalaryType || "Range",
-      currency: job.currency || "USD",
-      minimum: job.minimum?.toString() || "",
-      maximum: job.maximum?.toString() || "",
-      salaryType: job.salaryType || "Monthly",
-      hideSalary: job.hideSalary || false,
-      negotiable: job.negotiable || false,
-      active: job.active !== undefined ? job.active : true,
-      description: job.description || "",
-      postedBy: session?.user?.email || job.postedBy || "", // Use session email
-      urgent: job.urgent || false,
-    })
-    setIsEditModalOpen(true)
-  }
-
-  const handleEditSubmit = async (jobData, job_id) => {
+  const fetchJobs = async () => {
+    if (!orgId) {
+      setError("Organization ID is required")
+      setLoading(false)
+      return
+    }
     try {
-      console.log("handleEditSubmit: jobData:", jobData, "job_id:", job_id, "session:", session)
-      if (!job_id || !job_id.match(/^[0-9a-fA-F]{24}$/)) {
-        throw new Error("Invalid job ID format")
-      }
-
-      const payload = {
-        ...jobData,
-        requiredEmployees: Number(jobData.requiredEmployees),
-        minimum: jobData.hideSalary ? null : Number(jobData.minimum),
-        maximum: jobData.hideSalary || jobData.offeredSalaryType !== "Range" ? null : Number(jobData.maximum),
-        subCategory: jobData.subCategory === "none" ? null : jobData.subCategory,
-        urgent: Boolean(jobData.urgent),
-        postedBy: session?.user?.email || jobData.postedBy, // Ensure session email
-      }
-
-      console.log("handleEditSubmit: payload:", payload)
-      const response = await fetch(`/api/Org/${job_id}/editjob`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      })
-
-      console.log(
-        "handleEditSubmit: response status:",
-        response.status,
-        "headers:",
-        Object.fromEntries(response.headers.entries()),
-      )
-      let data
-      try {
-        data = await response.json()
-        console.log("handleEditSubmit: response data:", data)
-      } catch (jsonError) {
-        console.error("handleEditSubmit: JSON parsing error:", jsonError)
-        throw new Error(`Failed to parse server response: ${jsonError.message}`)
-      }
-
+      setLoading(true)
+      const response = await fetch(`/api/Org/listjob?orgId=${orgId}`)
       if (!response.ok) {
-        if (response.status === 403) {
-          throw new Error("Unauthorized: You do not have permission to edit this job")
-        }
-        if (response.status === 404) {
-          throw new Error("Job not found or endpoint unavailable")
-        }
-        if (response.status === 500) {
-          throw new Error(data.error || "Server error: Failed to update job")
-        }
-        throw new Error(data.error || `Failed to update job (status: ${response.status})`)
+        throw new Error("Failed to fetch jobs")
       }
-
-      setJobs((prevJobs) => {
-        const newJobs = [...prevJobs]
-        const index = newJobs.findIndex((job) => job._id === data.job._id)
-        if (index !== -1) {
-          newJobs[index] = { ...data.job }
-        }
-        return newJobs
-      })
-
-      setIsEditModalOpen(false)
-      setSelectedJob(null)
-      alert(`Job ${job_id} updated successfully!`)
-    } catch (error) {
-      console.error("Edit job error:", error)
-      throw error // Let EditJobModal handle the error
+      const data = await response.json()
+      setJobs(data.jobs || [])
+    } catch (err) {
+      setError(err.message)
+      console.error("Error fetching jobs:", err)
+    } finally {
+      setLoading(false)
     }
   }
 
-  const handleDeleteSuccess = (jobId) => {
-    setJobs((prevJobs) => prevJobs.filter((job) => job._id !== jobId))
-    if (selectedJob?._id === jobId) {
-      setIsViewModalOpen(false)
-      setSelectedJob(null)
+  const handleDelete = async (jobId) => {
+    if (!confirm("Are you sure you want to delete this job?")) return
+    try {
+      const response = await fetch(`/api/Org/deletejob`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ jobId, orgId }),
+      })
+      if (!response.ok) {
+        throw new Error("Failed to delete job")
+      }
+      fetchJobs()
+      alert("Job deleted successfully!")
+    } catch (err) {
+      alert(`Failed to delete job: ${err.message}`)
+      console.error("Error deleting job:", err)
     }
+  }
+
+  const handleEdit = (job) => {
+    router.push(`/organization/${orgId}/postjob?edit=${job._id}`)
   }
 
   if (status === "loading") {
     return (
-      <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 md:h-16 md:w-16 border-b-2 border-emerald-600 mx-auto mb-4"></div>
-          <p className="text-base md:text-lg text-emerald-700 font-semibold">Loading job listings...</p>
-          <p className="text-sm md:text-base text-emerald-600 mt-2">Please wait while we fetch your data</p>
-        </div>
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="animate-pulse text-blue-600 text-xl">Loading...</div>
       </div>
     )
   }
 
-  if (!session || session.user.role !== "organization") {
+  if (session?.user?.role !== "organization") {
+    router.push("/unauthorized")
     return (
-      <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4">
-        <Card className="bg-white border border-emerald-100 rounded-lg shadow-md p-4 md:p-6 text-center w-full max-w-md">
-          <p className="text-red-600 font-semibold text-sm md:text-base">
-            Unauthorized: Please log in as an organization user
-          </p>
-          <Button
-            className="mt-4 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded text-sm md:text-base"
-            onClick={() => (window.location.href = "/auth/signin")}
-          >
-            Sign In
-          </Button>
-        </Card>
-      </div>
-    )
-  }
-
-  if (loading) {
-    return (
-      <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 md:h-16 md:w-16 border-b-2 border-emerald-600 mx-auto mb-4"></div>
-          <p className="text-base md:text-lg text-emerald-700 font-semibold">Loading job listings...</p>
-          <p className="text-sm md:text-base text-emerald-600 mt-2">Please wait while we fetch your data</p>
-        </div>
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-red-500 text-lg">You are not authorized to view organization jobs</div>
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4">
-        <Card className="bg-white border border-emerald-100 rounded-lg shadow-md p-4 md:p-6 text-center w-full max-w-md">
-          <p className="text-red-600 font-semibold text-sm md:text-base">{error}</p>
-          <Button
-            className="mt-4 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded text-sm md:text-base"
-            onClick={() => window.location.reload()}
-          >
-            Retry
-          </Button>
-        </Card>
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-red-500 text-lg">Error: {error}</div>
+        <Button
+          onClick={fetchJobs}
+          className="mt-4 bg-blue-600 text-white hover:bg-blue-700 rounded-xl shadow-md px-6 py-3"
+        >
+          Retry
+        </Button>
       </div>
     )
   }
 
   return (
-    <div className="flex-1 bg-gray-100 min-h-[calc(100vh-4rem)]">
-      <main className="px-4">
-        <div className="mb-4 flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-4">
-          <select
-            value={filterCategory}
-            onChange={(e) => setFilterCategory(e.target.value)}
-            className="p-2 border rounded w-full md:w-auto text-sm md:text-base"
-          >
-            <option value="all">All Categories</option>
-            {categories.map((cat) => (
-              <option key={cat} value={cat}>
-                {cat}
-              </option>
-            ))}
-          </select>
-          <select
-            value={filterLocation}
-            onChange={(e) => setFilterLocation(e.target.value)}
-            className="p-2 border rounded w-full md:w-auto text-sm md:text-base"
-          >
-            <option value="all">All Locations</option>
-            {locations.map((loc) => (
-              <option key={loc} value={loc}>
-                {loc}
-              </option>
-            ))}
-          </select>
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search..."
-            className="p-2 border rounded w-full md:w-auto text-sm md:text-base"
-          />
+    <div className="max-w-6xl mx-auto py-10 px-4">
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-800">Your Job Listings</h1>
+          <p className="text-gray-600 mt-2">Manage and view all jobs posted for your organization.</p>
         </div>
-        {filteredJobs.length === 0 ? (
-          <Card className="bg-white border border-emerald-100 rounded-lg shadow-md">
-            <CardContent className="p-6 md:p-12 text-center">
-              <div className="bg-emerald-100 w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Building2 className="size-6 md:size-8 text-emerald-600" />
-              </div>
-              <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">
-                {jobs.length === 0 ? "No Job is Posted" : "No Jobs Found"}
-              </h3>
-              <p className="text-gray-600 mb-6 text-sm md:text-base">
-                {jobs.length === 0
-                  ? "You haven't posted any jobs yet. Start by creating your first job posting!"
-                  : "No jobs match your current search criteria. Try adjusting your filters."}
-              </p>
-              <Button
-                className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 md:px-6 md:py-3 rounded-xl font-medium text-sm md:text-base"
-                onClick={() => (window.location.href = "/organization/postjob")}
-              >
-                <Plus className="size-4 mr-2" />
-                Post Your First Job
-              </Button>
-            </CardContent>
-          </Card>
-        ) : (
-          <Card className="bg-white border border-emerald-100 rounded-lg shadow-md overflow-hidden">
-            <div className="hidden md:block overflow-x-auto">
-              <table className="w-full table-fixed">
-                <thead>
-                  <tr className="bg-white border-b border-gray-100">
-                    <th className="text-left p-3 font-medium text-gray-700 text-xs md:text-sm w-[30%]">Position</th>
-                    <th className="text-left p-3 font-medium text-gray-700 text-xs md:text-sm w-[25%]">Category</th>
-                    <th className="text-left p-3 font-medium text-gray-700 text-xs md:text-sm w-[25%]">Employees</th>
-                    <th className="text-center p-3 font-medium text-gray-700 text-xs md:text-sm w-[20%]">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredJobs.map((job, index) => (
-                    <tr
-                      key={job._id}
-                      className={`border-b border-gray-100 hover:bg-gray-50 transition-colors duration-150 ${
-                        index % 2 === 0 ? "bg-white" : "bg-gray-50"
-                      }`}
-                    >
-                      <td className="p-3">
-                        <div className="flex items-center space-x-2">
-                          <div className="bg-emerald-100 p-1.5 rounded-lg">
-                            <Building2 className="size-3 md:size-4 text-emerald-600" />
-                          </div>
-                          <div>
-                            <div className="font-medium text-gray-900 text-xs md:text-sm">{job.position}</div>
-                            <div className="flex items-center space-x-1 text-xs text-gray-500 mt-0.5">
-                              <Clock className="size-2.5 md:size-3" />
-                              <span>Posted recently</span>
-                            </div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="p-3">
-                        <span className="bg-emerald-100 text-emerald-800 text-xs font-medium px-2 py-1 rounded-full">
-                          {job.jobCategory}
-                        </span>
-                      </td>
-                      <td className="p-3">
-                        <div className="flex items-center space-x-1.5 text-gray-700">
-                          <Users className="size-3 md:size-3.5" />
-                          <span className="text-xs md:text-sm">{job.requiredEmployees} positions</span>
-                        </div>
-                      </td>
-                      <td className="p-3">
-                        <div className="flex items-center justify-center space-x-1">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-gray-400 hover:text-emerald-600 p-1.5"
-                            onClick={() => handleViewClick(job)}
-                          >
-                            <Eye className="size-3 md:size-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-gray-400 hover:text-blue-600 p-1.5"
-                            onClick={() => handleEditClick(job)}
-                          >
-                            <Edit className="size-3 md:size-4" />
-                          </Button>
-                          <DeleteJob jobId={job._id} onDelete={handleDeleteSuccess} onError={setError} />
-                          <Button variant="ghost" size="sm" className="text-gray-400 hover:text-gray-600 p-1.5">
-                            <MoreHorizontal className="size-3 md:size-4" />
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <div className="md:hidden space-y-4 p-4">
-              {filteredJobs.map((job) => (
-                <Card key={job._id} className="bg-white border border-emerald-100 rounded-lg shadow-sm">
-                  <CardContent className="p-4">
-                    <div className="flex items-center space-x-2 mb-3">
-                      <div className="bg-emerald-100 p-1.5 rounded-lg">
-                        <Building2 className="size-4 text-emerald-600" />
-                      </div>
-                      <div>
-                        <div className="font-medium text-gray-900 text-sm">{job.position}</div>
-                        <div className="flex items-center space-x-1 text-xs text-gray-500 mt-0.5">
-                          <Clock className="size-3" />
-                          <span>Posted recently</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-3 text-sm">
-                      <div>
-                        <div className="text-gray-600 font-medium">Category</div>
-                        <span className="bg-emerald-100 text-emerald-800 text-xs font-medium px-2 py-1 rounded-full">
-                          {job.jobCategory}
-                        </span>
-                      </div>
-                      <div>
-                        <div className="text-gray-600 font-medium">Employees</div>
-                        <div className="flex items-center space-x-1.5 text-gray-700">
-                          <Users className="size-3.5" />
-                          <span>{job.requiredEmployees} positions</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-center space-x-2 mt-4">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-gray-400 hover:text-emerald-600 p-1.5"
-                        onClick={() => handleViewClick(job)}
-                      >
-                        <Eye className="size-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-gray-400 hover:text-blue-600 p-1.5"
-                        onClick={() => handleEditClick(job)}
-                      >
-                        <Edit className="size-4" />
-                      </Button>
-                      <DeleteJob jobId={job._id} onDelete={handleDeleteSuccess} onError={setError} />
-                      <Button variant="ghost" size="sm" className="text-gray-400 hover:text-gray-600 p-1.5">
-                        <MoreHorizontal className="size-4" />
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-            <div className="bg-gradient-to-r from-emerald-50 to-green-50 border-t border-emerald-100 p-4">
-              <div className="flex flex-col md:flex-row items-center justify-between space-y-2 md:space-y-0">
-                <div className="text-xs text-emerald-700">
-                  Showing <span className="font-semibold">{filteredJobs.length}</span> of{" "}
-                  <span className="font-semibold">{jobs.length}</span> jobs
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="border-emerald-200 text-emerald-700 hover:bg-emerald-50 bg-transparent text-xs px-3 py-1"
-                  >
-                    Previous
-                  </Button>
-                  <div className="flex items-center space-x-1">
-                    <Button
-                      variant="default"
-                      size="sm"
-                      className="bg-emerald-600 text-white hover:bg-emerald-700 w-6 h-6 text-xs"
-                    >
-                      1
-                    </Button>
-                    <Button variant="ghost" size="sm" className="text-emerald-700 hover:bg-emerald-50 w-6 h-6 text-xs">
-                      2
-                    </Button>
-                    <Button variant="ghost" size="sm" className="text-emerald-700 hover:bg-emerald-50 w-6 h-6 text-xs">
-                      3
-                    </Button>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="border-emerald-200 text-emerald-700 hover:bg-emerald-50 bg-transparent text-xs px-3 py-1"
-                  >
-                    Next
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </Card>
-        )}
-      </main>
-      {selectedJob && (
-        <>
-          <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
-            <DialogContent className="sm:max-w-[425px] md:max-w-[600px] bg-white rounded-lg">
-              <DialogHeader className="flex justify-between items-center">
-                <DialogTitle className="text-lg md:text-xl text-gray-900">{selectedJob.position}</DialogTitle>
-                <DialogClose asChild>
-                  <Button variant="ghost" size="sm" className="p-1">
-                    <X className="size-4 text-gray-600" />
-                  </Button>
-                </DialogClose>
-              </DialogHeader>
-              <div className="p-4 space-y-4 text-sm md:text-base">
-                <div className="flex items-center space-x-2">
-                  <Building2 className="size-4 text-emerald-600" />
-                  <span className="font-medium text-gray-900">{selectedJob.position}</span>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <div className="text-gray-600 font-medium">Category</div>
-                    <span className="bg-emerald-100 text-emerald-800 text-xs font-medium px-2 py-1 rounded-full">
-                      {selectedJob.jobCategory}
-                    </span>
-                  </div>
-                  <div>
-                    <div className="text-gray-600 font-medium">Employees</div>
-                    <div className="flex items-center space-x-1.5 text-gray-700">
-                      <Users className="size-3.5" />
-                      <span>{selectedJob.requiredEmployees} positions</span>
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-gray-600 font-medium">Location</div>
-                    <div className="flex items-center space-x-1.5 text-gray-700">
-                      <MapPin className="size-3.5" />
-                      <span>{selectedJob.jobLocation}</span>
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-gray-600 font-medium">Salary</div>
-                    <div className="bg-emerald-50 text-emerald-800 p-2 rounded-md text-xs font-medium">
-                      {selectedJob.hideSalary
-                        ? "Salary Non Disclosed"
-                        : `${selectedJob.currency} ${selectedJob.minimum}${
-                            selectedJob.offeredSalaryType === "Range" ? ` - ${selectedJob.maximum}` : ""
-                          }`}
-                      <span className="block text-xs text-emerald-600">{selectedJob.salaryType}</span>
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-gray-600 font-medium">Status</div>
-                    <div className="flex items-center space-x-1.5 text-gray-700">
-                      <span
-                        className={cn(
-                          "inline-flex items-center px-2 py-1 rounded-full text-xs font-medium",
-                          selectedJob.active !== undefined && selectedJob.active
-                            ? "bg-green-100 text-green-800"
-                            : "bg-red-100 text-red-800",
-                        )}
-                      >
-                        {selectedJob.active !== undefined && selectedJob.active ? "Active" : "Inactive"}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="col-span-1 md:col-span-2">
-                    <div className="text-gray-600 font-medium">Posted By</div>
-                    <div className="flex items-center space-x-2">
-                      <div className="bg-emerald-600 text-white rounded-full size-6 flex items-center justify-center text-xs font-medium">
-                        {selectedJob.postedBy?.charAt(0).toUpperCase()}
-                      </div>
-                      <span className="text-gray-800">{selectedJob.postedBy}</span>
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-1 text-xs text-gray-500">
-                  <Clock className="size-3" />
-                  <span>Posted recently</span>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
-          <EditJobModal
-            isModalOpen={isEditModalOpen}
-            setIsModalOpen={setIsEditModalOpen}
-            selectedJob={selectedJob}
-            editFormData={editFormData}
-            setEditFormData={setEditFormData}
-            onSubmit={handleEditSubmit}
-          />
-        </>
+        <Button
+          onClick={() => router.push(`/organization/${orgId}/postjob`)}
+          className={cn(
+            "px-6 py-3 text-lg font-semibold rounded-xl shadow-md",
+            "bg-green-600 text-white hover:bg-green-700 focus:ring-4 focus:ring-green-200",
+            "transition-all duration-300"
+          )}
+        >
+          Post New Job
+        </Button>
+      </div>
+      {loading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[...Array(6)].map((_, i) => (
+            <Card key={i} className="w-full h-64 animate-pulse bg-gray-200 rounded-xl"></Card>
+          ))}
+        </div>
+      ) : jobs.length === 0 ? (
+        <div className="text-center py-12">
+          <Briefcase className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">No jobs posted yet</h3>
+          <p className="text-gray-500 mb-6">Get started by posting your first job listing.</p>
+          <Button
+            onClick={() => router.push(`/organization/${orgId}/postjob`)}
+            className="bg-green-600 text-white hover:bg-green-700 rounded-xl shadow-md px-6 py-3"
+          >
+            Post Your First Job
+          </Button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {jobs.map((job) => (
+            <JobCard key={job._id} job={job} onEdit={handleEdit} onDelete={handleDelete} />
+          ))}
+        </div>
       )}
     </div>
   )

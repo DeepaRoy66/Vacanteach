@@ -16,6 +16,7 @@ import CallToAction from "./CallToActions"
 export default function OrganizationDashboard({ orgId }) {
   const router = useRouter()
   const { data: session, status } = useSession()
+
   const [showWelcome, setShowWelcome] = useState(true)
   const [activeJobs, setActiveJobs] = useState([])
   const [jobApplications, setJobApplications] = useState([])
@@ -68,12 +69,18 @@ export default function OrganizationDashboard({ orgId }) {
   const fetchActiveJobs = async () => {
     setIsLoadingJobs(true)
     try {
-      const response = await fetch(`/api/Org/listjob?active true&orgId=${encodeURIComponent(orgId)}`)
+      const response = await fetch(`/api/Org/listjob?active=true&orgId=${encodeURIComponent(orgId)}`)
       if (!response.ok) throw new Error("Failed to fetch jobs")
-      const jobs = await response.json()
-      setActiveJobs(jobs)
+
+      const data = await response.json()
+      console.log("Fetched jobs:", data)
+
+      // Ensure it's always an array
+      const jobsArray = Array.isArray(data) ? data : data.jobs || []
+      setActiveJobs(jobsArray)
     } catch (error) {
       toast.error("Failed to load active jobs. Please try again.")
+      setActiveJobs([]) // fallback
     } finally {
       setIsLoadingJobs(false)
     }
@@ -84,10 +91,16 @@ export default function OrganizationDashboard({ orgId }) {
     try {
       const response = await fetch(`/api/Org/JobApplications?orgId=${encodeURIComponent(orgId)}`)
       if (!response.ok) throw new Error("Failed to fetch applications")
-      const applications = await response.json()
-      setJobApplications(applications)
+
+      const data = await response.json()
+      console.log("Fetched applications:", data)
+
+      // Ensure it's always an array
+      const applicationsArray = Array.isArray(data) ? data : data.applications || []
+      setJobApplications(applicationsArray)
     } catch (error) {
       toast.error("Failed to load job applications. Please try again.")
+      setJobApplications([]) // fallback
     } finally {
       setIsLoadingApplications(false)
     }
@@ -96,8 +109,8 @@ export default function OrganizationDashboard({ orgId }) {
   const filteredJobs = activeJobs.filter((job) => {
     const matchesCategory = selectedCategory === "all" || job.jobCategory === selectedCategory
     const matchesSearch =
-      job.position.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.jobLocation.toLowerCase().includes(searchTerm.toLowerCase())
+      job.position?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      job.jobLocation?.toLowerCase().includes(searchTerm.toLowerCase())
     return matchesCategory && matchesSearch
   })
 

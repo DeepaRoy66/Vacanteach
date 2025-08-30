@@ -9,12 +9,20 @@ export async function GET(request) {
     const location = searchParams.get("location");
     const postedBy = searchParams.get("postedBy");
     const jobId = searchParams.get("jobId");
+    const orgId = searchParams.get("orgId");
     const sortBy = searchParams.get("sortBy");
     const limit = parseInt(searchParams.get("limit")) || 0;
+    const active = searchParams.get("active") === "true";
+
+    console.log("Query parameters:", { orgId, search, location, postedBy, jobId, sortBy, limit, active }); // Log query params
 
     await connectToDatabase();
 
     let query = {};
+
+    if (active) {
+      query.active = true;
+    }
     if (search) {
       query.position = { $regex: search, $options: "i" };
     }
@@ -30,25 +38,35 @@ export async function GET(request) {
       }
       query._id = jobId;
     }
+    if (orgId) {
+      if (!orgId.match(/^[0-9a-fA-F]{24}$/)) {
+        return NextResponse.json({ error: "Invalid organization ID" }, { status: 400 });
+      }
+      query.org_id = orgId;
+    } else {
+      return NextResponse.json({ error: "Organization ID is required" }, { status: 400 });
+    }
+
+    console.log("MongoDB query:", query); // Log the query
 
     let jobsQuery = Job.find(query).lean();
+
     if (sortBy === "views") {
       jobsQuery = jobsQuery.sort({ views: -1 });
     } else {
       jobsQuery = jobsQuery.sort({ createdAt: -1 });
     }
+
     if (limit > 0) {
       jobsQuery = jobsQuery.limit(limit);
     }
 
     const jobs = await jobsQuery.exec();
-    if (!jobs || jobs.length === 0) {
-      return NextResponse.json({ error: "No jobs found" }, { status: 404 });
-    }
+    console.log("Fetched jobs:", jobs); // Log the fetched jobs
 
-    return NextResponse.json(jobs, { status: 200 });
+    return NextResponse.json({ jobs }, { status: 200 });
   } catch (error) {
-    console.error("Error fetching jobs:", error.message);
+    console.error("Error fetching jobs:", error.message, error.stack); // Log full error details
     return NextResponse.json(
       { error: "Failed to fetch jobs", details: error.message },
       { status: 500 }
