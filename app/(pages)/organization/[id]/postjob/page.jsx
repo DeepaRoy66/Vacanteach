@@ -1,7 +1,7 @@
 import PostJobPage from "../../../../../Organization/job/Postjob";
 
 export default async function Page({ params }) {
-  const orgId = params.id; // organization _id from URL
+  const { id: orgId } = await params; // await before using
   console.log("Organization ID:", orgId);
 
   return <PostJobPage orgId={orgId} />;

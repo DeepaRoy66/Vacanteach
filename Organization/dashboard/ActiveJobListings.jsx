@@ -33,6 +33,7 @@ export default function ActiveJobListings({
   selectedCategory,
   setSelectedCategory,
   router,
+  orgId,
 }) {
   return (
     <Card className="bg-white shadow-lg rounded-xl border border-gray-100">
@@ -154,12 +155,14 @@ export default function ActiveJobListings({
                         variant="outline"
                         size="sm"
                         className="text-gray-600 border-gray-300 hover:bg-gray-100 hover:text-gray-800"
-                        onClick={() => router.push(`/organization/Jobpage/${job._id}`)}
+                        onClick={() => router.push(`/organization/${orgId}/${job._id}/Jobpage`)}
                       >
                         <Eye className="h-4 w-4" />
                         <span className="sr-only lg:not-sr-only lg:ml-1">View</span>
                       </Button>
-                      <Button variant="outline" size="sm" className="text-gray-600 border-gray-300 hover:bg-gray-100 hover:text-gray-800">
+                      <Button 
+                        onClick={() => router.push(`/organization/${orgId}/${job._id}/Jobpage`)}
+                      variant="outline" size="sm" className="text-gray-600 border-gray-300 hover:bg-gray-100 hover:text-gray-800">
                         <Edit className="h-4 w-4" />
                         <span className="sr-only lg:not-sr-only lg:ml-1">Edit</span>
                       </Button>

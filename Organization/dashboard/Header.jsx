@@ -2,7 +2,7 @@ import React from "react";
 import { Button } from "../../app/components/ui/button";
 import { Bell, Settings, Plus } from "lucide-react";
 
-export default function Header({ user, router }) {
+export default function Header({ user, router, orgId }) {
   return (
     <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
       {/* Left Section */}
@@ -40,7 +40,7 @@ export default function Header({ user, router }) {
         {/* Post New Job Button */}
         <Button
           className="gap-2 bg-green-600 text-white hover:bg-green-700 hover:text-white w-full sm:w-auto"
-          onClick={() => router.push("/organization/postjob")}
+          onClick={() => router.push(`/organization/${orgId}/postjob`)}
         >
           <Plus className="h-4 w-4" />
           Post New Job

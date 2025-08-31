@@ -1,5 +1,7 @@
-import { connectToDatabase } from "../../../../lib/mongoose";
-import Job from "../../../../lib/models/Job";
+// app/api/Org/[id]/listjob/route.js
+
+import { connectToDatabase } from "../../../../../lib/mongoose";
+import Job from "../../../../../lib/models/Job";
 import { NextResponse } from "next/server";
 
 export async function GET(request) {

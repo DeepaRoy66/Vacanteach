@@ -2,7 +2,7 @@ import React from "react";
 import { Button } from "../../app/components/ui/button";
 import { Plus, Search, Users } from "lucide-react";
 
-export default function QuickActions({ router }) {
+export default function QuickActions({ router, orgId }) {
   return (
     <div className="mt-8 w-full">
       {/* Heading */}
@@ -19,7 +19,7 @@ export default function QuickActions({ router }) {
         <Button
           variant="outline"
           className="flex-1 min-h-[48px] sm:min-h-[52px] gap-2 border-dashed border-gray-400 text-gray-600 hover:bg-gray-100 hover:text-gray-800 transition-colors text-sm sm:text-base"
-          onClick={() => router.push("/organization/postjob")}
+          onClick={() => router.push(`/organization/${orgId}/postjob`)}
         >
           <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
           Post New Job

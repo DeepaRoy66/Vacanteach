@@ -2,16 +2,15 @@
 import { useEffect, useState, useMemo } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
-import { MapPin, Users, Building2, Clock, Eye, Edit, MoreHorizontal, Plus, X } from "lucide-react"
+import { Eye, Edit, Plus, X } from "lucide-react"
 import { Button } from "../../app/components/ui/button"
-import { Card, CardContent } from "../../app/components/ui/card"
+import { Card } from "../../app/components/ui/card"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "../../app/components/ui/dialog"
-import { cn } from "../../lib/utilis"
 import DeleteJob from "./DeleteJob"
 import EditJobModal from "./Editjob"
 
 export default function JobListPage({ orgId }) {
-  const { data: session, status } = useSession({ required: true })
+  const { data: session, status } = useSession()
   const router = useRouter()
 
   const [jobs, setJobs] = useState([])
@@ -40,7 +39,7 @@ export default function JobListPage({ orgId }) {
     }
     try {
       setLoading(true)
-      const response = await fetch(`/api/Org/listjob?orgId=${orgId}`)
+      const response = await fetch(`/api/Org/${orgId}/listjob`)
       if (!response.ok) throw new Error("Failed to fetch jobs")
 
       const data = await response.json()
@@ -127,7 +126,9 @@ export default function JobListPage({ orgId }) {
       <div className="flex items-center justify-center min-h-screen">
         <Card className="p-6 text-center">
           <p className="text-red-600">{error}</p>
-          <Button className="mt-4" onClick={fetchJobs}>Retry</Button>
+          <Button className="mt-4" onClick={fetchJobs}>
+            Retry
+          </Button>
         </Card>
       </div>
     )
@@ -139,13 +140,29 @@ export default function JobListPage({ orgId }) {
       <main className="px-4">
         {/* Filters */}
         <div className="mb-4 flex flex-col space-y-2 md:flex-row md:space-x-4">
-          <select value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)} className="p-2 border rounded">
+          <select
+            value={filterCategory}
+            onChange={(e) => setFilterCategory(e.target.value)}
+            className="p-2 border rounded"
+          >
             <option value="all">All Categories</option>
-            {categories.map((cat) => <option key={cat} value={cat}>{cat}</option>)}
+            {categories.map((cat) => (
+              <option key={cat} value={cat}>
+                {cat}
+              </option>
+            ))}
           </select>
-          <select value={filterLocation} onChange={(e) => setFilterLocation(e.target.value)} className="p-2 border rounded">
+          <select
+            value={filterLocation}
+            onChange={(e) => setFilterLocation(e.target.value)}
+            className="p-2 border rounded"
+          >
             <option value="all">All Locations</option>
-            {locations.map((loc) => <option key={loc} value={loc}>{loc}</option>)}
+            {locations.map((loc) => (
+              <option key={loc} value={loc}>
+                {loc}
+              </option>
+            ))}
           </select>
           <input
             type="text"
@@ -159,9 +176,7 @@ export default function JobListPage({ orgId }) {
         {/* No jobs */}
         {filteredJobs.length === 0 ? (
           <Card className="p-8 text-center">
-            <h3 className="text-lg font-semibold mb-2">
-              {jobs.length === 0 ? "No Job is Posted" : "No Jobs Found"}
-            </h3>
+            <h3 className="text-lg font-semibold mb-2">{jobs.length === 0 ? "No Job is Posted" : "No Jobs Found"}</h3>
             <p className="text-gray-600 mb-4">
               {jobs.length === 0
                 ? "You haven't posted any jobs yet. Start by creating your first job posting!"
@@ -191,8 +206,12 @@ export default function JobListPage({ orgId }) {
                       <td className="p-3">{job.jobCategory}</td>
                       <td className="p-3">{job.requiredEmployees}</td>
                       <td className="p-3 text-center flex justify-center gap-2">
-                        <Button variant="ghost" size="sm" onClick={() => handleViewClick(job)}><Eye className="h-4 w-4"/></Button>
-                        <Button variant="ghost" size="sm" onClick={() => handleEditClick(job)}><Edit className="h-4 w-4"/></Button>
+                        <Button variant="ghost" size="sm" onClick={() => handleViewClick(job)}>
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => handleEditClick(job)}>
+                          <Edit className="h-4 w-4" />
+                        </Button>
                         <DeleteJob jobId={job._id} onDelete={handleDeleteSuccess} onError={setError} />
                       </td>
                     </tr>
@@ -208,11 +227,17 @@ export default function JobListPage({ orgId }) {
                   <div className="flex justify-between">
                     <div>
                       <p className="font-semibold">{job.position}</p>
-                      <p className="text-sm text-gray-600">{job.jobCategory} • {job.jobLocation}</p>
+                      <p className="text-sm text-gray-600">
+                        {job.jobCategory} • {job.jobLocation}
+                      </p>
                     </div>
                     <div className="flex gap-2">
-                      <Button variant="ghost" size="sm" onClick={() => handleViewClick(job)}><Eye className="h-4 w-4"/></Button>
-                      <Button variant="ghost" size="sm" onClick={() => handleEditClick(job)}><Edit className="h-4 w-4"/></Button>
+                      <Button variant="ghost" size="sm" onClick={() => handleViewClick(job)}>
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => handleEditClick(job)}>
+                        <Edit className="h-4 w-4" />
+                      </Button>
                       <DeleteJob jobId={job._id} onDelete={handleDeleteSuccess} onError={setError} />
                     </div>
                   </div>
@@ -229,14 +254,28 @@ export default function JobListPage({ orgId }) {
           <DialogContent>
             <DialogHeader>
               <DialogTitle>{selectedJob.position}</DialogTitle>
-              <DialogClose asChild><Button variant="ghost"><X className="h-4 w-4"/></Button></DialogClose>
+              <DialogClose asChild>
+                <Button variant="ghost">
+                  <X className="h-4 w-4" />
+                </Button>
+              </DialogClose>
             </DialogHeader>
             <div className="space-y-2 text-sm">
-              <p><strong>Category:</strong> {selectedJob.jobCategory}</p>
-              <p><strong>Employees:</strong> {selectedJob.requiredEmployees}</p>
-              <p><strong>Location:</strong> {selectedJob.jobLocation}</p>
-              <p><strong>Status:</strong> {selectedJob.active ? "Active" : "Inactive"}</p>
-              <p><strong>Description:</strong> {selectedJob.description}</p>
+              <p>
+                <strong>Category:</strong> {selectedJob.jobCategory}
+              </p>
+              <p>
+                <strong>Employees:</strong> {selectedJob.requiredEmployees}
+              </p>
+              <p>
+                <strong>Location:</strong> {selectedJob.jobLocation}
+              </p>
+              <p>
+                <strong>Status:</strong> {selectedJob.active ? "Active" : "Inactive"}
+              </p>
+              <p>
+                <strong>Description:</strong> {selectedJob.description}
+              </p>
             </div>
           </DialogContent>
         </Dialog>
@@ -245,12 +284,14 @@ export default function JobListPage({ orgId }) {
       {/* Edit Modal */}
       {selectedJob && (
         <EditJobModal
+          orgId={orgId}
           isModalOpen={isEditModalOpen}
           setIsModalOpen={setIsEditModalOpen}
           selectedJob={selectedJob}
           editFormData={editFormData}
           setEditFormData={setEditFormData}
-          onSubmit={() => fetchJobs()} // refresh after edit
+          onSubmit={() => fetchJobs()}
+          jobId={selectedJob._id}
         />
       )}
     </div>

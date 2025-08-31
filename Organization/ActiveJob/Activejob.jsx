@@ -116,7 +116,7 @@ export default function ActiveJobs() {
                   <Button
                     variant="outline"
                     className="mt-4 bg-transparent"
-                    onClick={() => router.push(`/organization/Jobpage/${job._id}`)}
+                 onClick={() => router.push(`/organization/Jobpage/${job._id}`)}
                   >
                     View Details
                   </Button>
