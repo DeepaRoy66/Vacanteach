@@ -730,7 +730,7 @@ export default function PostJobPage() {
         role: session?.user?.role || "organization",
         orgId, // <-- include orgId from URL
       }
-      const response = await fetch("/api/Org/addjob", {
+      const response = await fetch(`/api/Org/${orgId}/addjob`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(jobData),
