@@ -87,12 +87,12 @@ export async function PUT(request, { params }) {
     await connectToDatabase()
 
     // Verify job exists and belongs to the organization
-    const job = await Job.findById(jobid).select("organizationId")
+    const job = await Job.findById(jobid).select("org_id")
     if (!job) {
       return NextResponse.json({ error: "Job not found" }, { status: 404 })
     }
 
-    if (job.organizationId !== orgId) {
+    if (job.org_id !== orgId) {
       return NextResponse.json({ error: "Unauthorized: You do not have permission to edit this job" }, { status: 403 })
     }
 
@@ -118,7 +118,7 @@ export async function PUT(request, { params }) {
       postedBy,
       role: "organization",
       urgent: Boolean(urgent),
-      organizationId: orgId, // Using organizationId instead of org_id
+      org_id: orgId,
       updatedAt: new Date(),
     }
 

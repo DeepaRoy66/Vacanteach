@@ -743,7 +743,7 @@ export default function EditJobModal({
         org_id: orgId || editFormData.org_id,
       }
 
-      const response = await fetch(`/api/Org/${orgId}/${job_id}/editjob`, {
+      const response = await fetch(`/api/Org/${orgId}/${jobId}/editjob`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
