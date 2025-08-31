@@ -5,11 +5,21 @@ import { Button } from "../../app/components/ui/button";
 import { Badge } from "../../app/components/ui/badge";
 import {
   Briefcase, Filter, Download, Heart, MapPin, Clock, Eye,
-  Zap, ArrowRight, XCircle, CheckCircle
+  Zap, ArrowRight, XCircle, CheckCircle, ChevronLeft, ChevronRight
 } from "lucide-react";
 import ApplyJobModal from "./ApplyNow";
 
-export default function JobListings({ jobs, loading, incrementJobView, searchQuery, searchLocation, resetFilters }) {
+export default function JobListings({ 
+  jobs, 
+  loading, 
+  incrementJobView, 
+  searchQuery, 
+  searchLocation, 
+  resetFilters,
+  pagination,
+  currentPage,
+  onPageChange
+}) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedJobId, setSelectedJobId] = useState(null);
   const [showSuccessAlert, setShowSuccessAlert] = useState(false);
@@ -27,6 +37,88 @@ export default function JobListings({ jobs, loading, incrementJobView, searchQue
   const handleSuccess = () => {
     setShowSuccessAlert(true);
     setTimeout(() => setShowSuccessAlert(false), 5000);
+  };
+
+  const renderPagination = () => {
+    if (!pagination.totalPages || pagination.totalPages <= 1) return null;
+
+    const pages = [];
+    const maxVisiblePages = 5;
+    
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(pagination.totalPages, startPage + maxVisiblePages - 1);
+    
+    if (endPage - startPage + 1 < maxVisiblePages) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+
+    return (
+      <div className="flex justify-center items-center space-x-2 mt-8">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onPageChange(currentPage - 1)}
+          disabled={!pagination.hasPrev}
+          className="rounded-full"
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+
+        {startPage > 1 && (
+          <>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onPageChange(1)}
+              className="rounded-full"
+            >
+              1
+            </Button>
+            {startPage > 2 && <span className="px-2">...</span>}
+          </>
+        )}
+
+        {pages.map(page => (
+          <Button
+            key={page}
+            variant={page === currentPage ? "default" : "outline"}
+            size="sm"
+            onClick={() => onPageChange(page)}
+            className="rounded-full"
+          >
+            {page}
+          </Button>
+        ))}
+
+        {endPage < pagination.totalPages && (
+          <>
+            {endPage < pagination.totalPages - 1 && <span className="px-2">...</span>}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onPageChange(pagination.totalPages)}
+              className="rounded-full"
+            >
+              {pagination.totalPages}
+            </Button>
+          </>
+        )}
+
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onPageChange(currentPage + 1)}
+          disabled={!pagination.hasNext}
+          className="rounded-full"
+        >
+          <ChevronRight className="h-4 w-4" />
+        </Button>
+      </div>
+    );
   };
 
   return (
@@ -80,10 +172,10 @@ export default function JobListings({ jobs, loading, incrementJobView, searchQue
             <div>
               <CardTitle className="text-xl font-bold flex items-center space-x-2 text-gray-800 dark:text-white">
                 <Briefcase className="h-6 w-6 text-emerald-500" />
-                <span>Featured Job Opportunities</span>
+                <span>Jobs from All Organizations</span>
               </CardTitle>
               <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm">
-                Handpicked positions matching your profile
+                {pagination.totalJobs ? `${pagination.totalJobs} opportunities available` : 'Explore teaching positions'}
               </p>
             </div>
             <div className="flex space-x-2">
@@ -102,7 +194,7 @@ export default function JobListings({ jobs, loading, incrementJobView, searchQue
         <CardContent className="p-6 md:p-8">
           {loading ? (
             <div className="flex justify-center items-center py-12">
-              <p className="text-gray-500 dark:text-gray-400">Loading jobs...</p>
+              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-emerald-500"></div>
             </div>
           ) : jobs.length === 0 ? (
             <div className="flex flex-col justify-center items-center py-12 text-center">
@@ -139,7 +231,7 @@ export default function JobListings({ jobs, loading, incrementJobView, searchQue
                         <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 md:mb-0">
                           {job.position}
                         </h3>
-                        {job.jobLocation.toLowerCase() === "remote" && (
+                        {job.jobLocation && job.jobLocation.toLowerCase() === "remote" && (
                           <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 dark:bg-emerald-800 dark:text-emerald-300 rounded-full px-3 py-1 text-xs">
                             Remote
                           </Badge>
@@ -147,11 +239,11 @@ export default function JobListings({ jobs, loading, incrementJobView, searchQue
                       </div>
                       <div className="flex flex-wrap items-center space-x-4 text-sm text-gray-500 dark:text-gray-400 mb-3">
                         <span className="font-semibold text-emerald-600 dark:text-emerald-400">
-                          {job.postedBy}
+                          {job.postedBy?.organizationName || job.postedBy?.name || 'Organization'}
                         </span>
                         <div className="flex items-center space-x-1">
                           <MapPin className="h-4 w-4" />
-                          <span>{job.jobLocation}</span>
+                          <span>{job.jobLocation || 'Location not specified'}</span>
                         </div>
                         <div className="flex items-center space-x-1">
                           <Clock className="h-4 w-4" />
@@ -159,29 +251,40 @@ export default function JobListings({ jobs, loading, incrementJobView, searchQue
                         </div>
                         <div className="flex items-center space-x-1">
                           <Eye className="h-4 w-4" />
-                          <span>{job.views} views</span>
+                          <span>{job.views || 0} views</span>
                         </div>
                       </div>
                       <div className="flex items-center flex-wrap space-x-2 mb-4">
                         <Badge variant="outline" className="border-emerald-200 text-emerald-700 dark:border-emerald-700 dark:text-emerald-300 rounded-full">
-                          {job.jobType}
+                          {job.jobType || 'Full-time'}
                         </Badge>
                         <span className="text-emerald-600 dark:text-emerald-400 font-semibold text-lg">
                           {job.hideSalary ? "Salary Not Disclosed" : job.negotiable ? "Negotiable" :
                             job.offeredSalaryType === "Range"
-                              ? `${job.currency} ${job.minimum.toLocaleString()} - ${job.maximum.toLocaleString()} / ${job.salaryType}`
-                              : `${job.currency} ${job.minimum.toLocaleString()} / ${job.salaryType}`}
+                              ? `${job.currency || '$'} ${job.minimum?.toLocaleString()} - ${job.maximum?.toLocaleString()} / ${job.salaryType}`
+                              : job.salary 
+                              ? `${job.currency || '$'} ${job.salary.toLocaleString()}`
+                              : "Salary not specified"}
                         </span>
                       </div>
                       <p className="text-gray-700 dark:text-gray-300 mb-4 leading-relaxed line-clamp-2">
                         {job.description}
                       </p>
-                      {job.experience && (
+                      {job.requirements && job.requirements.length > 0 && (
                         <div className="mb-4">
                           <h4 className="font-medium text-gray-900 dark:text-white mb-2">Requirements:</h4>
-                          <ul className="list-disc list-inside text-sm text-gray-600 dark:text-gray-400 space-y-1">
-                            <li>{job.experience}</li>
-                          </ul>
+                          <div className="flex flex-wrap gap-2">
+                            {job.requirements.slice(0, 3).map((req, index) => (
+                              <span key={index} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                                {req}
+                              </span>
+                            ))}
+                            {job.requirements.length > 3 && (
+                              <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
+                                +{job.requirements.length - 3} more
+                              </span>
+                            )}
+                          </div>
                         </div>
                       )}
                     </div>
@@ -212,21 +315,15 @@ export default function JobListings({ jobs, loading, incrementJobView, searchQue
                   </div>
                 </div>
               ))}
+              
+              {/* Pagination */}
+              {renderPagination()}
             </div>
           )}
-          <div className="mt-8 text-center">
-            <Button
-              variant="outline"
-              size="lg"
-              className="px-8 rounded-full border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-300"
-            >
-              Load More Jobs
-            </Button>
-          </div>
         </CardContent>
       </Card>
 
-      {/* ✅ Application Modal (Separated) */}
+      {/* ✅ Application Modal */}
       <ApplyJobModal
         isOpen={isModalOpen}
         onClose={handleCloseModal}

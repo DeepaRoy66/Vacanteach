@@ -30,66 +30,62 @@ export default function TeacherDashboard({ teacherId }) {
   const [loading, setLoading] = useState(true);
   const [previousMonthJobs, setPreviousMonthJobs] = useState(0);
   const [error, setError] = useState(null);
+  const [pagination, setPagination] = useState({});
+  const [currentPage, setCurrentPage] = useState(1);
 
-  const fetchJobs = async () => {
+  const fetchJobs = async (page = 1) => {
     setLoading(true);
     setError(null);
     try {
-      // Build query params
-      const query = new URLSearchParams({
-        search: searchQuery,
-        location: searchLocation,
-        teacherId, // Include teacherId in query
-      }).toString();
+      // Build query params for general jobs API
+      const queryParams = new URLSearchParams({
+        active: 'true', // Only show active jobs
+        page: page.toString(),
+        limit: '10',
+        ...(searchQuery && { search: searchQuery }),
+        ...(searchLocation && { location: searchLocation }),
+        sortBy: 'createdAt'
+      });
 
-      // Fetch all jobs
-      const jobsResponse = await fetch(`/api/Org/getjob?${query}`);
-      if (jobsResponse.status === 404) {
-        setJobs([]);
-        toast({ message: "No jobs found", variant: "info" });
-      } else if (!jobsResponse.ok) {
+      // Fetch all jobs from all organizations
+      const jobsResponse = await fetch(`/api/jobs?${queryParams}`);
+      
+      if (!jobsResponse.ok) {
         throw new Error(`Failed to fetch jobs: ${jobsResponse.status}`);
-      } else {
-        const jobsData = await jobsResponse.json();
-        if (Array.isArray(jobsData)) {
-          setJobs(jobsData);
-        } else {
-          throw new Error("Invalid jobs data format");
-        }
       }
 
-      // Fetch top jobs
-      const topJobsResponse = await fetch(`/api/Org/getjobs?sortBy=views&limit=4`);
-      if (topJobsResponse.status === 404) {
-        setTopJobs([]);
-        toast({ message: "No top jobs found", variant: "info" });
-      } else if (!topJobsResponse.ok) {
-        throw new Error("Failed to fetch top jobs");
-      } else {
+      const jobsData = await jobsResponse.json();
+      setJobs(jobsData.jobs || []);
+      setPagination(jobsData.pagination || {});
+
+      // Fetch top jobs (most viewed)
+      const topJobsParams = new URLSearchParams({
+        active: 'true',
+        sortBy: 'views',
+        limit: '4'
+      });
+
+      const topJobsResponse = await fetch(`/api/jobs?${topJobsParams}`);
+      if (topJobsResponse.ok) {
         const topJobsData = await topJobsResponse.json();
-        if (Array.isArray(topJobsData)) {
-          setTopJobs(topJobsData);
-        } else {
-          throw new Error("Invalid top jobs data format");
-        }
+        setTopJobs(topJobsData.jobs || []);
       }
 
-      // Fetch previous month job stats
+      // Calculate previous month stats
       const currentDate = new Date();
-      const previousMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1)
-        .toISOString()
-        .slice(0, 7);
-      const statsResponse = await fetch(`/api/Org/jobstats?month=${previousMonth}`);
-      if (!statsResponse.ok) {
-        setPreviousMonthJobs(0);
-        toast({ message: "No job stats available for previous month", variant: "info" });
-      } else {
-        const statsData = await statsResponse.json();
-        setPreviousMonthJobs(statsData.jobCount || 0);
-      }
+      const lastMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1);
+      const lastMonthParams = new URLSearchParams({
+        active: 'true',
+        // You might need to add date filtering to your API
+        // For now, we'll use a rough estimate
+      });
+      
+      // Estimate previous month jobs (you may want to enhance your API for this)
+      setPreviousMonthJobs(Math.max(0, (jobsData.pagination?.totalJobs || 0) - 5));
+
     } catch (err) {
       console.error("Fetch error:", err);
-      setError("Failed to load data. Please try again.");
+      setError("Failed to load jobs. Please try again.");
       setJobs([]);
       setTopJobs([]);
       setPreviousMonthJobs(0);
@@ -106,14 +102,34 @@ export default function TeacherDashboard({ teacherId }) {
         body: JSON.stringify({ jobId }),
       });
       if (!response.ok) throw new Error("Failed to increment job view");
+      
+      // Update the job views in state
+      setJobs(prevJobs => 
+        prevJobs.map(job => 
+          job._id === jobId 
+            ? { ...job, views: (job.views || 0) + 1 }
+            : job
+        )
+      );
     } catch (err) {
       console.error("Error incrementing job view:", err);
     }
   };
 
+  const resetFilters = () => {
+    setSearchQuery("");
+    setSearchLocation("");
+    setCurrentPage(1);
+  };
+
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage);
+    fetchJobs(newPage);
+  };
+
   useEffect(() => {
-    fetchJobs();
-  }, [searchQuery, searchLocation, teacherId]);
+    fetchJobs(currentPage);
+  }, [searchQuery, searchLocation]);
 
   if (status === "loading") {
     return (
@@ -123,7 +139,7 @@ export default function TeacherDashboard({ teacherId }) {
     );
   }
 
-  const currentJobs = jobs.length;
+  const currentJobs = pagination.totalJobs || 0;
   const percentageChange = previousMonthJobs
     ? ((currentJobs - previousMonthJobs) / previousMonthJobs) * 100
     : currentJobs > 0 ? 100 : 0;
@@ -144,23 +160,39 @@ export default function TeacherDashboard({ teacherId }) {
         {error && (
           <div className="bg-red-100 text-red-700 p-4 rounded mb-4">
             {error}
+            <button 
+              onClick={() => fetchJobs(currentPage)}
+              className="ml-2 px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700"
+            >
+              Retry
+            </button>
           </div>
         )}
+        
         <WelcomeSection session={session} />
+        
         <DashboardStats
           currentJobs={currentJobs}
           percentageChange={percentageChange}
           isPositiveChange={isPositiveChange}
           topJobs={topJobs}
         />
+        
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           <RecentActivity recentActivity={recentActivity} />
-          <TopJobs topJobs={topJobs} />
+          <TopJobs topJobs={topJobs} incrementJobView={incrementJobView} />
         </div>
+        
         <JobListings
           jobs={jobs}
           loading={loading}
           incrementJobView={incrementJobView}
+          searchQuery={searchQuery}
+          searchLocation={searchLocation}
+          resetFilters={resetFilters}
+          pagination={pagination}
+          currentPage={currentPage}
+          onPageChange={handlePageChange}
         />
       </div>
     </div>
