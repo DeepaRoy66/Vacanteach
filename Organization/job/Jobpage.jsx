@@ -212,7 +212,7 @@ export default function JobListPage({ orgId }) {
                         <Button variant="ghost" size="sm" onClick={() => handleEditClick(job)}>
                           <Edit className="h-4 w-4" />
                         </Button>
-                        <DeleteJob jobId={job._id} onDelete={handleDeleteSuccess} onError={setError} />
+                        <DeleteJob jobId={job._id} onDelete={handleDeleteSuccess} onError={setError}   orgId={orgId}/>
                       </td>
                     </tr>
                   ))}
@@ -238,7 +238,7 @@ export default function JobListPage({ orgId }) {
                       <Button variant="ghost" size="sm" onClick={() => handleEditClick(job)}>
                         <Edit className="h-4 w-4" />
                       </Button>
-                      <DeleteJob jobId={job._id} onDelete={handleDeleteSuccess} onError={setError} />
+                     <DeleteJob jobId={job._id} onDelete={handleDeleteSuccess} onError={setError}   orgId={orgId}/>
                     </div>
                   </div>
                 </Card>
