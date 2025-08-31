@@ -89,7 +89,7 @@ export default function OrganizationDashboard({ orgId }) {
   const fetchJobApplications = async () => {
     setIsLoadingApplications(true)
     try {
-      const response = await fetch(`/api/Org/JobApplications?orgId=${encodeURIComponent(orgId)}`)
+      const response = await fetch(`/api/Org/${orgId}/JobApplications?orgId=${encodeURIComponent(orgId)}`)
       if (!response.ok) throw new Error("Failed to fetch applications")
 
       const data = await response.json()
