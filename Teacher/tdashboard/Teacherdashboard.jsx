@@ -8,6 +8,7 @@ import DashboardStats from "./DashBoardStats";
 import RecentActivity from "./RecentActivity";
 import TopJobs from "./TopJobs";
 import JobListings from "./JobListings";
+import { toast } from "react-toastify";
 
 const jobCategories = [
   "Mathematics", "Science", "English", "History", "Art", "Music", "Physical Education", "Computer Science"
@@ -20,7 +21,7 @@ const recentActivity = [
   { id: 4, type: "profile", title: "Profile viewed by Roosevelt Middle School", time: "3 days ago", status: "viewed" }
 ];
 
-export default function TeacherDashboard() {
+export default function TeacherDashboard({ teacherId }) {
   const { data: session, status } = useSession();
   const [searchQuery, setSearchQuery] = useState("");
   const [searchLocation, setSearchLocation] = useState("");
@@ -28,37 +29,49 @@ export default function TeacherDashboard() {
   const [topJobs, setTopJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [previousMonthJobs, setPreviousMonthJobs] = useState(0);
+  const [error, setError] = useState(null);
 
   const fetchJobs = async () => {
     setLoading(true);
+    setError(null);
     try {
       // Build query params
-      const query = new URLSearchParams({ search: searchQuery, location: searchLocation }).toString();
+      const query = new URLSearchParams({
+        search: searchQuery,
+        location: searchLocation,
+        teacherId, // Include teacherId in query
+      }).toString();
 
       // Fetch all jobs
       const jobsResponse = await fetch(`/api/Org/getjob?${query}`);
       if (jobsResponse.status === 404) {
-        console.warn("No jobs found");
         setJobs([]);
+        toast({ message: "No jobs found", variant: "info" });
       } else if (!jobsResponse.ok) {
-        const text = await jobsResponse.text();
-        throw new Error(`HTTP error! status: ${jobsResponse.status}, content: ${text.substring(0, 100)}...`);
+        throw new Error(`Failed to fetch jobs: ${jobsResponse.status}`);
       } else {
         const jobsData = await jobsResponse.json();
-        setJobs(jobsData || []);
+        if (Array.isArray(jobsData)) {
+          setJobs(jobsData);
+        } else {
+          throw new Error("Invalid jobs data format");
+        }
       }
 
       // Fetch top jobs
       const topJobsResponse = await fetch(`/api/Org/getjobs?sortBy=views&limit=4`);
       if (topJobsResponse.status === 404) {
-        console.warn("No top jobs found");
         setTopJobs([]);
+        toast({ message: "No top jobs found", variant: "info" });
       } else if (!topJobsResponse.ok) {
-        console.warn("Failed to fetch top jobs:", await topJobsResponse.text());
-        setTopJobs([]);
+        throw new Error("Failed to fetch top jobs");
       } else {
         const topJobsData = await topJobsResponse.json();
-        setTopJobs(topJobsData || []);
+        if (Array.isArray(topJobsData)) {
+          setTopJobs(topJobsData);
+        } else {
+          throw new Error("Invalid top jobs data format");
+        }
       }
 
       // Fetch previous month job stats
@@ -68,16 +81,15 @@ export default function TeacherDashboard() {
         .slice(0, 7);
       const statsResponse = await fetch(`/api/Org/jobstats?month=${previousMonth}`);
       if (!statsResponse.ok) {
-        console.warn("No job stats available for previous month");
         setPreviousMonthJobs(0);
+        toast({ message: "No job stats available for previous month", variant: "info" });
       } else {
         const statsData = await statsResponse.json();
         setPreviousMonthJobs(statsData.jobCount || 0);
       }
-
     } catch (err) {
       console.error("Fetch error:", err);
-      // Fallback in case of network/server error
+      setError("Failed to load data. Please try again.");
       setJobs([]);
       setTopJobs([]);
       setPreviousMonthJobs(0);
@@ -93,7 +105,7 @@ export default function TeacherDashboard() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ jobId }),
       });
-      if (!response.ok) console.warn("Failed to increment job view");
+      if (!response.ok) throw new Error("Failed to increment job view");
     } catch (err) {
       console.error("Error incrementing job view:", err);
     }
@@ -101,12 +113,12 @@ export default function TeacherDashboard() {
 
   useEffect(() => {
     fetchJobs();
-  }, [searchQuery, searchLocation]);
+  }, [searchQuery, searchLocation, teacherId]);
 
   if (status === "loading") {
     return (
       <div className="flex justify-center items-center min-h-screen bg-gray-100">
-        <p>Loading...</p>
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
       </div>
     );
   }
@@ -114,7 +126,7 @@ export default function TeacherDashboard() {
   const currentJobs = jobs.length;
   const percentageChange = previousMonthJobs
     ? ((currentJobs - previousMonthJobs) / previousMonthJobs) * 100
-    : 0;
+    : currentJobs > 0 ? 100 : 0;
   const isPositiveChange = percentageChange >= 0;
 
   return (
@@ -129,6 +141,11 @@ export default function TeacherDashboard() {
         signOut={signOut}
       />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {error && (
+          <div className="bg-red-100 text-red-700 p-4 rounded mb-4">
+            {error}
+          </div>
+        )}
         <WelcomeSection session={session} />
         <DashboardStats
           currentJobs={currentJobs}
