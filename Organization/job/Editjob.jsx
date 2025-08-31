@@ -18,6 +18,7 @@ import {
   Star,
   Settings,
   Zap,
+  Music,
   Target,
   Building,
   Code,
@@ -59,8 +60,80 @@ const dropdownOptions = {
     { value: "Computer & IT Education", label: "Computer & IT Education", icon: Code },
     { value: "Educational Management", label: "Educational Management", icon: Building },
   ],
-  subCategory: {
-    // ... (same as provided)
+   subCategory: {
+      "Early Childhood Education": [
+        { value: "Pre-School Teaching", label: "Pre-School Teaching", icon: Heart },
+        { value: "Kindergarten Teaching", label: "Kindergarten Teaching", icon: Heart },
+      ],
+      "Primary Education": [
+        { value: "Mathematics", label: "Mathematics", icon: Target },
+        { value: "Science", label: "Science", icon: Zap },
+        { value: "English", label: "English", icon: BookOpen },
+        { value: "Nepali", label: "Nepali", icon: BookOpen },
+        { value: "Social Studies", label: "Social Studies", icon: Users },
+      ],
+      "Secondary Education": [
+        { value: "Mathematics", label: "Mathematics", icon: Target },
+        { value: "Science", label: "Science", icon: Zap },
+        { value: "English", label: "English", icon: BookOpen },
+        { value: "Nepali", label: "Nepali", icon: BookOpen },
+        { value: "Social Studies", label: "Social Studies", icon: Users },
+        { value: "Computer Science", label: "Computer Science", icon: Code },
+        { value: "Economics", label: "Economics", icon: DollarSign },
+      ],
+      "Higher Education": [
+        { value: "Mathematics", label: "Mathematics", icon: Target },
+        { value: "Physics", label: "Physics", icon: Zap },
+        { value: "Chemistry", label: "Chemistry", icon: Zap },
+        { value: "Biology", label: "Biology", icon: Zap },
+        { value: "English", label: "English", icon: BookOpen },
+        { value: "Nepali", label: "Nepali", icon: BookOpen },
+        { value: "Management", label: "Management", icon: Building },
+        { value: "Computer Science", label: "Computer Science", icon: Code },
+      ],
+      "Special Education": [
+        { value: "Inclusive Education", label: "Inclusive Education", icon: Heart },
+        { value: "Autism Specialist", label: "Autism Specialist", icon: Star },
+        { value: "Learning Disabilities", label: "Learning Disabilities", icon: Star },
+      ],
+      "Vocational Training": [
+        { value: "IT Skills", label: "IT Skills", icon: Code },
+        { value: "Carpentry", label: "Carpentry", icon: Settings },
+        { value: "Electrical", label: "Electrical", icon: Zap },
+        { value: "Hospitality", label: "Hospitality", icon: Heart },
+      ],
+      "Language Instruction": [
+        { value: "English Language", label: "English Language", icon: BookOpen },
+        { value: "Nepali Language", label: "Nepali Language", icon: BookOpen },
+        { value: "Foreign Languages", label: "Foreign Languages", icon: BookOpen },
+      ],
+      "STEM Education": [
+        { value: "Mathematics", label: "Mathematics", icon: Target },
+        { value: "Science", label: "Science", icon: Zap },
+        { value: "Technology", label: "Technology", icon: Code },
+        { value: "Engineering", label: "Engineering", icon: Settings },
+      ],
+      "Arts Education": [
+        { value: "Music", label: "Music", icon: Music },
+        { value: "Dance", label: "Dance", icon: Activity },
+        { value: "Visual Arts", label: "Visual Arts", icon: Palette },
+        { value: "Drama", label: "Drama", icon: Palette },
+      ],
+      "Physical Education": [
+        { value: "Sports Coach", label: "Sports Coach", icon: Activity },
+        { value: "Health & Fitness", label: "Health & Fitness", icon: Activity },
+      ],
+      "Computer & IT Education": [
+        { value: "Computer Teacher", label: "Computer Teacher", icon: Code },
+        { value: "IT Instructor", label: "IT Instructor", icon: Code },
+        { value: "Programming & Coding", label: "Programming & Coding", icon: Code },
+      ],
+      "Educational Management": [
+        { value: "Principal / Headteacher", label: "Principal / Headteacher", icon: Award },
+        { value: "Academic Coordinator", label: "Academic Coordinator", icon: Building },
+        { value: "Counselor / Career Advisor", label: "Counselor / Career Advisor", icon: Heart },
+        { value: "Administrative Staff", label: "Administrative Staff", icon: Building },
+      ],
   },
   jobLevel: [
     { value: "Entry Level(0-3yrs)", label: "Entry Level (0-3yrs)", icon: Star, color: "text-green-600" },
