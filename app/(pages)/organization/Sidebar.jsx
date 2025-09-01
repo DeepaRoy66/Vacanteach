@@ -142,7 +142,7 @@ export default function SidebarLayout({ onMobileMenuChange, children }) {
         url: "#",
         icon: Users,
         items: [
-          { title: "All Applicants", url: "#" },
+          { title: "All Applicants", url: "/Organization/dashboard/job" },
           { title: "Shortlisted", url: "#" },
           { title: "Interviewed", url: "#" },
           { title: "Hired", url: "#" },

@@ -34,7 +34,7 @@ export default function Navbar() {
       <div className="container mx-auto px-4 lg:px-6 py-2 flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="text-white font-bold text-xl">
-          SikshakRojgar
+          
         </Link>
         {/* Desktop menu */}
         <div className="hidden lg:flex items-center space-x-4">

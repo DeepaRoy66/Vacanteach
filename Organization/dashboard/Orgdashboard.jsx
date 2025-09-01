@@ -28,7 +28,6 @@ export default function OrganizationDashboard({ orgId }) {
   const [isVerifyingAuth, setIsVerifyingAuth] = useState(true)
   const [authError, setAuthError] = useState(null)
 
-  // ---------------- Verify Access ----------------
   useEffect(() => {
     async function verifyAccess() {
       if (status === "loading") return
@@ -58,7 +57,6 @@ export default function OrganizationDashboard({ orgId }) {
     verifyAccess()
   }, [status, session, orgId, router])
 
-  // ---------------- Fetch dashboard data ----------------
   useEffect(() => {
     if (isAuthorized && !isVerifyingAuth) {
       fetchActiveJobs()
