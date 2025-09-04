@@ -1,10 +1,12 @@
-// app/api/auth/[...nextauth]/route.js
 import NextAuth from "next-auth/next";
 import GoogleProvider from "next-auth/providers/google";
 import FacebookProvider from "next-auth/providers/facebook";
 import { connectToDatabase } from "../../../../lib/mongoose";
 import User from "../../../../lib/models/teacher";
 import Organization from "../../../../lib/models/Organization";
+
+// Force dynamic rendering for NextAuth routes
+export const dynamic = 'force-dynamic';
 
 export const authOptions = {
   providers: [
@@ -38,7 +40,7 @@ export const authOptions = {
         return true;
       } catch (error) {
         console.error("[NextAuth] Error in signIn callback:", error);
-        return true;
+        return false; // Return false to prevent sign-in on error
       }
     },
     async jwt({ token, user, account }) {
@@ -77,5 +79,5 @@ export const authOptions = {
   },
 };
 
-export const handler = NextAuth(authOptions);
+const handler = NextAuth(authOptions);
 export { handler as GET, handler as POST };

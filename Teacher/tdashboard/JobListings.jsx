@@ -1,24 +1,40 @@
 "use client";
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "../../app/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "../../app/components/ui/card";
 import { Button } from "../../app/components/ui/button";
 import { Badge } from "../../app/components/ui/badge";
 import {
-  Briefcase, Filter, Download, Heart, MapPin, Clock, Eye,
-  Zap, ArrowRight, XCircle, CheckCircle, ChevronLeft, ChevronRight
+  Briefcase,
+  Filter,
+  Download,
+  Heart,
+  MapPin,
+  Clock,
+  Eye,
+  Zap,
+  ArrowRight,
+  XCircle,
+  CheckCircle,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import ApplyJobModal from "./ApplyNow";
 
-export default function JobListings({ 
-  jobs, 
-  loading, 
-  incrementJobView, 
-  searchQuery, 
-  searchLocation, 
+export default function JobListings({
+  jobs,
+  loading,
+  incrementJobView,
+  searchQuery,
+  searchLocation,
   resetFilters,
   pagination,
   currentPage,
-  onPageChange
+  onPageChange,
 }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedJobId, setSelectedJobId] = useState(null);
@@ -44,10 +60,13 @@ export default function JobListings({
 
     const pages = [];
     const maxVisiblePages = 5;
-    
+
     let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-    let endPage = Math.min(pagination.totalPages, startPage + maxVisiblePages - 1);
-    
+    let endPage = Math.min(
+      pagination.totalPages,
+      startPage + maxVisiblePages - 1
+    );
+
     if (endPage - startPage + 1 < maxVisiblePages) {
       startPage = Math.max(1, endPage - maxVisiblePages + 1);
     }
@@ -82,7 +101,7 @@ export default function JobListings({
           </>
         )}
 
-        {pages.map(page => (
+        {pages.map((page) => (
           <Button
             key={page}
             variant={page === currentPage ? "default" : "outline"}
@@ -96,7 +115,9 @@ export default function JobListings({
 
         {endPage < pagination.totalPages && (
           <>
-            {endPage < pagination.totalPages - 1 && <span className="px-2">...</span>}
+            {endPage < pagination.totalPages - 1 && (
+              <span className="px-2">...</span>
+            )}
             <Button
               variant="outline"
               size="sm"
@@ -138,7 +159,8 @@ export default function JobListings({
                   Application Submitted Successfully! 🎉
                 </h3>
                 <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
-                  Your job application has been submitted. The employer will review your application and get back to you soon.
+                  Your job application has been submitted. The employer will
+                  review your application and get back to you soon.
                 </p>
                 <div className="mt-4 flex items-center space-x-3">
                   <Button
@@ -175,15 +197,25 @@ export default function JobListings({
                 <span>Jobs from All Organizations</span>
               </CardTitle>
               <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm">
-                {pagination.totalJobs ? `${pagination.totalJobs} opportunities available` : 'Explore teaching positions'}
+                {pagination.totalJobs
+                  ? `${pagination.totalJobs} opportunities available`
+                  : "Explore teaching positions"}
               </p>
             </div>
             <div className="flex space-x-2">
-              <Button variant="outline" size="sm" className="rounded-full border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-300">
+              <Button
+                variant="outline"
+                size="sm"
+                className="rounded-full border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-300"
+              >
                 <Filter className="h-4 w-4 mr-2" />
                 Filter
               </Button>
-              <Button variant="outline" size="sm" className="rounded-full border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-300">
+              <Button
+                variant="outline"
+                size="sm"
+                className="rounded-full border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-300"
+              >
                 <Download className="h-4 w-4 mr-2" />
                 Export
               </Button>
@@ -199,14 +231,21 @@ export default function JobListings({
           ) : jobs.length === 0 ? (
             <div className="flex flex-col justify-center items-center py-12 text-center">
               <Briefcase className="h-16 w-16 text-gray-400 dark:text-gray-600 mb-4" />
-              <p className="text-lg font-semibold text-gray-700 dark:text-gray-300">No jobs available</p>
+              <p className="text-lg font-semibold text-gray-700 dark:text-gray-300">
+                No jobs available
+              </p>
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-2 max-w-sm">
                 {searchQuery || searchLocation
-                  ? `No jobs match your search for "${searchQuery || searchLocation}". Try adjusting your filters or explore other categories.`
+                  ? `No jobs match your search for "${
+                      searchQuery || searchLocation
+                    }". Try adjusting your filters or explore other categories.`
                   : "No jobs have been posted yet. Check back later or explore other job categories."}
               </p>
               {(searchQuery || searchLocation) && (
-                <Button onClick={resetFilters} className="mt-4 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white shadow-md hover:shadow-lg transition-all duration-300">
+                <Button
+                  onClick={resetFilters}
+                  className="mt-4 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white shadow-md hover:shadow-lg transition-all duration-300"
+                >
                   <XCircle className="h-4 w-4 mr-2" />
                   Clear Filters
                 </Button>
@@ -219,63 +258,90 @@ export default function JobListings({
                   key={job._id}
                   className="border rounded-2xl p-6 bg-white dark:bg-gray-800 shadow-sm hover:shadow-xl transition-all duration-500 ease-in-out transform hover:-translate-y-1"
                 >
-                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
-                    <div className="flex-1">
-                      <div className="flex items-center flex-wrap space-x-2 mb-2">
+                  <div className="flex flex-col md:flex-row justify-between md:items-center mb-4 gap-6">
+                    {/* ---- Left Side ---- */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-2 mb-2">
                         {job.urgent && (
-                          <Badge className="bg-red-500 text-white border-red-500 rounded-full px-3 py-1 text-xs mb-2 md:mb-0">
+                          <Badge className="bg-red-500 text-white border-red-500 rounded-full px-3 py-1 text-xs">
                             <Zap className="h-3 w-3 mr-1 animate-pulse" />
                             Urgent Hiring
                           </Badge>
                         )}
-                        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 md:mb-0">
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-white truncate">
                           {job.position}
                         </h3>
-                        {job.jobLocation && job.jobLocation.toLowerCase() === "remote" && (
-                          <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 dark:bg-emerald-800 dark:text-emerald-300 rounded-full px-3 py-1 text-xs">
+                        {job.jobLocation?.toLowerCase() === "remote" && (
+                          <Badge
+                            variant="secondary"
+                            className="bg-emerald-100 text-emerald-700 dark:bg-emerald-800 dark:text-emerald-300 rounded-full px-3 py-1 text-xs"
+                          >
                             Remote
                           </Badge>
                         )}
                       </div>
-                      <div className="flex flex-wrap items-center space-x-4 text-sm text-gray-500 dark:text-gray-400 mb-3">
+
+                      <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500 dark:text-gray-400 mb-3">
                         <span className="font-semibold text-emerald-600 dark:text-emerald-400">
-                          {job.postedBy?.organizationName || job.postedBy?.name || 'Organization'}
+                          {job.postedBy?.organizationName ||
+                            job.postedBy?.name ||
+                            "Organization"}
                         </span>
-                        <div className="flex items-center space-x-1">
+                        <div className="flex items-center gap-1">
                           <MapPin className="h-4 w-4" />
-                          <span>{job.jobLocation || 'Location not specified'}</span>
+                          <span>
+                            {job.jobLocation || "Location not specified"}
+                          </span>
                         </div>
-                        <div className="flex items-center space-x-1">
+                        <div className="flex items-center gap-1">
                           <Clock className="h-4 w-4" />
-                          <span>{new Date(job.createdAt).toLocaleDateString()}</span>
+                          <span>
+                            {new Date(job.createdAt).toLocaleDateString()}
+                          </span>
                         </div>
-                        <div className="flex items-center space-x-1">
+                        <div className="flex items-center gap-1">
                           <Eye className="h-4 w-4" />
                           <span>{job.views || 0} views</span>
                         </div>
                       </div>
-                      <div className="flex items-center flex-wrap space-x-2 mb-4">
-                        <Badge variant="outline" className="border-emerald-200 text-emerald-700 dark:border-emerald-700 dark:text-emerald-300 rounded-full">
-                          {job.jobType || 'Full-time'}
+
+                      <div className="flex flex-wrap items-center gap-2 mb-4">
+                        <Badge
+                          variant="outline"
+                          className="border-emerald-200 text-emerald-700 dark:border-emerald-700 dark:text-emerald-300 rounded-full"
+                        >
+                          {job.jobType || "Full-time"}
                         </Badge>
                         <span className="text-emerald-600 dark:text-emerald-400 font-semibold text-lg">
-                          {job.hideSalary ? "Salary Not Disclosed" : job.negotiable ? "Negotiable" :
-                            job.offeredSalaryType === "Range"
-                              ? `${job.currency || '$'} ${job.minimum?.toLocaleString()} - ${job.maximum?.toLocaleString()} / ${job.salaryType}`
-                              : job.salary 
-                              ? `${job.currency || '$'} ${job.salary.toLocaleString()}`
-                              : "Salary not specified"}
+                          {job.hideSalary
+                            ? "Salary Not Disclosed"
+                            : job.negotiable
+                            ? "Negotiable"
+                            : job.offeredSalaryType === "Range"
+                            ? `${job.currency || "$"} ${job.minimum?.toLocaleString()} - ${
+                                job.maximum?.toLocaleString()
+                              } / ${job.salaryType}`
+                            : job.salary
+                            ? `${job.currency || "$"} ${job.salary.toLocaleString()}`
+                            : "Salary not specified"}
                         </span>
                       </div>
+
                       <p className="text-gray-700 dark:text-gray-300 mb-4 leading-relaxed line-clamp-2">
                         {job.description}
                       </p>
+
                       {job.requirements && job.requirements.length > 0 && (
                         <div className="mb-4">
-                          <h4 className="font-medium text-gray-900 dark:text-white mb-2">Requirements:</h4>
+                          <h4 className="font-medium text-gray-900 dark:text-white mb-2">
+                            Requirements:
+                          </h4>
                           <div className="flex flex-wrap gap-2">
                             {job.requirements.slice(0, 3).map((req, index) => (
-                              <span key={index} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                              <span
+                                key={index}
+                                className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
+                              >
                                 {req}
                               </span>
                             ))}
@@ -288,14 +354,18 @@ export default function JobListings({
                         </div>
                       )}
                     </div>
-                    <div className="w-full md:w-auto flex flex-col space-y-3 mt-4 md:mt-0 md:ml-6">
-                      <Button
-                        className="w-full rounded-full bg-emerald-500 hover:bg-emerald-600 text-white shadow-md hover:shadow-lg transition-all duration-300"
+
+                    {/* ---- Right Side ---- */}
+                    <div className="w-full md:w-auto flex flex-col space-y-3">
+                      {/* Debug-friendly plain button */}
+                      <button
+                        className="w-full rounded-full bg-emerald-500 hover:bg-emerald-600 text-white py-2 px-4 font-medium shadow-md hover:shadow-lg transition-all duration-300"
                         onClick={() => handleApplyNow(job._id)}
                       >
                         Apply Now
-                        <ArrowRight className="h-4 w-4 ml-2" />
-                      </Button>
+                        <ArrowRight className="h-4 w-4 inline ml-2" />
+                      </button>
+
                       <Button
                         variant="outline"
                         className="w-full rounded-full border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-300"
@@ -304,6 +374,7 @@ export default function JobListings({
                         <Heart className="h-4 w-4 mr-2 text-red-500" />
                         Save Job
                       </Button>
+
                       <Button
                         variant="ghost"
                         className="w-full text-emerald-600 dark:text-emerald-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-300"
@@ -315,7 +386,7 @@ export default function JobListings({
                   </div>
                 </div>
               ))}
-              
+
               {/* Pagination */}
               {renderPagination()}
             </div>
@@ -333,8 +404,12 @@ export default function JobListings({
 
       <style jsx>{`
         @keyframes shrink {
-          from { width: 100%; }
-          to { width: 0%; }
+          from {
+            width: 100%;
+          }
+          to {
+            width: 0%;
+          }
         }
       `}</style>
     </div>

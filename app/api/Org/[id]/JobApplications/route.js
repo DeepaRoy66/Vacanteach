@@ -1,5 +1,3 @@
-// app/api/org/[id]/jobapplications/route.js
-
 import { NextResponse } from 'next/server';
 import { connectToDatabase } from '../../../../../lib/mongoose';
 import JobApplication from '../../../../../lib/models/JobApplication';
@@ -8,11 +6,15 @@ import Job from '../../../../../lib/models/Job';
 export async function GET(request, { params }) {
   try {
     await connectToDatabase();
-
-    const { id } = params; // organization _id from URL
+    const { id } = await params; // Await params to access id
 
     if (!id) {
       return NextResponse.json({ error: 'Missing organization id' }, { status: 400 });
+    }
+
+    // Validate ObjectId format
+    if (!id.match(/^[0-9a-fA-F]{24}$/)) {
+      return NextResponse.json({ error: 'Invalid organization ID format' }, { status: 400 });
     }
 
     // Find jobs posted by this organization
