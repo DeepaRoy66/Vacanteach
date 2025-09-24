@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { connectToDatabase } from '../../../../../lib/mongoose';
-import Job from '../../../../../lib/models/Job';
+import { connectToDatabase } from '../../../../../../lib/mongoose';
+import Job from '../../../../../../lib/models/Job';
 
 export async function PUT(request, { params }) {
   try {
