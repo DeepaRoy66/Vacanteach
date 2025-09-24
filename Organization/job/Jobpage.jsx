@@ -8,6 +8,7 @@ import { Card } from "../../app/components/ui/card"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "../../app/components/ui/dialog"
 import DeleteJob from "./DeleteJob"
 import EditJobModal from "./Editjob"
+import Loading from "../../app/components/ui/loading"
 
 export default function JobListPage({ orgId }) {
   const { data: session, status } = useSession()
@@ -107,16 +108,12 @@ export default function JobListPage({ orgId }) {
     }
   }
 
-  // ---------- Guard checks ----------
+  // ---------- Guard checks & Loading ----------
   if (status === "loading" || loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p className="animate-pulse text-emerald-600 text-lg">Loading job listings...</p>
-      </div>
-    )
+    return <Loading message="Loading job listings..." fullScreen={true} />
   }
 
-  if (session?.user?.role !== "organization") {
+  if (status === "authenticated" && session?.user?.role !== "organization") {
     router.push("/unauthorized")
     return null
   }
@@ -212,7 +209,7 @@ export default function JobListPage({ orgId }) {
                         <Button variant="ghost" size="sm" onClick={() => handleEditClick(job)}>
                           <Edit className="h-4 w-4" />
                         </Button>
-                        <DeleteJob jobId={job._id} onDelete={handleDeleteSuccess} onError={setError}   orgId={orgId}/>
+                        <DeleteJob jobId={job._id} onDelete={handleDeleteSuccess} onError={setError} orgId={orgId}/>
                       </td>
                     </tr>
                   ))}
@@ -238,7 +235,7 @@ export default function JobListPage({ orgId }) {
                       <Button variant="ghost" size="sm" onClick={() => handleEditClick(job)}>
                         <Edit className="h-4 w-4" />
                       </Button>
-                     <DeleteJob jobId={job._id} onDelete={handleDeleteSuccess} onError={setError}   orgId={orgId}/>
+                      <DeleteJob jobId={job._id} onDelete={handleDeleteSuccess} onError={setError} orgId={orgId}/>
                     </div>
                   </div>
                 </Card>
