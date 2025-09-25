@@ -25,6 +25,35 @@ import {
   Plus,
 } from "lucide-react";
 
+// ---------- Helper: Relative time ----------
+const timeAgo = (dateString) => {
+  if (!dateString) return "Just now";
+
+  const posted = new Date(dateString);
+  if (isNaN(posted)) return "Just now";
+
+  const now = new Date();
+  const seconds = Math.floor((now - posted) / 1000);
+
+  const intervals = [
+    { label: "year", seconds: 31536000 },
+    { label: "month", seconds: 2592000 },
+    { label: "day", seconds: 86400 },
+    { label: "hour", seconds: 3600 },
+    { label: "minute", seconds: 60 },
+    { label: "second", seconds: 1 },
+  ];
+
+  for (let i = 0; i < intervals.length; i++) {
+    const interval = intervals[i];
+    const count = Math.floor(seconds / interval.seconds);
+    if (count >= 1) {
+      return `${count} ${interval.label}${count > 1 ? "s" : ""} ago`;
+    }
+  }
+  return "Just now";
+};
+
 export default function ActiveJobListings({
   isLoadingJobs,
   filteredJobs,
@@ -145,7 +174,7 @@ export default function ActiveJobListings({
                           <Eye className="h-4 w-4" />
                           {Math.floor(Math.random() * 200) + 50} views
                         </span>
-                        <span className="text-sm">Posted {Math.floor(Math.random() * 30) + 1} days ago</span>
+                        <span className="text-sm">Posted {timeAgo(job.createdAt)}</span>
                       </div>
                     </div>
                     
@@ -162,7 +191,7 @@ export default function ActiveJobListings({
                       </Button>
                       <Button 
                         onClick={() => router.push(`/organization/${orgId}/${job._id}/Jobpage`)}
-                      variant="outline" size="sm" className="text-gray-600 border-gray-300 hover:bg-gray-100 hover:text-gray-800">
+                        variant="outline" size="sm" className="text-gray-600 border-gray-300 hover:bg-gray-100 hover:text-gray-800">
                         <Edit className="h-4 w-4" />
                         <span className="sr-only lg:not-sr-only lg:ml-1">Edit</span>
                       </Button>

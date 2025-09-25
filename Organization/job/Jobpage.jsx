@@ -25,6 +25,35 @@ export default function JobListPage({ orgId }) {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [editFormData, setEditFormData] = useState({})
 
+  // ---------- Helper: Relative time ----------
+  const timeAgo = (dateString) => {
+    if (!dateString) return "Just now"
+
+    const posted = new Date(dateString)
+    if (isNaN(posted)) return "Just now"
+
+    const now = new Date()
+    const seconds = Math.floor((now - posted) / 1000)
+
+    const intervals = [
+      { label: "year", seconds: 31536000 },
+      { label: "month", seconds: 2592000 },
+      { label: "day", seconds: 86400 },
+      { label: "hour", seconds: 3600 },
+      { label: "minute", seconds: 60 },
+      { label: "second", seconds: 1 },
+    ]
+
+    for (let i = 0; i < intervals.length; i++) {
+      const interval = intervals[i]
+      const count = Math.floor(seconds / interval.seconds)
+      if (count >= 1) {
+        return `${count} ${interval.label}${count > 1 ? "s" : ""} ago`
+      }
+    }
+    return "Just now"
+  }
+
   // ---------- Fetch jobs ----------
   useEffect(() => {
     if (status === "authenticated") {
@@ -193,6 +222,7 @@ export default function JobListPage({ orgId }) {
                     <th className="p-3 text-left">Position</th>
                     <th className="p-3 text-left">Category</th>
                     <th className="p-3 text-left">Employees</th>
+                    <th className="p-3 text-left">Posted</th>
                     <th className="p-3 text-center">Actions</th>
                   </tr>
                 </thead>
@@ -202,6 +232,7 @@ export default function JobListPage({ orgId }) {
                       <td className="p-3">{job.position}</td>
                       <td className="p-3">{job.jobCategory}</td>
                       <td className="p-3">{job.requiredEmployees}</td>
+                      <td className="p-3">{timeAgo(job.createdAt)}</td>
                       <td className="p-3 text-center flex justify-center gap-2">
                         <Button variant="ghost" size="sm" onClick={() => handleViewClick(job)}>
                           <Eye className="h-4 w-4" />
@@ -226,6 +257,9 @@ export default function JobListPage({ orgId }) {
                       <p className="font-semibold">{job.position}</p>
                       <p className="text-sm text-gray-600">
                         {job.jobCategory} • {job.jobLocation}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        Posted: {timeAgo(job.createdAt)}
                       </p>
                     </div>
                     <div className="flex gap-2">
@@ -269,6 +303,9 @@ export default function JobListPage({ orgId }) {
               </p>
               <p>
                 <strong>Status:</strong> {selectedJob.active ? "Active" : "Inactive"}
+              </p>
+              <p>
+                <strong>Posted:</strong> {timeAgo(selectedJob.createdAt)}
               </p>
               <p>
                 <strong>Description:</strong> {selectedJob.description}
