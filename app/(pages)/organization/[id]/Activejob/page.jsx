@@ -1,5 +1,6 @@
-import ActiveJobs from "../../../../../Organization/ActiveJob/Activejob";
+import ActiveJobs from "../../../../../Organization/ActiveJob/Activejob"
 
-export default function page ({orgId}) {
-    return <ActiveJobs orgId={orgId} />
+export default function Page({ params }) {
+  const { id } = params // ✅ "id" comes from [id] folder name in your route
+  return <ActiveJobs orgId={id} />
 }

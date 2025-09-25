@@ -6,7 +6,7 @@ import { Button } from "../../app/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "../../app/components/ui/card"
 import { BriefcaseBusiness, AlertCircle } from "lucide-react"
 
-export default function ActiveJobs() {
+export default function ActiveJobs({ orgId }) {   // ✅ accept orgId as a prop
   const { data: session, status } = useSession({
     required: true,
     onUnauthenticated: () => router.push("/auth"),
@@ -16,24 +16,23 @@ export default function ActiveJobs() {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    if (status === "authenticated" && session?.user?.role === "organization") {
+    if (status === "authenticated" && session?.user?.role === "organization" && orgId) {
       fetchActiveJobs()
     }
-  }, [status, session])
+  }, [status, session, orgId])
 
   const fetchActiveJobs = async () => {
     setIsLoading(true)
     try {
-      const response = await fetch(
-        `/api/Org/listjob?active=true&postedBy=${encodeURIComponent(session?.user?.email)}`,
-        {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-        },
-      )
+      if (!orgId) throw new Error("Organization ID missing")
+
+      const response = await fetch(`/api/Org/${orgId}/listjob?active=true`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      })
       if (!response.ok) throw new Error("Failed to fetch jobs")
       const jobs = await response.json()
-      setActiveJobs(jobs)
+      setActiveJobs(Array.isArray(jobs) ? jobs : [])
     } catch (error) {
       console.error("Error fetching active jobs:", error)
       alert("Failed to load active jobs")
@@ -65,7 +64,9 @@ export default function ActiveJobs() {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
           <div>
             <h1 className="text-3xl font-extrabold text-gray-900">Active Jobs</h1>
-            <p className="text-gray-500 text-sm mt-1">View all active job listings posted by your organization.</p>
+            <p className="text-gray-500 text-sm mt-1">
+              View all active job listings posted by your organization.
+            </p>
           </div>
           <Button
             variant="outline"
@@ -86,7 +87,9 @@ export default function ActiveJobs() {
                 <CardHeader>
                   <CardTitle className="text-xl font-semibold text-gray-800 flex items-center gap-2">
                     {job.position}
-                    {job.urgent && <AlertCircle className="h-5 w-5 text-red-500" title="Urgent" />}
+                    {job.urgent && (
+                      <AlertCircle className="h-5 w-5 text-red-500" title="Urgent" />
+                    )}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
@@ -103,7 +106,9 @@ export default function ActiveJobs() {
                     <strong>Salary:</strong>{" "}
                     {job.hideSalary
                       ? "Salary Non Disclosed"
-                      : `${job.currency} ${job.minimum}${job.offeredSalaryType === "Range" ? ` - ${job.maximum}` : ""} ${job.salaryType}`}
+                      : `${job.currency} ${job.minimum}${
+                          job.offeredSalaryType === "Range" ? ` - ${job.maximum}` : ""
+                        } ${job.salaryType}`}
                   </p>
                   <p className="text-sm text-gray-600">
                     <strong>Status:</strong> {job.active ? "Active" : "Inactive"}
@@ -116,7 +121,7 @@ export default function ActiveJobs() {
                   <Button
                     variant="outline"
                     className="mt-4 bg-transparent"
-                 onClick={() => router.push(`/organization/Jobpage/${job._id}`)}
+                    onClick={() => router.push(`/organization/Jobpage/${job._id}`)}
                   >
                     View Details
                   </Button>

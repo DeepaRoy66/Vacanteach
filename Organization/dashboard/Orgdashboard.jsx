@@ -67,7 +67,7 @@ export default function OrganizationDashboard({ orgId }) {
   const fetchActiveJobs = async () => {
     setIsLoadingJobs(true)
     try {
-      const response = await fetch(`/api/Org/listjob?active=true&orgId=${encodeURIComponent(orgId)}`)
+      const response = await fetch(`/api/Org/${orgId}/listjob?active=true`)
       if (!response.ok) throw new Error("Failed to fetch jobs")
 
       const data = await response.json()
