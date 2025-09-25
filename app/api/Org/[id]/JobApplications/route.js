@@ -6,7 +6,8 @@ import Job from '../../../../../lib/models/Job';
 export async function GET(request, { params }) {
   try {
     await connectToDatabase();
-    const { id } = await params; // Await params to access id
+
+    const { id } = params; // just access directly
 
     if (!id) {
       return NextResponse.json({ error: 'Missing organization id' }, { status: 400 });
