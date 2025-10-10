@@ -9,12 +9,7 @@ export default function Navbar() {
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const dropdownRef = useRef()
   const params = useParams()
-  const orgId = params?.id // matches /organization/[id] route
-
-  // Debug orgId
-  useEffect(() => {
-    console.log("Navbar params:", params, "orgId:", orgId)
-  }, [params, orgId])
+  const orgId = params?.id
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -28,11 +23,11 @@ export default function Navbar() {
   }, [])
 
   return (
-    <nav className="sticky top-0 bg-green-600 z-50 shadow-md">
+    <nav className="flex-shrink-0 bg-green-600 shadow-md z-30">
       <div className="container mx-auto px-4 lg:px-6 py-3 flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="text-white font-bold text-xl">
-          VacanTeach
+        
         </Link>
 
         {/* Desktop & Mobile menu */}
@@ -61,7 +56,7 @@ export default function Navbar() {
               >
                 {session?.user?.image ? (
                   <img
-                    src={session.user.image}
+                    src={session.user.image || "/placeholder.svg"}
                     alt="Profile"
                     className="w-8 h-8 rounded-full object-cover border-2 border-white"
                     onError={(e) => {
@@ -77,9 +72,7 @@ export default function Navbar() {
 
               {dropdownOpen && (
                 <div className="absolute right-0 mt-2 w-44 bg-white border rounded-md shadow-lg py-2 z-50">
-                  <div className="px-4 py-2 text-sm text-gray-800">
-                    {session.user.email}
-                  </div>
+                  <div className="px-4 py-2 text-sm text-gray-800">{session.user.email}</div>
                   <button
                     onClick={() => signOut({ callbackUrl: "/" })}
                     className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-gray-100 transition-colors"

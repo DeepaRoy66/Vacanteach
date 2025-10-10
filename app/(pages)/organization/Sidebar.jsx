@@ -15,15 +15,12 @@ import {
   FileText,
   Menu,
   X,
-  LogOut,
   ChevronDown,
 } from "lucide-react"
 
-export default function SidebarLayout({ onMobileMenuChange, children }) {
+export default function SidebarLayout({ onMobileMenuChange }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [activeUrl, setActiveUrl] = useState("")
-  const [user, setUser] = useState(null)
-  const [loading, setLoading] = useState(true)
   const [openDropdown, setOpenDropdown] = useState(null)
 
   const router = useRouter()
@@ -38,39 +35,15 @@ export default function SidebarLayout({ onMobileMenuChange, children }) {
   }, [pathname])
 
   useEffect(() => {
-    async function fetchOrganization() {
-      if (status === "authenticated" && session?.user?.email) {
-        try {
-          const response = await fetch("/api/user/organizationdata", {
-            method: "GET",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
-          })
-          const data = await response.json()
-          if (response.ok) setUser(data.user)
-        } catch (err) {
-          console.error("Error fetching organization data:", err)
-        } finally {
-          setLoading(false)
-        }
-      }
-    }
-    fetchOrganization()
-  }, [session, status])
-
-  useEffect(() => {
     if (onMobileMenuChange) onMobileMenuChange(isSidebarOpen)
   }, [isSidebarOpen, onMobileMenuChange])
 
   const handleNavigation = (url, closeDropdown = false) => {
     if (!orgId) return
-
     let finalUrl = url
-    // Inject orgId only if not already present
     if (url.startsWith("/organization") && !url.includes(orgId)) {
       finalUrl = url.replace("/organization", `/organization/${orgId}`)
     }
-
     router.push(finalUrl)
     setActiveUrl(finalUrl)
     setIsSidebarOpen(false)
@@ -92,9 +65,7 @@ export default function SidebarLayout({ onMobileMenuChange, children }) {
       item.items &&
       item.items.some((subItem) => {
         const subExpectedPath =
-          orgId &&
-          subItem.url.startsWith("/organization") &&
-          !subItem.url.includes(orgId)
+          orgId && subItem.url.startsWith("/organization") && !subItem.url.includes(orgId)
             ? subItem.url.replace("/organization", `/organization/${orgId}`)
             : subItem.url
         return subExpectedPath === activeUrl
@@ -150,9 +121,7 @@ export default function SidebarLayout({ onMobileMenuChange, children }) {
         </div>
         {hasDropdown && (
           <ChevronDown
-            className={`size-4 transition-transform duration-200 ${
-              openDropdown === item.title ? "rotate-180" : ""
-            }`}
+            className={`size-4 transition-transform duration-200 ${openDropdown === item.title ? "rotate-180" : ""}`}
           />
         )}
       </button>
@@ -181,12 +150,12 @@ export default function SidebarLayout({ onMobileMenuChange, children }) {
   )
 
   return (
-    <div className="flex h-screen">
+    <>
       {/* Mobile menu button */}
       <div className="lg:hidden fixed top-4 left-4 z-50">
         <button
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-          className="p-2 rounded-full text-emerald-600 hover:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all duration-200"
+          className="p-2 rounded-full text-emerald-600 bg-white shadow-md hover:bg-emerald-50 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all duration-200"
         >
           {isSidebarOpen ? <X className="size-6" /> : <Menu className="size-6" />}
         </button>
@@ -207,7 +176,7 @@ export default function SidebarLayout({ onMobileMenuChange, children }) {
         }`}
       >
         {/* Header */}
-        <header className="bg-gradient-to-r from-emerald-600 to-green-600 text-white p-2 relative">
+        <header className="bg-gradient-to-r from-emerald-600 to-green-600 text-white p-3 relative">
           <button
             onClick={() => setIsSidebarOpen(false)}
             className="lg:hidden absolute top-4 right-4 p-2 rounded-full bg-white/20 hover:bg-white transition-colors"
@@ -235,54 +204,11 @@ export default function SidebarLayout({ onMobileMenuChange, children }) {
             .overflow-y-auto::-webkit-scrollbar-button { display: none; }
           `}</style>
 
-          {/* Mobile profile */}
-          <div className="lg:hidden bg-emerald-50 rounded-xl p-4 border border-emerald-200">
-            {status === "authenticated" && (
-              <div className="flex items-center gap-3 mb-4">
-                {session.user.image ? (
-                  <img
-                    src={session.user.image || "/placeholder.svg"}
-                    alt="Profile"
-                    className="w-12 h-12 rounded-full object-cover border-2 border-emerald-300"
-                  />
-                ) : (
-                  <div className="w-12 h-12 rounded-full bg-emerald-200 flex items-center justify-center text-lg font-bold text-emerald-800">
-                    {session.user.email?.charAt(0).toUpperCase() || "?"}
-                  </div>
-                )}
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-emerald-900 truncate">
-                    {user?.organizationName || session.user.email}
-                  </p>
-                  <p className="text-sm text-emerald-600 truncate">{session.user.email}</p>
-                </div>
-              </div>
-            )}
-            <button
-              onClick={() => handleNavigation("/organization/postjob")}
-              className="block w-full bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-white hover:text-green-500 focus:ring-2 focus:ring-green-400 transition-colors text-center font-medium mb-3"
-            >
-              Post Job
-            </button>
-            {status === "authenticated" && (
-              <button
-                onClick={() => {
-                  signOut({ callbackUrl: "/" })
-                  setIsSidebarOpen(false)
-                }}
-                className="flex items-center gap-2 w-full bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-white hover:text-red-500 focus:ring-2 focus:ring-red-400 transition-colors font-medium"
-              >
-                <LogOut className="size-4" />
-                Sign Out
-              </button>
-            )}
-          </div>
+          {/* 🔥 Removed the entire mobile profile + logout section */}
 
           {/* Main navigation */}
           <div className="space-y-4">
-            <h4 className="text-emerald-700 font-semibold text-xs uppercase tracking-wider">
-              Platform
-            </h4>
+            <h4 className="text-emerald-700 font-semibold text-xs uppercase tracking-wider">Platform</h4>
             <ul className="space-y-1">
               {data.navMain.map((item) => (
                 <li key={item.title}>
@@ -297,11 +223,7 @@ export default function SidebarLayout({ onMobileMenuChange, children }) {
                       <Submenu items={item.items} parentTitle={item.title} />
                     </>
                   ) : (
-                    <NavButton
-                      item={item}
-                      onClick={() => handleNavigation(item.url, true)}
-                      isActive={isActive(item)}
-                    />
+                    <NavButton item={item} onClick={() => handleNavigation(item.url, true)} isActive={isActive(item)} />
                   )}
                 </li>
               ))}
@@ -310,9 +232,7 @@ export default function SidebarLayout({ onMobileMenuChange, children }) {
 
           {/* Secondary navigation */}
           <div className="space-y-4">
-            <h4 className="text-emerald-700 font-semibold text-xs uppercase tracking-wider">
-              Account
-            </h4>
+            <h4 className="text-emerald-700 font-semibold text-xs uppercase tracking-wider">Account</h4>
             <ul className="space-y-1">
               {data.navSecondary.map((item) => (
                 <li key={item.title}>
@@ -327,9 +247,6 @@ export default function SidebarLayout({ onMobileMenuChange, children }) {
           </div>
         </div>
       </aside>
-
-      {/* Main content */}
-      <main className="flex-1 overflow-y-auto lg:ml-0">{children}</main>
-    </div>
+    </>
   )
 }
