@@ -1,8 +1,8 @@
 
 "use client";
 
-import { Card,CardContent,CardHeader,CardTitle } from "../../app/components/ui/card";
-import { Avatar,AvatarFallback } from "../../app/components/ui/avatar";
+import { Card,CardContent,CardHeader,CardTitle } from "@/app/components/ui/card";
+import { Avatar,AvatarFallback } from "@/app/components/ui/avatar";
 import { TrendingUp } from "lucide-react";
 
 export default function TopJobs({ topJobs }) {

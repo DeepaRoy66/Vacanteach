@@ -1,8 +1,8 @@
 
 "use client";
 
-import { Card,CardContent,CardHeader,CardTitle } from "../../app/components/ui/card";
-import { Badge } from "../../app/components/ui/badge";
+import { Card,CardContent,CardHeader,CardTitle } from "@/app/components/ui/card";
+import { Badge } from "@/app/components/ui/badge";
 import { AlertCircle, Calendar, CheckCircle, Eye, Clock } from "lucide-react";
 
 export default function RecentActivity({ recentActivity }) {

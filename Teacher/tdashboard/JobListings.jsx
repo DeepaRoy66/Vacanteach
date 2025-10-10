@@ -5,9 +5,9 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-} from "../../app/components/ui/card";
-import { Button } from "../../app/components/ui/button";
-import { Badge } from "../../app/components/ui/badge";
+} from "@/app/components/ui/card";
+import { Button } from "@/app/components/ui/button";
+import { Badge } from "@/app/components/ui/badge";
 import {
   Briefcase,
   Filter,

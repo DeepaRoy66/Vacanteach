@@ -1,5 +1,5 @@
 import React from "react";
-import { Card, CardContent } from "../../app/components/ui/card";
+import { Card, CardContent } from "@/app/components/ui/card";
 import { Target, Users, Calendar, Award, TrendingUp } from "lucide-react";
 
 export default function StatsGrid({ activeJobs, jobApplications }) {

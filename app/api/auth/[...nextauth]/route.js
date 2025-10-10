@@ -1,9 +1,9 @@
 import NextAuth from "next-auth/next";
 import GoogleProvider from "next-auth/providers/google";
 import FacebookProvider from "next-auth/providers/facebook";
-import { connectToDatabase } from "../../../../lib/mongoose";
-import User from "../../../../lib/models/teacher";
-import Organization from "../../../../lib/models/Organization";
+import { connectToDatabase } from "@/lib/mongoose";
+import User from "@/lib/models/teacher";
+import Organization from "@/lib/models/Organization";
 
 // Force dynamic rendering for NextAuth routes
 export const dynamic = 'force-dynamic';

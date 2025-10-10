@@ -1,14 +1,14 @@
 import React from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "../../app/components/ui/card";
-import { Button } from "../../app/components/ui/button";
+import { Button } from "@/app/components/ui/button";
 import {
   Select,
   SelectValue,
   SelectTrigger,
   SelectContent,
   SelectItem,
-} from "../../app/components/ui/select";
-import { Badge } from "../../app/components/ui/badge";
+} from "@/app/components/ui/select";
+import { Badge } from "@/app/components/ui/badge";
 import {
   BriefcaseBusiness,
   Search,

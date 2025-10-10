@@ -1,5 +1,5 @@
-import replySchema from "../../../lib/models/replySchema";
-import { connectToDatabase } from "../../../lib/mongoose";
+import replySchema from "@/lib/models/replySchema";
+import { connectToDatabase } from "@/lib/mongoose";
 
 export async function POST(req) {
   try {

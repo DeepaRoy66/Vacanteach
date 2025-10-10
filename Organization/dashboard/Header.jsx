@@ -1,5 +1,5 @@
 import React from "react";
-import { Button } from "../../app/components/ui/button";
+import { Button } from "@/app/components/ui/button";
 import { Bell, Settings, Plus } from "lucide-react";
 
 export default function Header({ user, router, orgId }) {

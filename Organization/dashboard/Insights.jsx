@@ -6,7 +6,7 @@ import {
   CardTitle,
   CardDescription,
   CardContent,
-} from "../../app/components/ui/card";
+} from "@/app/components/ui/card";
 import { Users, BarChart3 } from "lucide-react";
 import {
   ResponsiveContainer,

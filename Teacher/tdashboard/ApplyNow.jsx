@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { Button } from "../../app/components/ui/button";
+import { Button } from "@/app/components/ui/button";
 import { AlertCircle, XCircle } from "lucide-react";
 
 export default function ApplyJobModal({ isOpen, onClose, jobId, onSuccess }) {

@@ -3,12 +3,12 @@ import { useEffect, useState, useMemo } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { Eye, Edit, Plus, X } from "lucide-react"
-import { Button } from "../../app/components/ui/button"
-import { Card } from "../../app/components/ui/card"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "../../app/components/ui/dialog"
+import { Button } from "@/app/components/ui/button"
+import { Card } from "@/app/components/ui/card"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/app/components/ui/dialog"
 import DeleteJob from "./Deletejob"
 import EditJobModal from "./Editjob"
-import Loading from "../../app/components/ui/loading"
+import Loading from "@/app/components/ui/loading"
 
 export default function JobListPage({ orgId }) {
   const { data: session, status } = useSession()

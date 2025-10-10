@@ -27,7 +27,7 @@ import {
   AlertCircle,
   X,
 } from "lucide-react"
-import { Button } from "../../app/components/ui/button"
+import { Button } from "@/app/components/ui/button"
 import {
   Dialog,
   DialogContent,
@@ -35,15 +35,15 @@ import {
   DialogFooter,
   DialogTitle,
   DialogClose,
-} from "../../app/components/ui/dialog"
-import { Input } from "../../app/components/ui/input"
-import { Label } from "../../app/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../app/components/ui/select"
-import { Textarea } from "../../app/components/ui/textarea"
-import { Switch } from "../../app/components/ui/switch"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../app/components/ui/tooltip"
+} from "@/app/components/ui/dialog"
+import { Input } from "@/app/components/ui/input"
+import { Label } from "@/app/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/app/components/ui/select"
+import { Textarea } from "@/app/components/ui/textarea"
+import { Switch } from "@/app/components/ui/switch"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/app/components/ui/tooltip"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@radix-ui/react-accordion"
-import { cn } from "../../lib/utilis"
+import { cn } from "@/lib/utilis"
 
 const dropdownOptions = {
   jobCategory: [

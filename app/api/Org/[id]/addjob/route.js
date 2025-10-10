@@ -1,12 +1,12 @@
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "../../../auth/[...nextauth]/route";
-import { connectToDatabase } from "../../../../../lib/mongoose";
-import Job from "../../../../../lib/models/Job";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { connectToDatabase } from "@/lib/mongoose";
+import Job from "@/lib/models/Job";
 import { NextResponse } from "next/server";
 
 export async function POST(request) {
   try {
-    // Check session and authorization
+   
     const session = await getServerSession(authOptions);
     if (!session || !session.user || session.user.role !== "organization") {
       return NextResponse.json(
@@ -17,7 +17,7 @@ export async function POST(request) {
 
     const body = await request.json();
     const {
-      orgId, // <-- get orgId from request body
+      orgId, 
       position,
       requiredEmployees,
       jobCategory,
@@ -45,7 +45,7 @@ export async function POST(request) {
       );
     }
 
-    // Validation for required fields
+  
     if (
       !position?.trim() ||
       requiredEmployees === undefined ||

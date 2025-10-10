@@ -1,5 +1,5 @@
 import React from "react";
-import { Button } from "../../app/components/ui/button";
+import { Button } from "@/app/components/ui/button";
 import { Plus, Search, Users } from "lucide-react";
 
 export default function QuickActions({ router, orgId }) {

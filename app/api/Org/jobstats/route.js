@@ -1,6 +1,6 @@
 
-import { connectToDatabase } from "../../../../lib/mongoose";
-import JobStats from "../../../../lib/models/jobstats";
+import { connectToDatabase } from "@/lib/mongoose";
+import JobStats from "@/lib/models/jobstats";
 import { NextResponse } from "next/server";
 
 export async function GET(request) {

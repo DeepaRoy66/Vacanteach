@@ -1,5 +1,5 @@
 import { connectToDatabase } from "@/lib/mongoose";
-import User from "@/lib/models/Teacher";
+import User from "@/lib/models/teacher";
 import { authOptions } from "../auth/[...nextauth]/route";
 
 export async function POST(request) {

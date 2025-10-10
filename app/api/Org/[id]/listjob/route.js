@@ -1,11 +1,11 @@
 // app/api/Org/[id]/listjob/route.js
-import { connectToDatabase } from "../../../../../lib/mongoose";
-import Job from "../../../../../lib/models/Job";
+import { connectToDatabase } from "@/lib/mongoose";
+import Job from "@/lib/models/Job";
 import { NextResponse } from "next/server";
 
 export async function GET(request, { params }) {
   try {
-    const { id } = await params; // ✅ Await params for safety
+    const { id } = await params; 
     const { searchParams } = new URL(request.url);
     const search = searchParams.get("search");
     const location = searchParams.get("location");

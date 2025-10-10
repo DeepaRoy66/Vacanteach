@@ -1,6 +1,6 @@
-import { connectToDatabase } from "../../../../lib/mongoose";
-import User from "../../../../lib/models/teacher";
-import Organization from "../../../../lib/models/Organization";
+import { connectToDatabase } from "@/lib/mongoose";
+import User from "@/lib/models/teacher";
+import Organization from "@/lib/models/Organization";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../auth/[...nextauth]/route";
 

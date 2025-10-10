@@ -1,11 +1,11 @@
 "use client";
 import { useState, useEffect } from "react";
 import { Bell, Search, ChevronDown, MapPin, BookOpen, TrendingUp, User, Settings, BarChart, LogOut, X } from "lucide-react";
-import { Button } from "../../app/components/ui/button";
-import { Input } from "../../app/components/ui/input";
-import { Avatar, AvatarFallback, AvatarImage } from "../../app/components/ui/avatar";
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuItem, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator } from "../../app/components/ui/dropdown-menu";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "../../app/components/ui/dialog";
+import { Button } from "@/app/components/ui/button";
+import { Input } from "@/app/components/ui/input";
+import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuItem, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator } from "@/app/components/ui/dropdown-menu";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/app/components/ui/dialog";
 import Link from "next/link";
 
 export default function NavBar({

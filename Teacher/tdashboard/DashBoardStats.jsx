@@ -2,7 +2,7 @@
 "use client";
 
 import { Card,CardContent,CardHeader,CardTitle } from "../../app/components/ui/card";
-import { Progress } from "../../app/components/ui/progress";
+import { Progress } from "@/app/components/ui/progress";
 import { Briefcase, Eye, Award, DollarSign, ArrowUpRight, ArrowDownRight } from "lucide-react";
 
 export default function DashboardStats({

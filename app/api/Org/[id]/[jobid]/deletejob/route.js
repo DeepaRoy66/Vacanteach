@@ -1,6 +1,6 @@
 // app/api/Org/[id]/[jobid]/deletejob/route.js
 import { getServerSession } from "next-auth/next"
-import { authOptions } from "../../../../auth/[...nextauth]/route"
+import { authOptions } from "@/app/api/auth/[...nextauth]/route"
 import { connectToDatabase } from "@/lib/mongoose"
 import Job from "@/lib/models/Job"
 import JobStats from "@/lib/models/jobstats"

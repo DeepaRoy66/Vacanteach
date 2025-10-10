@@ -36,8 +36,8 @@ import {
   ChevronDown,
   Search,
 } from "lucide-react"
-import { cn } from "../../lib/utilis"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../app/components/ui/tooltip"
+import { cn } from "@/lib/utilis"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/app/components/ui/tooltip"
 
 const initialFormData = {
   position: "",

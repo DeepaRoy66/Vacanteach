@@ -5,10 +5,10 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-} from "../../app/components/ui/card";
-import { Button } from "../../app/components/ui/button";
+} from "@/app/components/ui/card";
+import { Button } from "@/app/components/ui/button";
 import { Search, Eye, Send, Clock, BriefcaseBusiness, MapPin } from "lucide-react";
-import { Textarea } from "../../app/components/ui/textarea";
+import { Textarea } from "@/app/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
@@ -16,7 +16,7 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-} from "../../app/components/ui/dialog";
+} from "@/app/components/ui/dialog";
 
 function timeAgo(date) {
   const now = new Date();

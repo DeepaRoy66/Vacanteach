@@ -6,8 +6,8 @@ import {
   CardTitle,
   CardDescription,
   CardContent,
-} from "../../app/components/ui/card";
-import { Button } from "../../app/components/ui/button";
+} from "@/app/components/ui/card";
+import { Button } from "@/app/components/ui/button";
 import {
   FileText,
   Search,
@@ -24,8 +24,8 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-} from "../../app/components/ui/dialog";
-import { Textarea } from "../../app/components/ui/textarea";
+} from "@/app/components/ui/dialog";
+import { Textarea } from "@/app/components/ui/textarea";
 
 // ✅ Helper function to format time ago
 function timeAgo(date) {

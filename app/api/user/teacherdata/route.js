@@ -1,11 +1,11 @@
-import { connectToDatabase } from "../../../../lib/mongoose";
-import User from "../../../../lib/models/teacher";
+import { connectToDatabase } from "@/lib/mongoose";
+import User from "@/lib/models/teacher";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../auth/[...nextauth]/route";
 
 export async function GET(req) {
   try {
-    // Get session using NextAuth's getServerSession
+  
     const session = await getServerSession(authOptions);
 
     if (!session || !session.user?.email) {

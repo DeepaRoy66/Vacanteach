@@ -1,7 +1,7 @@
 "use client"
 import { useState } from "react"
 import { Trash2, X } from "lucide-react"
-import { Button } from "../../app/components/ui/button"
+import { Button } from "@/app/components/ui/button"
 import {
   Dialog,
   DialogContent,
@@ -9,7 +9,7 @@ import {
   DialogFooter,
   DialogTitle,
   DialogClose,
-} from "../../app/components/ui/dialog"
+} from "@/app/components/ui/dialog"
 import { useSession } from "next-auth/react"
 
 export default function DeleteJob({ jobId, orgId, onDelete, onError }) {
