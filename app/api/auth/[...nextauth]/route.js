@@ -11,8 +11,8 @@ export const dynamic = 'force-dynamic';
 export const authOptions = {
   providers: [
     GoogleProvider({
-      clientId: process.env.GOOGLE_Client_ID,
-      clientSecret: process.env.GOOGLE_Client_secret,
+      clientId: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     }),
     FacebookProvider({
       clientId: process.env.FB_ID,
