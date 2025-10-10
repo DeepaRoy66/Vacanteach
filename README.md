@@ -46,3 +46,4 @@ chnaged text of secret
 nextauth changed
 made landing page responsive
 org navbar
+fixed sidebar
