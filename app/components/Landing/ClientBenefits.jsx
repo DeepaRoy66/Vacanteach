@@ -1,5 +1,5 @@
 "use client"
-import { Card,CardContent } from "../ui/card"
+import { Card, CardContent } from "../ui/card"
 
 export default function ClientBenefits() {
   const benefits = [
@@ -36,46 +36,66 @@ export default function ClientBenefits() {
   ]
 
   return (
-    <section className="py-20 bg-gray-50">
-      <div className="container mx-auto px-6">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+    <section className="py-16 md:py-20 bg-gray-50">
+      <div className="container mx-auto px-4 sm:px-6">
+        {/* Header Section */}
+        <div className="text-center mb-12 sm:mb-16">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-4 sm:mb-6 leading-tight">
             Why Schools & Teachers Choose Our Platform
           </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+          <p className="text-base sm:text-lg md:text-xl text-gray-600 max-w-3xl mx-auto px-2">
             Building bridges between educational institutions and passionate educators for transformative learning
             experiences.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {/* Benefits Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
           {benefits.map((benefit, index) => (
-            <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300 bg-white">
-              <CardContent className="p-8 text-center">
-                <div className="text-4xl mb-4">{benefit.icon}</div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">{benefit.title}</h3>
-                <p className="text-gray-600 leading-relaxed">{benefit.description}</p>
+            <Card
+              key={index}
+              className="border-0 shadow-md sm:shadow-lg hover:shadow-xl transition-all duration-300 bg-white rounded-xl"
+            >
+              <CardContent className="p-6 sm:p-8 text-center">
+                <div className="text-3xl sm:text-4xl mb-3 sm:mb-4">{benefit.icon}</div>
+                <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-3 sm:mb-4">
+                  {benefit.title}
+                </h3>
+                <p className="text-gray-600 text-sm sm:text-base leading-relaxed">
+                  {benefit.description}
+                </p>
               </CardContent>
             </Card>
           ))}
         </div>
 
-        <div className="mt-20 bg-green-600 rounded-2xl p-12 text-white text-center">
-          <h3 className="text-3xl font-bold mb-6">Success Through Collaboration</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+        {/* Collaboration Highlight */}
+        <div className="mt-16 sm:mt-20 bg-green-600 rounded-2xl p-8 sm:p-12 text-white text-center">
+          <h3 className="text-2xl sm:text-3xl font-bold mb-6">Success Through Collaboration</h3>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 sm:gap-12 items-center">
+            {/* Quote Section */}
             <div>
-              <p className="text-lg mb-6">
-                "Our partnership platform has revolutionized how schools and teachers connect. We've seen a 40%
+              <p className="text-base sm:text-lg mb-4 sm:mb-6 leading-relaxed">
+                "Our partnership platform has revolutionized how schools and teachers connect. We’ve seen a 40%
                 improvement in teaching quality and student engagement."
               </p>
-              <div className="font-semibold">Dr. Sarah Johnson</div>
-              <div className="text-green-200">Director of Education, Metro School District</div>
+              <div className="font-semibold text-white">Dr. Sarah Johnson</div>
+              <div className="text-green-200 text-sm sm:text-base">
+                Director of Education, Metro School District
+              </div>
             </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-8">
-              <div className="text-4xl font-bold mb-2">40%</div>
-              <div className="text-green-200 mb-4">Improvement in Teaching Quality</div>
-              <div className="text-4xl font-bold mb-2">85%</div>
-              <div className="text-green-200">Teacher Retention Rate</div>
+
+            {/* Stats Section */}
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 sm:p-8">
+              <div className="text-3xl sm:text-4xl font-bold mb-2">40%</div>
+              <div className="text-green-200 mb-4 text-sm sm:text-base">
+                Improvement in Teaching Quality
+              </div>
+              <div className="text-3xl sm:text-4xl font-bold mb-2">85%</div>
+              <div className="text-green-200 text-sm sm:text-base">
+                Teacher Retention Rate
+              </div>
             </div>
           </div>
         </div>

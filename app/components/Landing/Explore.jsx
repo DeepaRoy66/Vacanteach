@@ -13,24 +13,32 @@ export default function ExplorePros() {
   ]
 
   return (
-    <section className="py-20 bg-white">
-      <div className="container mx-auto px-6">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-800 mb-6">Explore Teaching Specializations</h2>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+    <section className="py-16 md:py-20 bg-white">
+      <div className="container mx-auto px-4 sm:px-6">
+        {/* Header */}
+        <div className="text-center mb-12 sm:mb-16">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-800 mb-4 sm:mb-6 leading-tight">
+            Explore Teaching Specializations
+          </h2>
+          <p className="text-base sm:text-lg md:text-xl text-gray-600 max-w-2xl mx-auto px-2">
             Find teaching opportunities across all educational disciplines and grade levels
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
+        {/* Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 max-w-7xl mx-auto">
           {subjects.map((subject, index) => (
             <div
               key={subject.name}
-              className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
+              className="bg-white p-5 sm:p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-lg hover:border-green-500 transition-all duration-300 cursor-pointer group"
             >
-              <div className="text-4xl mb-4">{subject.icon}</div>
-              <h3 className="text-lg font-bold text-gray-800 mb-2 group-hover:text-green-700">{subject.name}</h3>
-              <p className="text-sm text-gray-600">{subject.count}</p>
+              <div className="text-3xl sm:text-4xl mb-3 sm:mb-4 group-hover:scale-110 transition-transform duration-300">
+                {subject.icon}
+              </div>
+              <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-1 sm:mb-2 group-hover:text-green-700">
+                {subject.name}
+              </h3>
+              <p className="text-sm sm:text-base text-gray-600">{subject.count}</p>
             </div>
           ))}
         </div>
