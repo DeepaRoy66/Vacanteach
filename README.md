@@ -47,3 +47,4 @@ nextauth changed
 made landing page responsive
 org navbar
 fixed sidebar
+connection in lib
