@@ -40,3 +40,5 @@ Correct import paths for DeleteJob and EditJob components
 
 abosolute imports
 imports
+installation
+
