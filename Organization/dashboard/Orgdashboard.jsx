@@ -28,7 +28,6 @@ export default function OrganizationDashboard({ orgId }) {
   const [isVerifyingAuth, setIsVerifyingAuth] = useState(true)
   const [authError, setAuthError] = useState(null)
 
-  // ---------------- AUTH VERIFICATION ----------------
   useEffect(() => {
     async function verifyAccess() {
       if (status === "loading") return
@@ -58,7 +57,6 @@ export default function OrganizationDashboard({ orgId }) {
     verifyAccess()
   }, [status, session, orgId, router])
 
-  // ---------------- FETCH DATA ----------------
   useEffect(() => {
     if (isAuthorized && !isVerifyingAuth) {
       fetchActiveJobs()
@@ -71,12 +69,16 @@ export default function OrganizationDashboard({ orgId }) {
     try {
       const response = await fetch(`/api/Org/${orgId}/listjob?active=true`)
       if (!response.ok) throw new Error("Failed to fetch jobs")
+
       const data = await response.json()
+      console.log("Fetched jobs:", data)
+
+      // Ensure it's always an array
       const jobsArray = Array.isArray(data) ? data : data.jobs || []
       setActiveJobs(jobsArray)
     } catch (error) {
       toast.error("Failed to load active jobs. Please try again.")
-      setActiveJobs([])
+      setActiveJobs([]) // fallback
     } finally {
       setIsLoadingJobs(false)
     }
@@ -87,18 +89,21 @@ export default function OrganizationDashboard({ orgId }) {
     try {
       const response = await fetch(`/api/Org/${orgId}/JobApplications?orgId=${encodeURIComponent(orgId)}`)
       if (!response.ok) throw new Error("Failed to fetch applications")
+
       const data = await response.json()
+      console.log("Fetched applications:", data)
+
+      // Ensure it's always an array
       const applicationsArray = Array.isArray(data) ? data : data.applications || []
       setJobApplications(applicationsArray)
     } catch (error) {
       toast.error("Failed to load job applications. Please try again.")
-      setJobApplications([])
+      setJobApplications([]) // fallback
     } finally {
       setIsLoadingApplications(false)
     }
   }
 
-  // ---------------- FILTERING ----------------
   const filteredJobs = activeJobs.filter((job) => {
     const matchesCategory = selectedCategory === "all" || job.jobCategory === selectedCategory
     const matchesSearch =
@@ -115,7 +120,7 @@ export default function OrganizationDashboard({ orgId }) {
     )
   })
 
-  // ---------------- LOADING STATE ----------------
+  // ---------------- Loading or Error ----------------
   if (status === "loading" || isVerifyingAuth) {
     return (
       <div className="flex justify-center items-center min-h-screen bg-white px-4">
@@ -148,48 +153,49 @@ export default function OrganizationDashboard({ orgId }) {
     )
   }
 
-  // ---------------- MAIN DASHBOARD ----------------
   return (
     <>
       <ToastContainer />
-      <div className="flex flex-col h-screen bg-white overflow-hidden">
-        {/* 🔝 Fixed Header */}
-        <div className="sticky top-0 z-50 bg-white shadow-sm">
-          <Header user={session?.user} router={router} orgId={orgId} />
-        </div>
-
-        {/* 🧭 Scrollable Content */}
-        <main className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 sm:py-6 max-w-7xl mx-auto w-full">
-          {showWelcome && (
-            <div className="mb-6">
-              <WelcomeBanner user={session?.user} setShowWelcome={setShowWelcome} activeJobs={activeJobs} />
-            </div>
-          )}
-
-          <div className="space-y-6 sm:space-y-8 pb-24">
-            <StatsGrid activeJobs={activeJobs} jobApplications={jobApplications} />
-            <QuickActions router={router} orgId={orgId} />
-            <JobApplications
-              isLoadingApplications={isLoadingApplications}
-              filteredApplications={filteredApplications}
-              searchTerm={searchTerm}
-              setSearchTerm={setSearchTerm}
-              orgId={orgId}
-            />
-            <ActiveJobListings
-              isLoadingJobs={isLoadingJobs}
-              filteredJobs={filteredJobs}
-              searchTerm={searchTerm}
-              setSearchTerm={setSearchTerm}
-              selectedCategory={selectedCategory}
-              setSelectedCategory={setSelectedCategory}
-              router={router}
-              orgId={orgId}
-            />
-            <Insights filteredJobs={filteredJobs} />
-            <CallToAction router={router} orgId={orgId} />
+      <div className="p-4 sm:p-6 max-w-7xl mx-auto bg-white">
+        <Header user={session?.user} router={router} orgId={orgId} />
+        {showWelcome && (
+          <div className="mt-4">
+            <WelcomeBanner user={session?.user} setShowWelcome={setShowWelcome} activeJobs={activeJobs} />
           </div>
-        </main>
+        )}
+        <div className="mt-6">
+          <StatsGrid activeJobs={activeJobs} jobApplications={jobApplications} />
+        </div>
+        <div className="mt-6">
+          <QuickActions router={router} orgId={orgId} />
+        </div>
+        <div className="mt-8">
+          <JobApplications
+            isLoadingApplications={isLoadingApplications}
+            filteredApplications={filteredApplications}
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            orgId={orgId}
+          />
+        </div>
+        <div className="mt-8">
+          <ActiveJobListings
+            isLoadingJobs={isLoadingJobs}
+            filteredJobs={filteredJobs}
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            selectedCategory={selectedCategory}
+            setSelectedCategory={setSelectedCategory}
+            router={router}
+            orgId={orgId}
+          />
+        </div>
+        <div className="mt-8">
+          <Insights filteredJobs={filteredJobs} />
+        </div>
+        <div className="mt-8">
+          <CallToAction router={router} orgId={orgId} />
+        </div>
       </div>
     </>
   )
