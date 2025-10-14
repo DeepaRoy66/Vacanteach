@@ -28,22 +28,27 @@ export default function OrganizationDashboard({ orgId }) {
   const [isVerifyingAuth, setIsVerifyingAuth] = useState(true)
   const [authError, setAuthError] = useState(null)
 
+  // ---------------- Verify Access ----------------
   useEffect(() => {
     async function verifyAccess() {
       if (status === "loading") return
+
       if (status === "unauthenticated" || !session?.user?.email) {
         router.push("/auth")
         return
       }
+
       if (!session.user.role || !session.user.profileCompleted) {
         router.push("/select-role")
         return
       }
+
       if (session.user.role !== "organization") {
         toast.error("Access denied. Organization role required.")
         router.push("/")
         return
       }
+
       try {
         setIsAuthorized(true)
       } catch (error) {
@@ -57,6 +62,7 @@ export default function OrganizationDashboard({ orgId }) {
     verifyAccess()
   }, [status, session, orgId, router])
 
+  // ---------------- Fetch Data ----------------
   useEffect(() => {
     if (isAuthorized && !isVerifyingAuth) {
       fetchActiveJobs()
@@ -71,14 +77,11 @@ export default function OrganizationDashboard({ orgId }) {
       if (!response.ok) throw new Error("Failed to fetch jobs")
 
       const data = await response.json()
-      console.log("Fetched jobs:", data)
-
-      // Ensure it's always an array
       const jobsArray = Array.isArray(data) ? data : data.jobs || []
       setActiveJobs(jobsArray)
     } catch (error) {
       toast.error("Failed to load active jobs. Please try again.")
-      setActiveJobs([]) // fallback
+      setActiveJobs([])
     } finally {
       setIsLoadingJobs(false)
     }
@@ -91,19 +94,17 @@ export default function OrganizationDashboard({ orgId }) {
       if (!response.ok) throw new Error("Failed to fetch applications")
 
       const data = await response.json()
-      console.log("Fetched applications:", data)
-
-      // Ensure it's always an array
       const applicationsArray = Array.isArray(data) ? data : data.applications || []
       setJobApplications(applicationsArray)
     } catch (error) {
       toast.error("Failed to load job applications. Please try again.")
-      setJobApplications([]) // fallback
+      setJobApplications([])
     } finally {
       setIsLoadingApplications(false)
     }
   }
 
+  // ---------------- Filtering ----------------
   const filteredJobs = activeJobs.filter((job) => {
     const matchesCategory = selectedCategory === "all" || job.jobCategory === selectedCategory
     const matchesSearch =
@@ -120,7 +121,7 @@ export default function OrganizationDashboard({ orgId }) {
     )
   })
 
-  // ---------------- Loading or Error ----------------
+  // ---------------- Loading / Error States ----------------
   if (status === "loading" || isVerifyingAuth) {
     return (
       <div className="flex justify-center items-center min-h-screen bg-white px-4">
@@ -153,23 +154,26 @@ export default function OrganizationDashboard({ orgId }) {
     )
   }
 
+  // ---------------- Main Dashboard ----------------
   return (
     <>
       <ToastContainer />
-      <div className="p-4 sm:p-6 max-w-7xl mx-auto bg-white">
-        <Header user={session?.user} router={router} orgId={orgId} />
-        {showWelcome && (
-          <div className="mt-4">
-            <WelcomeBanner user={session?.user} setShowWelcome={setShowWelcome} activeJobs={activeJobs} />
-          </div>
-        )}
-        <div className="mt-6">
+      <div className="min-h-screen flex flex-col bg-white">
+        <main className="flex-1 p-4 sm:p-6 max-w-7xl mx-auto w-full space-y-8 pb-8">
+          <Header user={session?.user} router={router} orgId={orgId} />
+
+          {showWelcome && (
+            <WelcomeBanner
+              user={session?.user}
+              setShowWelcome={setShowWelcome}
+              activeJobs={activeJobs}
+            />
+          )}
+
           <StatsGrid activeJobs={activeJobs} jobApplications={jobApplications} />
-        </div>
-        <div className="mt-6">
+
           <QuickActions router={router} orgId={orgId} />
-        </div>
-        <div className="mt-8">
+
           <JobApplications
             isLoadingApplications={isLoadingApplications}
             filteredApplications={filteredApplications}
@@ -177,8 +181,7 @@ export default function OrganizationDashboard({ orgId }) {
             setSearchTerm={setSearchTerm}
             orgId={orgId}
           />
-        </div>
-        <div className="mt-8">
+
           <ActiveJobListings
             isLoadingJobs={isLoadingJobs}
             filteredJobs={filteredJobs}
@@ -189,13 +192,11 @@ export default function OrganizationDashboard({ orgId }) {
             router={router}
             orgId={orgId}
           />
-        </div>
-        <div className="mt-8">
+
           <Insights filteredJobs={filteredJobs} />
-        </div>
-        <div className="mt-8">
+
           <CallToAction router={router} orgId={orgId} />
-        </div>
+        </main>
       </div>
     </>
   )
