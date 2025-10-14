@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useUserRedirect } from "./useUserRedirect";
-import { Briefcase, Home } from "lucide-react";
+import { Users, Mail } from "lucide-react";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -36,21 +36,21 @@ export default function Navbar() {
         {/* Desktop Menu */}
         <div className="hidden md:flex items-center space-x-8">
           <Link
-            href="/find-work"
+            href="/about-us"
             className="flex items-center space-x-2 text-green-900 font-medium hover:text-green-700 transition-all duration-300"
           >
-            <Home className="w-5 h-5" />
-            <span>Find Work</span>
+            <Users className="w-5 h-5" /> {/* Unique icon */}
+            <span>About Us</span>
           </Link>
           <Link
-            href="/enterprise"
+            href="/contact-us"
             className="flex items-center space-x-2 text-green-900 font-medium hover:text-green-700 transition-all duration-300"
           >
-            <Briefcase className="w-5 h-5" />
-            <span>Enterprise</span>
+            <Mail className="w-5 h-5" />
+            <span>Contact Us</span>
           </Link>
 
-          {/* Show only name (no logout) */}
+          {/* User Section */}
           {isAuthenticated ? (
             <div className="flex items-center space-x-2">
               {session?.user?.image ? (
@@ -80,18 +80,18 @@ export default function Navbar() {
         {/* Mobile Menu */}
         <div className="flex md:hidden space-x-6">
           <Link
-            href="/find-work"
+            href="/about-us"
             className="flex flex-col items-center text-green-900 font-medium text-xs hover:text-green-700 transition-all duration-300"
           >
-            <Home className="w-6 h-6 mb-1" />
-            Find Work
+            <Users className="w-6 h-6 mb-1" /> {/* Mobile icon */}
+            About Us
           </Link>
           <Link
-            href="/enterprise"
+            href="/contact-us"
             className="flex flex-col items-center text-green-900 font-medium text-xs hover:text-green-700 transition-all duration-300"
           >
-            <Briefcase className="w-6 h-6 mb-1" />
-            Enterprise
+            <Mail className="w-6 h-6 mb-1" />
+            Contact Us
           </Link>
           {isAuthenticated ? (
             <div className="w-10 h-10 rounded-full bg-gray-400 flex items-center justify-center border-2 border-green-500 text-white font-medium">

@@ -28,7 +28,7 @@ export default function OrganizationDashboard({ orgId }) {
   const [isVerifyingAuth, setIsVerifyingAuth] = useState(true)
   const [authError, setAuthError] = useState(null)
 
-  // ---------------- Verify Access ----------------
+  
   useEffect(() => {
     async function verifyAccess() {
       if (status === "loading") return
@@ -104,7 +104,7 @@ export default function OrganizationDashboard({ orgId }) {
     }
   }
 
-  // ---------------- Filtering ----------------
+  
   const filteredJobs = activeJobs.filter((job) => {
     const matchesCategory = selectedCategory === "all" || job.jobCategory === selectedCategory
     const matchesSearch =
@@ -121,7 +121,7 @@ export default function OrganizationDashboard({ orgId }) {
     )
   })
 
-  // ---------------- Loading / Error States ----------------
+
   if (status === "loading" || isVerifyingAuth) {
     return (
       <div className="flex justify-center items-center min-h-screen bg-white px-4">
@@ -158,8 +158,8 @@ export default function OrganizationDashboard({ orgId }) {
   return (
     <>
       <ToastContainer />
-      <div className="min-h-screen flex flex-col bg-white">
-        <main className="flex-1 p-4 sm:p-6 max-w-7xl mx-auto w-full space-y-8 pb-0">
+      <div className="flex flex-col bg-white"> {/* Removed min-h-screen to let content drive height */}
+        <main className="p-4 sm:p-6 max-w-7xl mx-auto w-full space-y-8"> {/* Removed flex-1 and pb-0; now auto-height */}
           <Header user={session?.user} router={router} orgId={orgId} />
 
           {showWelcome && (
