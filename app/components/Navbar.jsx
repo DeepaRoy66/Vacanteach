@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useUserRedirect } from "./useUserRedirect";
-import { Users, Mail } from "lucide-react";
+import { Users, Mail, Home as HomeIcon } from "lucide-react"; // Added Home icon
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -36,14 +36,21 @@ export default function Navbar() {
         {/* Desktop Menu */}
         <div className="hidden md:flex items-center space-x-8">
           <Link
-            href="/about-us"
+            href="/"
             className="flex items-center space-x-2 text-green-900 font-medium hover:text-green-700 transition-all duration-300"
           >
-            <Users className="w-5 h-5" /> {/* Unique icon */}
+            <HomeIcon className="w-5 h-5" />
+            <span>Home</span>
+          </Link>
+          <Link
+            href="/Aboutus"
+            className="flex items-center space-x-2 text-green-900 font-medium hover:text-green-700 transition-all duration-300"
+          >
+            <Users className="w-5 h-5" />
             <span>About Us</span>
           </Link>
           <Link
-            href="/contact-us"
+            href="/Contactus"
             className="flex items-center space-x-2 text-green-900 font-medium hover:text-green-700 transition-all duration-300"
           >
             <Mail className="w-5 h-5" />
@@ -80,10 +87,17 @@ export default function Navbar() {
         {/* Mobile Menu */}
         <div className="flex md:hidden space-x-6">
           <Link
+            href="/"
+            className="flex flex-col items-center text-green-900 font-medium text-xs hover:text-green-700 transition-all duration-300"
+          >
+            <HomeIcon className="w-6 h-6 mb-1" />
+            Home
+          </Link>
+          <Link
             href="/about-us"
             className="flex flex-col items-center text-green-900 font-medium text-xs hover:text-green-700 transition-all duration-300"
           >
-            <Users className="w-6 h-6 mb-1" /> {/* Mobile icon */}
+            <Users className="w-6 h-6 mb-1" />
             About Us
           </Link>
           <Link
