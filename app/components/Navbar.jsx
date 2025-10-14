@@ -42,13 +42,7 @@ export default function Navbar() {
             <HomeIcon className="w-5 h-5" />
             <span>Home</span>
           </Link>
-          <Link
-            href="/Aboutus"
-            className="flex items-center space-x-2 text-green-900 font-medium hover:text-green-700 transition-all duration-300"
-          >
-            <Users className="w-5 h-5" />
-            <span>About Us</span>
-          </Link>
+         
           <Link
             href="/Contactus"
             className="flex items-center space-x-2 text-green-900 font-medium hover:text-green-700 transition-all duration-300"
@@ -93,13 +87,7 @@ export default function Navbar() {
             <HomeIcon className="w-6 h-6 mb-1" />
             Home
           </Link>
-          <Link
-            href="/about-us"
-            className="flex flex-col items-center text-green-900 font-medium text-xs hover:text-green-700 transition-all duration-300"
-          >
-            <Users className="w-6 h-6 mb-1" />
-            About Us
-          </Link>
+         
           <Link
             href="/contact-us"
             className="flex flex-col items-center text-green-900 font-medium text-xs hover:text-green-700 transition-all duration-300"
