@@ -159,7 +159,7 @@ export default function OrganizationDashboard({ orgId }) {
     <>
       <ToastContainer />
       <div className="min-h-screen flex flex-col bg-white">
-        <main className="flex-1 p-4 sm:p-6 max-w-7xl mx-auto w-full space-y-8 pb-8">
+        <main className="flex-1 p-4 sm:p-6 max-w-7xl mx-auto w-full space-y-8 pb-0">
           <Header user={session?.user} router={router} orgId={orgId} />
 
           {showWelcome && (
